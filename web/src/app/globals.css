@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --qoqnuz-primary: #1DB954;
+  --qoqnuz-secondary: #191414;
+  --qoqnuz-bg: #121212;
+  --qoqnuz-surface: #181818;
+  --qoqnuz-text: #FFFFFF;
+  --qoqnuz-text-secondary: #B3B3B3;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  color: var(--qoqnuz-text);
+  background: var(--qoqnuz-bg);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
