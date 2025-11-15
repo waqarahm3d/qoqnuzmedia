@@ -666,8 +666,7 @@ ON CONFLICT (name) DO NOTHING;
 INSERT INTO admin_users (user_id, role_id)
 VALUES (
   'YOUR_USER_ID_HERE',
-  (SELECT id FROM admin_roles WHERE name = 'Super Admin'),
-  true
+  (SELECT id FROM admin_roles WHERE name = 'Super Admin')
 );
 ```
 

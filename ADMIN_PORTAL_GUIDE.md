@@ -61,8 +61,7 @@ ON CONFLICT (name) DO NOTHING;
 INSERT INTO admin_users (user_id, role_id)
 VALUES (
   'YOUR_USER_ID_HERE',  -- ⚠️ Replace with your actual user ID from above
-  (SELECT id FROM admin_roles WHERE name = 'Super Admin'),
-  true
+  (SELECT id FROM admin_roles WHERE name = 'Super Admin')
 );
 ```
 
@@ -81,8 +80,7 @@ VALUES ('Moderator', '["users.manage", "moderation.manage"]'::jsonb);
 INSERT INTO admin_users (user_id, role_id)
 VALUES (
   'USER_ID_HERE',
-  (SELECT id FROM admin_roles WHERE name = 'Editor'),
-  true
+  (SELECT id FROM admin_roles WHERE name = 'Editor')
 );
 ```
 
@@ -383,8 +381,7 @@ VALUES (
 INSERT INTO admin_users (user_id, role_id)
 VALUES (
   'USER_ID_HERE',
-  (SELECT id FROM admin_roles WHERE name = 'Content Manager'),
-  true
+  (SELECT id FROM admin_roles WHERE name = 'Content Manager')
 );
 ```
 
