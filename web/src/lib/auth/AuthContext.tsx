@@ -44,13 +44,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string) => {
+    // Use environment variable for production, fallback to window.location.origin for development
+    const redirectUrl =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      (typeof window !== 'undefined' ? window.location.origin : '');
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: typeof window !== 'undefined'
-          ? `${window.location.origin}/auth/callback`
-          : undefined,
+        emailRedirectTo: redirectUrl ? `${redirectUrl}/auth/callback` : undefined,
       },
     });
     return { error };
