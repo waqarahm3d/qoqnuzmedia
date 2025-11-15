@@ -58,10 +58,11 @@ export async function POST(request: NextRequest) {
       artist = newArtist;
     }
 
-    // Generate clean filename
+    // Generate clean filename with artist folder structure
     const timestamp = Date.now();
+    const cleanArtist = artistName.replace(/[^a-zA-Z0-9]/g, '_');
     const cleanTitle = trackTitle.replace(/[^a-zA-Z0-9]/g, '_');
-    const fileName = `tracks/${cleanTitle}_${timestamp}.mp3`;
+    const fileName = `tracks/${cleanArtist}/${cleanTitle}_${timestamp}.mp3`;
 
     // Upload to R2
     const arrayBuffer = await file.arrayBuffer();
@@ -77,7 +78,9 @@ export async function POST(request: NextRequest) {
     );
 
     // Create track record
-    const audio_url = `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${R2_BUCKET_NAME}/${fileName}`;
+    // Store just the R2 key (path), not the full URL
+    // The stream endpoint will generate signed URLs from this path
+    const audio_url = fileName;
 
     const { data: track, error: trackError } = await supabase
       .from('tracks')
