@@ -35,9 +35,10 @@ export async function GET(
     // }
 
     // Fetch track details from database using admin client
+    // Use explicit relationship name to avoid ambiguity
     const { data: track, error: trackError } = await adminSupabase
       .from('tracks')
-      .select('id, title, audio_url, artist_id, artists(name)')
+      .select('id, title, audio_url, artist_id, artists!tracks_artist_id_fkey(name)')
       .eq('id', trackId)
       .single();
 
