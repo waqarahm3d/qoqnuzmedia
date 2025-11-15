@@ -3,105 +3,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase-client';
 
 interface PasswordRequirements {
   minLength: boolean;
   hasLetter: boolean;
   hasNumberOrSpecial: boolean;
 }
-
-// Lazy load supabase to avoid SSR issues
-let supabase: any = null;
-const getSupabase = async () => {
-  if (!supabase) {
-    const { supabase: client } = await import('@/lib/supabase-client');
-    supabase = client;
-  }
-  return supabase;
-};
-
-// Styles
-const styles = {
-  container: {
-    minHeight: '100vh',
-    background: 'linear-gradient(135deg, #121212 0%, #1a1a1a 100%)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '40px 20px',
-  },
-  card: {
-    width: '100%',
-    maxWidth: '450px',
-    background: '#181818',
-    borderRadius: '12px',
-    border: '1px solid #282828',
-    padding: '48px 40px',
-  },
-  input: {
-    width: '100%',
-    padding: '14px 16px',
-    background: '#121212',
-    color: '#ffffff',
-    border: '1px solid #727272',
-    borderRadius: '4px',
-    fontSize: '16px',
-    outline: 'none',
-    boxSizing: 'border-box' as const,
-    transition: 'border-color 0.2s',
-  },
-  btnPrimary: {
-    width: '100%',
-    padding: '16px',
-    background: '#1DB954',
-    color: '#000000',
-    border: 'none',
-    borderRadius: '500px',
-    fontSize: '16px',
-    fontWeight: 700,
-    cursor: 'pointer',
-    marginBottom: '16px',
-    transition: 'all 0.2s',
-  },
-  btnSecondary: {
-    padding: '16px',
-    background: '#282828',
-    color: '#ffffff',
-    border: 'none',
-    borderRadius: '500px',
-    fontSize: '16px',
-    fontWeight: 700,
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-  },
-  btnSocial: {
-    width: '100%',
-    padding: '14px 16px',
-    background: 'transparent',
-    color: '#ffffff',
-    border: '1px solid #727272',
-    borderRadius: '500px',
-    fontSize: '14px',
-    fontWeight: 600,
-    cursor: 'pointer',
-    marginBottom: '12px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
-    transition: 'all 0.2s',
-  },
-  genderOption: (selected: boolean) => ({
-    display: 'flex',
-    alignItems: 'center',
-    padding: '12px',
-    background: selected ? '#282828' : 'transparent',
-    border: `1px solid ${selected ? '#1DB954' : '#282828'}`,
-    borderRadius: '4px',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-  }),
-};
 
 export default function SignupPage() {
   const router = useRouter();
@@ -196,10 +104,8 @@ export default function SignupPage() {
       setLoading(true);
       setError('');
 
-      const sb = await getSupabase();
-
       // Create auth user
-      const { data: authData, error: authError } = await sb.auth.signUp({
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -220,7 +126,7 @@ export default function SignupPage() {
         // Update profile with additional details
         const username = email.split('@')[0] + '_' + Math.random().toString(36).substring(7);
 
-        const { error: profileError } = await sb
+        const { error: profileError } = await supabase
           .from('profiles')
           .insert({
             id: authData.user.id,
@@ -248,8 +154,7 @@ export default function SignupPage() {
 
   const handleSocialLogin = async (provider: 'google' | 'apple' | 'facebook') => {
     try {
-      const sb = await getSupabase();
-      const { error } = await sb.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: provider,
         options: {
           redirectTo: typeof window !== 'undefined'
@@ -265,378 +170,558 @@ export default function SignupPage() {
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <h1 style={{ fontSize: '48px', fontWeight: 'bold', color: '#1DB954', marginBottom: '8px', margin: 0 }}>
-            Qoqnuz
-          </h1>
-          <p style={{ color: '#b3b3b3', fontSize: '14px', margin: 0 }}>
-            Sign up to start listening
-          </p>
-        </div>
-
-        {/* Progress Indicator */}
-        <div style={{ marginBottom: '32px' }}>
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-            {[1, 2, 3].map((s) => (
-              <div
-                key={s}
-                style={{
-                  flex: 1,
-                  height: '4px',
-                  background: step >= s ? '#1DB954' : '#282828',
-                  borderRadius: '2px',
-                }}
-              />
-            ))}
+    <>
+      <div className="signup-container">
+        <div className="signup-card">
+          {/* Logo */}
+          <div className="logo-section">
+            <h1 className="logo">Qoqnuz</h1>
+            <p className="tagline">Sign up to start listening</p>
           </div>
-          <p style={{ color: '#b3b3b3', fontSize: '12px', textAlign: 'center', margin: 0 }}>
-            Step {step} of 3
-          </p>
-        </div>
 
-        {/* Error Message */}
-        {error && (
-          <div style={{
-            background: 'rgba(239, 68, 68, 0.1)',
-            border: '1px solid #ef4444',
-            color: '#fca5a5',
-            padding: '12px',
-            borderRadius: '8px',
-            marginBottom: '24px',
-            fontSize: '14px',
-          }}>
-            {error}
+          {/* Progress Indicator */}
+          <div className="progress-section">
+            <div className="progress-bars">
+              <div className={`progress-bar ${step >= 1 ? 'active' : ''}`} />
+              <div className={`progress-bar ${step >= 2 ? 'active' : ''}`} />
+              <div className={`progress-bar ${step >= 3 ? 'active' : ''}`} />
+            </div>
+            <p className="step-text">Step {step} of 3</p>
           </div>
-        )}
 
-        {/* Step 1: Email */}
-        {step === 1 && (
-          <div>
-            <h2 style={{ color: '#ffffff', fontSize: '24px', fontWeight: 'bold', marginBottom: '24px', marginTop: 0 }}>
-              Sign up with your email address
-            </h2>
-
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', color: '#ffffff', fontWeight: 600, marginBottom: '8px', fontSize: '14px' }}>
-                Email address
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleStep1Continue()}
-                placeholder="name@domain.com"
-                style={styles.input}
-                onFocus={(e) => e.currentTarget.style.borderColor = '#1DB954'}
-                onBlur={(e) => e.currentTarget.style.borderColor = '#727272'}
-              />
+          {/* Error Message */}
+          {error && (
+            <div className="error-box">
+              {error}
             </div>
+          )}
 
-            <button
-              onClick={handleStep1Continue}
-              style={styles.btnPrimary}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#1ed760';
-                e.currentTarget.style.transform = 'scale(1.02)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#1DB954';
-                e.currentTarget.style.transform = 'scale(1)';
-              }}
-            >
-              Next
-            </button>
+          {/* Step 1: Email */}
+          {step === 1 && (
+            <div className="step-content">
+              <h2 className="step-title">Sign up with your email address</h2>
 
-            {/* Divider */}
-            <div style={{ display: 'flex', alignItems: 'center', margin: '24px 0' }}>
-              <div style={{ flex: 1, height: '1px', background: '#282828' }} />
-              <span style={{ padding: '0 16px', color: '#b3b3b3', fontSize: '12px' }}>OR</span>
-              <div style={{ flex: 1, height: '1px', background: '#282828' }} />
-            </div>
+              <div className="form-group">
+                <label className="form-label">Email address</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleStep1Continue()}
+                  placeholder="name@domain.com"
+                  className="form-input"
+                />
+              </div>
 
-            {/* Social Login Buttons */}
-            <button
-              onClick={() => handleSocialLogin('google')}
-              style={styles.btnSocial}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#ffffff';
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#727272';
-                e.currentTarget.style.background = 'transparent';
-              }}
-            >
-              <span>🔍</span>
-              Continue with Google
-            </button>
-            <button
-              onClick={() => handleSocialLogin('apple')}
-              style={styles.btnSocial}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#ffffff';
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#727272';
-                e.currentTarget.style.background = 'transparent';
-              }}
-            >
-              <span></span>
-              Continue with Apple
-            </button>
-
-            {/* Login Link */}
-            <p style={{ textAlign: 'center', color: '#b3b3b3', marginTop: '24px', fontSize: '14px' }}>
-              Already have an account?{' '}
-              <Link href="/auth/signin" style={{ color: '#ffffff', textDecoration: 'underline' }}>
-                Log in here
-              </Link>
-            </p>
-          </div>
-        )}
-
-        {/* Step 2: Password */}
-        {step === 2 && (
-          <div key="step2">
-            <h2 style={{ color: '#ffffff', fontSize: '24px', fontWeight: 'bold', marginBottom: '24px', marginTop: 0 }}>
-              Create a password
-            </h2>
-
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', color: '#ffffff', fontWeight: 600, marginBottom: '8px', fontSize: '14px' }}>
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={handlePasswordChange}
-                placeholder="Enter password"
-                style={styles.input}
-                onFocus={(e) => e.currentTarget.style.borderColor = '#1DB954'}
-                onBlur={(e) => e.currentTarget.style.borderColor = '#727272'}
-              />
-            </div>
-
-            {/* Password Requirements */}
-            <div style={{ marginBottom: '24px' }}>
-              <p style={{ color: '#ffffff', fontSize: '14px', fontWeight: 600, marginBottom: '12px', marginTop: 0 }}>
-                Your password must contain:
-              </p>
-
-              <RequirementCheck
-                text="At least 10 characters"
-                met={passwordRequirements.minLength}
-              />
-              <RequirementCheck
-                text="At least 1 letter"
-                met={passwordRequirements.hasLetter}
-              />
-              <RequirementCheck
-                text="At least 1 number or special character (# ? ! &)"
-                met={passwordRequirements.hasNumberOrSpecial}
-              />
-            </div>
-
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button
-                onClick={() => setStep(1)}
-                style={{ ...styles.btnSecondary, flex: 1 }}
-                onMouseEnter={(e) => e.currentTarget.style.background = '#3e3e3e'}
-                onMouseLeave={(e) => e.currentTarget.style.background = '#282828'}
-              >
-                Back
-              </button>
-              <button
-                onClick={handleStep2Continue}
-                disabled={!validatePassword(password)}
-                style={{
-                  ...styles.btnPrimary,
-                  flex: 1,
-                  opacity: validatePassword(password) ? 1 : 0.5,
-                  cursor: validatePassword(password) ? 'pointer' : 'not-allowed',
-                }}
-                onMouseEnter={(e) => {
-                  if (validatePassword(password)) {
-                    e.currentTarget.style.background = '#1ed760';
-                    e.currentTarget.style.transform = 'scale(1.02)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (validatePassword(password)) {
-                    e.currentTarget.style.background = '#1DB954';
-                    e.currentTarget.style.transform = 'scale(1)';
-                  }
-                }}
-              >
+              <button onClick={handleStep1Continue} className="btn-primary">
                 Next
               </button>
-            </div>
-          </div>
-        )}
 
-        {/* Step 3: Profile Details */}
-        {step === 3 && (
-          <form onSubmit={handleSignup} key="step3">
-            <h2 style={{ color: '#ffffff', fontSize: '24px', fontWeight: 'bold', marginBottom: '24px', marginTop: 0 }}>
-              Tell us about yourself
-            </h2>
+              {/* Divider */}
+              <div className="divider">
+                <span>OR</span>
+              </div>
 
-            {/* Name */}
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', color: '#ffffff', fontWeight: 600, marginBottom: '8px', fontSize: '14px' }}>
-                Name
-              </label>
-              <input
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Enter your name"
-                required
-                style={styles.input}
-                onFocus={(e) => e.currentTarget.style.borderColor = '#1DB954'}
-                onBlur={(e) => e.currentTarget.style.borderColor = '#727272'}
-              />
-              <p style={{ color: '#b3b3b3', fontSize: '11px', marginTop: '4px', marginBottom: 0 }}>
-                This will appear on your profile
+              {/* Social Login Buttons */}
+              <button onClick={() => handleSocialLogin('google')} className="btn-social">
+                <span className="social-icon">🔍</span>
+                Continue with Google
+              </button>
+              <button onClick={() => handleSocialLogin('apple')} className="btn-social">
+                <span className="social-icon"></span>
+                Continue with Apple
+              </button>
+
+              {/* Login Link */}
+              <p className="footer-text">
+                Already have an account?{' '}
+                <Link href="/auth/signin" className="link">
+                  Log in here
+                </Link>
               </p>
             </div>
+          )}
 
-            {/* Date of Birth */}
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', color: '#ffffff', fontWeight: 600, marginBottom: '8px', fontSize: '14px' }}>
-                Date of birth
-              </label>
-              <input
-                type="date"
-                value={dateOfBirth}
-                onChange={(e) => setDateOfBirth(e.target.value)}
-                required
-                max={new Date().toISOString().split('T')[0]}
-                style={{ ...styles.input, colorScheme: 'dark' }}
-                onFocus={(e) => e.currentTarget.style.borderColor = '#1DB954'}
-                onBlur={(e) => e.currentTarget.style.borderColor = '#727272'}
-              />
-              <p style={{ color: '#b3b3b3', fontSize: '11px', marginTop: '4px', marginBottom: 0 }}>
-                You must be at least 13 years old
-              </p>
-            </div>
+          {/* Step 2: Password */}
+          {step === 2 && (
+            <div className="step-content">
+              <h2 className="step-title">Create a password</h2>
 
-            {/* Gender */}
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', color: '#ffffff', fontWeight: 600, marginBottom: '8px', fontSize: '14px' }}>
-                Gender
-              </label>
-              <p style={{ color: '#b3b3b3', fontSize: '11px', marginBottom: '12px', marginTop: 0 }}>
-                We use your gender to help personalize our content recommendations and ads for you.
-              </p>
+              <div className="form-group">
+                <label className="form-label">Password</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={handlePasswordChange}
+                  placeholder="Enter password"
+                  className="form-input"
+                />
+              </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {[
-                  { value: 'man', label: 'Man' },
-                  { value: 'woman', label: 'Woman' },
-                  { value: 'non-binary', label: 'Non-binary' },
-                  { value: 'other', label: 'Something else' },
-                  { value: 'prefer-not-to-say', label: 'Prefer not to say' },
-                ].map((option) => (
-                  <label
-                    key={option.value}
-                    style={styles.genderOption(gender === option.value)}
-                    onMouseEnter={(e) => {
-                      if (gender !== option.value) {
-                        e.currentTarget.style.background = '#181818';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (gender !== option.value) {
-                        e.currentTarget.style.background = 'transparent';
-                      }
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="gender"
-                      value={option.value}
-                      checked={gender === option.value}
-                      onChange={(e) => setGender(e.target.value)}
-                      style={{
-                        marginRight: '12px',
-                        width: '18px',
-                        height: '18px',
-                        accentColor: '#1DB954',
-                      }}
-                    />
-                    <span style={{ color: '#ffffff', fontSize: '14px' }}>
-                      {option.label}
-                    </span>
-                  </label>
-                ))}
+              {/* Password Requirements */}
+              <div className="requirements-section">
+                <p className="requirements-title">Your password must contain:</p>
+
+                <div className="requirement">
+                  <div className={`requirement-check ${passwordRequirements.minLength ? 'met' : ''}`}>
+                    {passwordRequirements.minLength && <span>✓</span>}
+                  </div>
+                  <span className={`requirement-text ${passwordRequirements.minLength ? 'met' : ''}`}>
+                    At least 10 characters
+                  </span>
+                </div>
+
+                <div className="requirement">
+                  <div className={`requirement-check ${passwordRequirements.hasLetter ? 'met' : ''}`}>
+                    {passwordRequirements.hasLetter && <span>✓</span>}
+                  </div>
+                  <span className={`requirement-text ${passwordRequirements.hasLetter ? 'met' : ''}`}>
+                    At least 1 letter
+                  </span>
+                </div>
+
+                <div className="requirement">
+                  <div className={`requirement-check ${passwordRequirements.hasNumberOrSpecial ? 'met' : ''}`}>
+                    {passwordRequirements.hasNumberOrSpecial && <span>✓</span>}
+                  </div>
+                  <span className={`requirement-text ${passwordRequirements.hasNumberOrSpecial ? 'met' : ''}`}>
+                    At least 1 number or special character (# ? ! &)
+                  </span>
+                </div>
+              </div>
+
+              <div className="button-group">
+                <button onClick={() => setStep(1)} className="btn-secondary">
+                  Back
+                </button>
+                <button
+                  onClick={handleStep2Continue}
+                  disabled={!validatePassword(password)}
+                  className={`btn-primary ${validatePassword(password) ? '' : 'disabled'}`}
+                >
+                  Next
+                </button>
               </div>
             </div>
+          )}
 
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button
-                type="button"
-                onClick={() => setStep(2)}
-                style={{ ...styles.btnSecondary, flex: 1 }}
-                onMouseEnter={(e) => e.currentTarget.style.background = '#3e3e3e'}
-                onMouseLeave={(e) => e.currentTarget.style.background = '#282828'}
-              >
-                Back
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                style={{
-                  ...styles.btnPrimary,
-                  flex: 1,
-                  opacity: loading ? 0.5 : 1,
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                }}
-                onMouseEnter={(e) => {
-                  if (!loading) {
-                    e.currentTarget.style.background = '#1ed760';
-                    e.currentTarget.style.transform = 'scale(1.02)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!loading) {
-                    e.currentTarget.style.background = '#1DB954';
-                    e.currentTarget.style.transform = 'scale(1)';
-                  }
-                }}
-              >
-                {loading ? 'Creating account...' : 'Sign up'}
-              </button>
-            </div>
-          </form>
-        )}
-      </div>
-    </div>
-  );
-}
+          {/* Step 3: Profile Details */}
+          {step === 3 && (
+            <form onSubmit={handleSignup} className="step-content">
+              <h2 className="step-title">Tell us about yourself</h2>
 
-function RequirementCheck({ text, met }: { text: string; met: boolean }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-      <div style={{
-        width: '20px',
-        height: '20px',
-        borderRadius: '50%',
-        background: met ? '#1DB954' : '#282828',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: '10px',
-      }}>
-        {met && <span style={{ color: '#000000', fontSize: '12px' }}>✓</span>}
+              {/* Name */}
+              <div className="form-group">
+                <label className="form-label">Name</label>
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Enter your name"
+                  required
+                  className="form-input"
+                />
+                <p className="form-hint">This will appear on your profile</p>
+              </div>
+
+              {/* Date of Birth */}
+              <div className="form-group">
+                <label className="form-label">Date of birth</label>
+                <input
+                  type="date"
+                  value={dateOfBirth}
+                  onChange={(e) => setDateOfBirth(e.target.value)}
+                  required
+                  max={new Date().toISOString().split('T')[0]}
+                  className="form-input date-input"
+                />
+                <p className="form-hint">You must be at least 13 years old</p>
+              </div>
+
+              {/* Gender */}
+              <div className="form-group">
+                <label className="form-label">Gender</label>
+                <p className="form-hint" style={{ marginBottom: '12px' }}>
+                  We use your gender to help personalize our content recommendations and ads for you.
+                </p>
+
+                <div className="gender-options">
+                  {[
+                    { value: 'man', label: 'Man' },
+                    { value: 'woman', label: 'Woman' },
+                    { value: 'non-binary', label: 'Non-binary' },
+                    { value: 'other', label: 'Something else' },
+                    { value: 'prefer-not-to-say', label: 'Prefer not to say' },
+                  ].map((option) => (
+                    <label
+                      key={option.value}
+                      className={`gender-option ${gender === option.value ? 'selected' : ''}`}
+                    >
+                      <input
+                        type="radio"
+                        name="gender"
+                        value={option.value}
+                        checked={gender === option.value}
+                        onChange={(e) => setGender(e.target.value)}
+                        className="gender-radio"
+                      />
+                      <span className="gender-label">{option.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="button-group">
+                <button type="button" onClick={() => setStep(2)} className="btn-secondary">
+                  Back
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={`btn-primary ${loading ? 'disabled' : ''}`}
+                >
+                  {loading ? 'Creating account...' : 'Sign up'}
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
       </div>
-      <span style={{ color: met ? '#1DB954' : '#b3b3b3', fontSize: '13px' }}>
-        {text}
-      </span>
-    </div>
+
+      <style jsx>{`
+        .signup-container {
+          min-height: 100vh;
+          background: linear-gradient(135deg, #121212 0%, #1a1a1a 100%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 40px 20px;
+        }
+
+        .signup-card {
+          width: 100%;
+          max-width: 450px;
+          background: #181818;
+          border-radius: 12px;
+          border: 1px solid #282828;
+          padding: 48px 40px;
+        }
+
+        .logo-section {
+          text-align: center;
+          margin-bottom: 32px;
+        }
+
+        .logo {
+          font-size: 48px;
+          font-weight: bold;
+          color: #1DB954;
+          margin: 0 0 8px 0;
+        }
+
+        .tagline {
+          color: #b3b3b3;
+          font-size: 14px;
+          margin: 0;
+        }
+
+        .progress-section {
+          margin-bottom: 32px;
+        }
+
+        .progress-bars {
+          display: flex;
+          gap: 8px;
+          margin-bottom: 8px;
+        }
+
+        .progress-bar {
+          flex: 1;
+          height: 4px;
+          background: #282828;
+          border-radius: 2px;
+          transition: background 0.3s;
+        }
+
+        .progress-bar.active {
+          background: #1DB954;
+        }
+
+        .step-text {
+          color: #b3b3b3;
+          font-size: 12px;
+          text-align: center;
+          margin: 0;
+        }
+
+        .error-box {
+          background: rgba(239, 68, 68, 0.1);
+          border: 1px solid #ef4444;
+          color: #fca5a5;
+          padding: 12px;
+          border-radius: 8px;
+          margin-bottom: 24px;
+          font-size: 14px;
+        }
+
+        .step-content {
+          animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .step-title {
+          color: #ffffff;
+          font-size: 24px;
+          font-weight: bold;
+          margin: 0 0 24px 0;
+        }
+
+        .form-group {
+          margin-bottom: 16px;
+        }
+
+        .form-label {
+          display: block;
+          color: #ffffff;
+          font-weight: 600;
+          margin-bottom: 8px;
+          font-size: 14px;
+        }
+
+        .form-input {
+          width: 100%;
+          padding: 14px 16px;
+          background: #121212;
+          color: #ffffff;
+          border: 1px solid #727272;
+          border-radius: 4px;
+          font-size: 16px;
+          outline: none;
+          box-sizing: border-box;
+          transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+          border-color: #1DB954;
+        }
+
+        .date-input {
+          color-scheme: dark;
+        }
+
+        .form-hint {
+          color: #b3b3b3;
+          font-size: 11px;
+          margin: 4px 0 0 0;
+        }
+
+        .btn-primary {
+          width: 100%;
+          padding: 16px;
+          background: #1DB954;
+          color: #000000;
+          border: none;
+          border-radius: 500px;
+          font-size: 16px;
+          font-weight: 700;
+          cursor: pointer;
+          margin-bottom: 16px;
+          transition: all 0.2s;
+        }
+
+        .btn-primary:hover:not(.disabled) {
+          background: #1ed760;
+          transform: scale(1.02);
+        }
+
+        .btn-primary.disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .btn-secondary {
+          padding: 16px;
+          background: #282828;
+          color: #ffffff;
+          border: none;
+          border-radius: 500px;
+          font-size: 16px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s;
+          flex: 1;
+        }
+
+        .btn-secondary:hover {
+          background: #3e3e3e;
+        }
+
+        .btn-social {
+          width: 100%;
+          padding: 14px 16px;
+          background: transparent;
+          color: #ffffff;
+          border: 1px solid #727272;
+          border-radius: 500px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          margin-bottom: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          transition: all 0.2s;
+        }
+
+        .btn-social:hover {
+          border-color: #ffffff;
+          background: rgba(255, 255, 255, 0.1);
+        }
+
+        .social-icon {
+          font-size: 18px;
+        }
+
+        .divider {
+          display: flex;
+          align-items: center;
+          margin: 24px 0;
+          text-align: center;
+        }
+
+        .divider::before,
+        .divider::after {
+          content: '';
+          flex: 1;
+          height: 1px;
+          background: #282828;
+        }
+
+        .divider span {
+          padding: 0 16px;
+          color: #b3b3b3;
+          font-size: 12px;
+        }
+
+        .footer-text {
+          text-align: center;
+          color: #b3b3b3;
+          margin-top: 24px;
+          font-size: 14px;
+        }
+
+        .link {
+          color: #ffffff;
+          text-decoration: underline;
+        }
+
+        .requirements-section {
+          margin-bottom: 24px;
+        }
+
+        .requirements-title {
+          color: #ffffff;
+          font-size: 14px;
+          font-weight: 600;
+          margin: 0 0 12px 0;
+        }
+
+        .requirement {
+          display: flex;
+          align-items: center;
+          margin-bottom: 8px;
+        }
+
+        .requirement-check {
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: #282828;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-right: 10px;
+          transition: background 0.2s;
+        }
+
+        .requirement-check.met {
+          background: #1DB954;
+        }
+
+        .requirement-check span {
+          color: #000000;
+          font-size: 12px;
+        }
+
+        .requirement-text {
+          color: #b3b3b3;
+          font-size: 13px;
+          transition: color 0.2s;
+        }
+
+        .requirement-text.met {
+          color: #1DB954;
+        }
+
+        .button-group {
+          display: flex;
+          gap: 12px;
+        }
+
+        .button-group .btn-primary {
+          flex: 1;
+          margin-bottom: 0;
+        }
+
+        .gender-options {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .gender-option {
+          display: flex;
+          align-items: center;
+          padding: 12px;
+          background: transparent;
+          border: 1px solid #282828;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .gender-option:hover {
+          background: #181818;
+        }
+
+        .gender-option.selected {
+          background: #282828;
+          border-color: #1DB954;
+        }
+
+        .gender-radio {
+          margin-right: 12px;
+          width: 18px;
+          height: 18px;
+          accent-color: #1DB954;
+        }
+
+        .gender-label {
+          color: #ffffff;
+          font-size: 14px;
+        }
+      `}</style>
+    </>
   );
 }
