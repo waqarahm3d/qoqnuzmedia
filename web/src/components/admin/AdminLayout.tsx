@@ -20,6 +20,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { name: 'Artists', href: '/admin/artists', icon: '🎤' },
     { name: 'Albums', href: '/admin/albums', icon: '💿' },
     { name: 'Tracks', href: '/admin/tracks', icon: '🎵' },
+    { name: 'Playlists', href: '/admin/playlists', icon: '📝' },
+    { name: 'Genres', href: '/admin/genres', icon: '🎭' },
     { name: 'Users', href: '/admin/users', icon: '👥' },
     { name: 'Theme', href: '/admin/theme', icon: '🎨' },
     { name: 'Settings', href: '/admin/settings', icon: '⚙️' },
