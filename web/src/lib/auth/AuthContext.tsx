@@ -43,11 +43,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Prevent hydration mismatch by not rendering auth-dependent content until mounted
-  if (!mounted) {
-    return <>{children}</>;
-  }
-
   const signUp = async (email: string, password: string) => {
     const { error } = await supabase.auth.signUp({
       email,
@@ -76,7 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value = {
     user,
     session,
-    loading,
+    loading: !mounted || loading,
     signUp,
     signIn,
     signOut,
