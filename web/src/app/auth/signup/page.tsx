@@ -481,8 +481,8 @@ export default function SignupPage() {
           background: #121212;
           color: #ffffff;
           border: 1px solid #727272;
-          borderRadius: 4px;
-          fontSize: 16px;
+          border-radius: 4px;
+          font-size: 16px;
           outline: none;
           box-sizing: border-box;
         }
@@ -498,7 +498,7 @@ export default function SignupPage() {
           color: #000000;
           border: none;
           border-radius: 500px;
-          fontSize: 16px;
+          font-size: 16px;
           font-weight: 700;
           cursor: pointer;
           margin-bottom: 16px;
@@ -516,7 +516,7 @@ export default function SignupPage() {
           color: #ffffff;
           border: none;
           border-radius: 500px;
-          fontSize: 16px;
+          font-size: 16px;
           font-weight: 700;
           cursor: pointer;
           transition: all 0.2s;
@@ -533,7 +533,7 @@ export default function SignupPage() {
           color: #ffffff;
           border: 1px solid #727272;
           border-radius: 500px;
-          fontSize: 14px;
+          font-size: 14px;
           font-weight: 600;
           cursor: pointer;
           margin-bottom: 12px;
