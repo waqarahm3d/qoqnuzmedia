@@ -12,7 +12,6 @@ interface User {
   is_verified: boolean;
   created_at: string;
   admin_users: Array<{
-    id: string;
     role_id: string;
     is_active: boolean;
   }> | null;
