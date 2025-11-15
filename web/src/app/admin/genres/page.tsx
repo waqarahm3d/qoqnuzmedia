@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
+import { supabase } from '@/lib/supabase-client';
 
 interface Genre {
   id: string;
@@ -35,8 +36,16 @@ export default function GenresManagement() {
 
   const fetchGenres = async () => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
       const response = await fetch(
-        `/api/admin/genres?search=${encodeURIComponent(search)}`
+        `/api/admin/genres?search=${encodeURIComponent(search)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        }
       );
       const data = await response.json();
       setGenres(data.genres || []);
@@ -50,6 +59,9 @@ export default function GenresManagement() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
       const url = editingGenre
         ? `/api/admin/genres/${editingGenre.id}`
         : '/api/admin/genres';
@@ -57,7 +69,10 @@ export default function GenresManagement() {
 
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify(formData),
       });
 
@@ -94,8 +109,14 @@ export default function GenresManagement() {
     if (!confirm('Are you sure you want to delete this genre?')) return;
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
       const response = await fetch(`/api/admin/genres/${id}`, {
         method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
       });
       if (response.ok) {
         fetchGenres();
@@ -107,9 +128,15 @@ export default function GenresManagement() {
 
   const toggleActive = async (genre: Genre) => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
       const response = await fetch(`/api/admin/genres/${genre.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({ is_active: !genre.is_active }),
       });
       if (response.ok) {

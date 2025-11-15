@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
+import { supabase } from '@/lib/supabase-client';
 
 interface Playlist {
   id: string;
@@ -43,8 +44,16 @@ export default function PlaylistsManagement() {
 
   const fetchPlaylists = async () => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
       const response = await fetch(
-        `/api/admin/playlists?page=${page}&limit=20&search=${encodeURIComponent(search)}`
+        `/api/admin/playlists?page=${page}&limit=20&search=${encodeURIComponent(search)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        }
       );
       const data = await response.json();
       setPlaylists(data.playlists || []);
@@ -73,11 +82,17 @@ export default function PlaylistsManagement() {
     if (!editingPlaylist) return;
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
       const response = await fetch(
         `/api/admin/playlists/${editingPlaylist.id}`,
         {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
           body: JSON.stringify(formData),
         }
       );
@@ -96,8 +111,14 @@ export default function PlaylistsManagement() {
     if (!confirm('Are you sure you want to delete this playlist?')) return;
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
       const response = await fetch(`/api/admin/playlists/${id}`, {
         method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
       });
       if (response.ok) {
         fetchPlaylists();

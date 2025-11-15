@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
+import { supabase } from '@/lib/supabase-client';
 
 interface Track {
   id: string;
@@ -79,13 +80,25 @@ export default function TracksPage() {
   const fetchTracks = async () => {
     try {
       setLoading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        setError('Not authenticated');
+        return;
+      }
+
       const params = new URLSearchParams({
         page: page.toString(),
         limit: '20',
         ...(search && { search }),
       });
 
-      const response = await fetch(`/api/admin/tracks?${params}`);
+      const response = await fetch(`/api/admin/tracks?${params}`, {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
       if (!response.ok) throw new Error('Failed to fetch tracks');
 
       const data = await response.json();
@@ -101,7 +114,14 @@ export default function TracksPage() {
 
   const fetchArtists = async () => {
     try {
-      const response = await fetch('/api/admin/artists?limit=1000');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const response = await fetch('/api/admin/artists?limit=1000', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
       if (response.ok) {
         const data = await response.json();
         setArtists(data.artists || []);
@@ -113,7 +133,14 @@ export default function TracksPage() {
 
   const fetchGenres = async () => {
     try {
-      const response = await fetch('/api/admin/genres?limit=1000');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const response = await fetch('/api/admin/genres?limit=1000', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
       if (response.ok) {
         const data = await response.json();
         setGenres(data.genres || []);
@@ -125,7 +152,14 @@ export default function TracksPage() {
 
   const fetchAlbumsForArtist = async (artistId: string) => {
     try {
-      const response = await fetch(`/api/admin/albums?artist_id=${artistId}&limit=1000`);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const response = await fetch(`/api/admin/albums?artist_id=${artistId}&limit=1000`, {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
       if (response.ok) {
         const data = await response.json();
         setAlbums(data.albums || []);
@@ -138,6 +172,12 @@ export default function TracksPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setError('Not authenticated');
+        return;
+      }
+
       const url = editingTrack
         ? `/api/admin/tracks/${editingTrack.id}`
         : '/api/admin/tracks';
@@ -145,7 +185,10 @@ export default function TracksPage() {
 
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({
           ...formData,
           is_explicit: formData.explicit,
@@ -192,8 +235,14 @@ export default function TracksPage() {
     if (!confirm('Are you sure you want to delete this track?')) return;
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
       const response = await fetch(`/api/admin/tracks/${id}`, {
         method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
       });
       if (response.ok) {
         fetchTracks();
