@@ -204,7 +204,7 @@ export default function ArtistsManagement() {
                           )}
                         </td>
                         <td className="px-6 py-4 text-white">
-                          {artist.follower_count.toLocaleString()}
+                          {(artist.follower_count || 0).toLocaleString()}
                         </td>
                         <td className="px-6 py-4 text-gray-400">
                           {new Date(artist.created_at).toLocaleDateString()}
