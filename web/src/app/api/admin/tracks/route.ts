@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       .select(`
         *,
         artists!tracks_artist_id_fkey(id, name),
-        albums!tracks_album_id_fkey(id, title, cover_image_url)
+        albums!tracks_album_id_fkey(id, title, cover_art_url)
       `, { count: 'exact' });
 
     if (search) {
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
       .select(`
         *,
         artists!tracks_artist_id_fkey(id, name),
-        albums!tracks_album_id_fkey(id, title, cover_image_url)
+        albums!tracks_album_id_fkey(id, title, cover_art_url)
       `)
       .single();
 

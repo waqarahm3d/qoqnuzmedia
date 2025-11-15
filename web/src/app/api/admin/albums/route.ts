@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
         artist_id,
         title,
         description,
-        cover_image_url,
+        cover_art_url: cover_image_url,
         release_date: release_date || new Date().toISOString(),
         album_type: album_type || 'album',
       })

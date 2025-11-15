@@ -72,7 +72,7 @@ export async function PUT(
     if (title !== undefined) updateData.title = title;
     if (description !== undefined) updateData.description = description;
     if (cover_image_url !== undefined)
-      updateData.cover_image_url = cover_image_url;
+      updateData.cover_art_url = cover_image_url;
     if (release_date !== undefined) updateData.release_date = release_date;
     if (album_type !== undefined) updateData.album_type = album_type;
 

@@ -20,7 +20,7 @@ export async function GET(
       .select(`
         *,
         artists!tracks_artist_id_fkey(id, name, profile_image_url),
-        albums!tracks_album_id_fkey(id, title, cover_image_url)
+        albums!tracks_album_id_fkey(id, title, cover_art_url)
       `)
       .eq('id', trackId)
       .single();
@@ -86,7 +86,7 @@ export async function PUT(
       .select(`
         *,
         artists!tracks_artist_id_fkey(id, name),
-        albums!tracks_album_id_fkey(id, title, cover_image_url)
+        albums!tracks_album_id_fkey(id, title, cover_art_url)
       `)
       .single();
 
