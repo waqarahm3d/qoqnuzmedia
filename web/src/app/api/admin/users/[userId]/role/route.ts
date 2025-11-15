@@ -42,7 +42,7 @@ export async function POST(
       // Update existing role
       const { data, error } = await supabase
         .from('admin_users')
-        .update({ role_id, is_active: true })
+        .update({ role_id })
         .eq('user_id', userId)
         .select(`
           *,
@@ -56,7 +56,7 @@ export async function POST(
       // Create new admin user
       const { data, error } = await supabase
         .from('admin_users')
-        .insert({ user_id: userId, role_id, is_active: true })
+        .insert({ user_id: userId, role_id })
         .select(`
           *,
           role:admin_roles(*)

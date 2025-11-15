@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       .from('profiles')
       .select(`
         *,
-        admin_users(id, role_id, is_active)
+        admin_users(user_id, role_id)
       `, { count: 'exact' });
 
     if (search) {

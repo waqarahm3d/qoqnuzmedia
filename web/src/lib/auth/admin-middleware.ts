@@ -51,7 +51,6 @@ export async function requireAdmin(request: NextRequest) {
       role:admin_roles(*)
     `)
     .eq('user_id', user.id)
-    .eq('is_active', true)
     .single();
 
   if (adminError || !adminUser) {

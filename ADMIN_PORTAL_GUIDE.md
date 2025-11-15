@@ -58,7 +58,7 @@ VALUES ('Super Admin', '["*"]'::jsonb)
 ON CONFLICT (name) DO NOTHING;
 
 -- Assign admin role to your user
-INSERT INTO admin_users (user_id, role_id, is_active)
+INSERT INTO admin_users (user_id, role_id)
 VALUES (
   'YOUR_USER_ID_HERE',  -- ⚠️ Replace with your actual user ID from above
   (SELECT id FROM admin_roles WHERE name = 'Super Admin'),
@@ -78,7 +78,7 @@ INSERT INTO admin_roles (name, permissions)
 VALUES ('Moderator', '["users.manage", "moderation.manage"]'::jsonb);
 
 -- Assign Editor role to a user
-INSERT INTO admin_users (user_id, role_id, is_active)
+INSERT INTO admin_users (user_id, role_id)
 VALUES (
   'USER_ID_HERE',
   (SELECT id FROM admin_roles WHERE name = 'Editor'),
@@ -380,7 +380,7 @@ VALUES (
 );
 
 -- Assign to a user
-INSERT INTO admin_users (user_id, role_id, is_active)
+INSERT INTO admin_users (user_id, role_id)
 VALUES (
   'USER_ID_HERE',
   (SELECT id FROM admin_roles WHERE name = 'Content Manager'),
@@ -494,9 +494,9 @@ Visit http://localhost:3000/test and use the upload feature (for audio files, bu
 ```sql
 -- Run in Supabase SQL Editor
 INSERT INTO artists (name, bio, is_verified) VALUES
-  ('Artist One', 'Bio for artist one', true),
+  ('Artist One', 'Bio for artist one'),
   ('Artist Two', 'Bio for artist two', false),
-  ('Artist Three', 'Bio for artist three', true);
+  ('Artist Three', 'Bio for artist three');
 ```
 
 **To delete multiple artists:**
@@ -527,10 +527,8 @@ DELETE FROM artists WHERE created_at > NOW() - INTERVAL '1 hour';
    ```
    If empty, run the setup SQL from Step 2.
 
-2. **Check is_active flag:**
    ```sql
    UPDATE admin_users
-   SET is_active = true
    WHERE user_id = 'YOUR_USER_ID';
    ```
 
