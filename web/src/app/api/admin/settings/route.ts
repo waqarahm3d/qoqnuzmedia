@@ -17,13 +17,7 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error;
 
-    // Convert array to object for easier access
-    const settingsObject: Record<string, any> = {};
-    settings?.forEach((setting) => {
-      settingsObject[setting.key] = setting.value;
-    });
-
-    return NextResponse.json({ settings: settingsObject });
+    return NextResponse.json({ settings: settings || [] });
   } catch (error: any) {
     console.error('Get settings error:', error);
     return NextResponse.json(
@@ -49,19 +43,25 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { settings } = body;
 
-    if (!settings || typeof settings !== 'object') {
+    if (!settings || !Array.isArray(settings)) {
       return NextResponse.json(
-        { error: 'Settings object is required' },
+        { error: 'Settings array is required' },
         { status: 400 }
       );
     }
 
     // Update each setting
-    const updates = Object.entries(settings).map(([key, value]) =>
+    const updates = settings.map((setting: any) =>
       supabase
         .from('site_settings')
         .upsert(
-          { key, value },
+          {
+            key: setting.key,
+            value: setting.value,
+            description: setting.description,
+            updated_by: user.id,
+            updated_at: new Date().toISOString(),
+          },
           { onConflict: 'key' }
         )
     );
