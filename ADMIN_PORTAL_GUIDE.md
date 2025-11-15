@@ -53,12 +53,8 @@ SELECT id, email FROM auth.users;
 
 ```sql
 -- Create Super Admin role (if not exists)
-INSERT INTO admin_roles (name, description, permissions)
-VALUES (
-  'Super Admin',
-  'Full access to all admin features',
-  ARRAY['*']
-)
+INSERT INTO admin_roles (name, permissions)
+VALUES ('Super Admin', '["*"]'::jsonb)
 ON CONFLICT (name) DO NOTHING;
 
 -- Assign admin role to your user
@@ -74,20 +70,12 @@ VALUES (
 
 ```sql
 -- Create Editor role (can create/edit content but not manage users)
-INSERT INTO admin_roles (name, description, permissions)
-VALUES (
-  'Editor',
-  'Can manage content but not users',
-  ARRAY['content.create', 'content.edit', 'content.delete']
-);
+INSERT INTO admin_roles (name, permissions)
+VALUES ('Editor', '["content.create", "content.edit", "content.delete"]'::jsonb);
 
 -- Create Moderator role (can manage users but not content)
-INSERT INTO admin_roles (name, description, permissions)
-VALUES (
-  'Moderator',
-  'Can manage users and moderation',
-  ARRAY['users.manage', 'moderation.manage']
-);
+INSERT INTO admin_roles (name, permissions)
+VALUES ('Moderator', '["users.manage", "moderation.manage"]'::jsonb);
 
 -- Assign Editor role to a user
 INSERT INTO admin_users (user_id, role_id, is_active)
@@ -385,11 +373,10 @@ Run this in Supabase SQL Editor:
 
 ```sql
 -- Create custom role
-INSERT INTO admin_roles (name, description, permissions)
+INSERT INTO admin_roles (name, permissions)
 VALUES (
   'Content Manager',
-  'Can manage content and view analytics',
-  ARRAY['content.create', 'content.edit', 'content.delete', 'analytics.view']
+  '["content.create", "content.edit", "content.delete", "analytics.view"]'::jsonb
 );
 
 -- Assign to a user

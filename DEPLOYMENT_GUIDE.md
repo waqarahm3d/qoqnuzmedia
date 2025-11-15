@@ -658,8 +658,8 @@ SELECT id, email FROM auth.users;
 
 ```sql
 -- Create Super Admin role
-INSERT INTO admin_roles (name, description, permissions)
-VALUES ('Super Admin', 'Full access', ARRAY['*'])
+INSERT INTO admin_roles (name, permissions)
+VALUES ('Super Admin', '["*"]'::jsonb)
 ON CONFLICT (name) DO NOTHING;
 
 -- Assign to yourself (replace YOUR_USER_ID)
