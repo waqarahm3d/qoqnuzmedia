@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { supabase } from '@/lib/supabase-client';
@@ -39,7 +39,7 @@ interface Genre {
   name: string;
 }
 
-export default function AlbumsPage() {
+function AlbumsPageContent() {
   const searchParams = useSearchParams();
   const [albums, setAlbums] = useState<Album[]>([]);
   const [loading, setLoading] = useState(true);
@@ -596,5 +596,22 @@ function AlbumModal({
         </form>
       </div>
     </div>
+  );
+}
+
+export default function AlbumsPage() {
+  return (
+    <Suspense
+      fallback={
+        <AdminLayout>
+          <div className="text-center py-16">
+            <div className="text-6xl mb-4">💿</div>
+            <div className="text-gray-400">Loading albums...</div>
+          </div>
+        </AdminLayout>
+      }
+    >
+      <AlbumsPageContent />
+    </Suspense>
   );
 }
