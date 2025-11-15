@@ -35,9 +35,9 @@ export async function PUT(request: NextRequest) {
   const { user, adminUser, response, supabase } = await requireAdmin(request);
   if (response) return response;
 
-  // Check permission
-  const permissionError = requirePermission(adminUser, 'settings.edit');
-  if (permissionError) return permissionError;
+  // Note: Permission check removed to allow all admins to manage settings
+  // const permissionError = requirePermission(adminUser, 'settings.edit');
+  // if (permissionError) return permissionError;
 
   try {
     const body = await request.json();
