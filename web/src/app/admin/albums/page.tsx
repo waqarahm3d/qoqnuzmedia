@@ -5,6 +5,9 @@ import { useSearchParams } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { supabase } from '@/lib/supabase-client';
 
+// Force dynamic rendering to prevent build-time errors with useSearchParams
+export const dynamic = 'force-dynamic';
+
 interface Album {
   id: string;
   title: string;
