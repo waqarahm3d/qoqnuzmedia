@@ -8,7 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase';
+import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/supabase';
 import { getTrackStreamUrl } from '@/lib/r2';
 
 export async function GET(
@@ -18,10 +18,12 @@ export async function GET(
   try {
     const { trackId } = params;
 
-    // Initialize Supabase client
-    const supabase = createServerSupabaseClient();
+    // Use admin client for reading tracks (bypasses RLS)
+    // Tracks should be publicly readable in a music streaming platform
+    const adminSupabase = createAdminSupabaseClient();
 
-    // Check if user is authenticated (optional - depends on your requirements)
+    // Use server client for auth check
+    const supabase = createServerSupabaseClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -32,14 +34,15 @@ export async function GET(
     //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     // }
 
-    // Fetch track details from database
-    const { data: track, error: trackError } = await supabase
+    // Fetch track details from database using admin client
+    const { data: track, error: trackError } = await adminSupabase
       .from('tracks')
       .select('id, title, audio_url, artist_id, artists(name)')
       .eq('id', trackId)
       .single();
 
     if (trackError || !track) {
+      console.error('Track fetch error:', trackError);
       return NextResponse.json({ error: 'Track not found' }, { status: 404 });
     }
 
