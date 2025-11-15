@@ -20,6 +20,89 @@ const getSupabase = async () => {
   return supabase;
 };
 
+// Styles
+const styles = {
+  container: {
+    minHeight: '100vh',
+    background: 'linear-gradient(135deg, #121212 0%, #1a1a1a 100%)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '40px 20px',
+  },
+  card: {
+    width: '100%',
+    maxWidth: '450px',
+    background: '#181818',
+    borderRadius: '12px',
+    border: '1px solid #282828',
+    padding: '48px 40px',
+  },
+  input: {
+    width: '100%',
+    padding: '14px 16px',
+    background: '#121212',
+    color: '#ffffff',
+    border: '1px solid #727272',
+    borderRadius: '4px',
+    fontSize: '16px',
+    outline: 'none',
+    boxSizing: 'border-box' as const,
+    transition: 'border-color 0.2s',
+  },
+  btnPrimary: {
+    width: '100%',
+    padding: '16px',
+    background: '#1DB954',
+    color: '#000000',
+    border: 'none',
+    borderRadius: '500px',
+    fontSize: '16px',
+    fontWeight: 700,
+    cursor: 'pointer',
+    marginBottom: '16px',
+    transition: 'all 0.2s',
+  },
+  btnSecondary: {
+    padding: '16px',
+    background: '#282828',
+    color: '#ffffff',
+    border: 'none',
+    borderRadius: '500px',
+    fontSize: '16px',
+    fontWeight: 700,
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+  },
+  btnSocial: {
+    width: '100%',
+    padding: '14px 16px',
+    background: 'transparent',
+    color: '#ffffff',
+    border: '1px solid #727272',
+    borderRadius: '500px',
+    fontSize: '14px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    marginBottom: '12px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    transition: 'all 0.2s',
+  },
+  genderOption: (selected: boolean) => ({
+    display: 'flex',
+    alignItems: 'center',
+    padding: '12px',
+    background: selected ? '#282828' : 'transparent',
+    border: `1px solid ${selected ? '#1DB954' : '#282828'}`,
+    borderRadius: '4px',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+  }),
+};
+
 export default function SignupPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -182,8 +265,8 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="signup-container">
-      <div className="signup-card">
+    <div style={styles.container}>
+      <div style={styles.card}>
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <h1 style={{ fontSize: '48px', fontWeight: 'bold', color: '#1DB954', marginBottom: '8px', margin: 0 }}>
@@ -246,13 +329,23 @@ export default function SignupPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleStep1Continue()}
                 placeholder="name@domain.com"
-                className="input-field"
+                style={styles.input}
+                onFocus={(e) => e.currentTarget.style.borderColor = '#1DB954'}
+                onBlur={(e) => e.currentTarget.style.borderColor = '#727272'}
               />
             </div>
 
             <button
               onClick={handleStep1Continue}
-              className="btn-primary"
+              style={styles.btnPrimary}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#1ed760';
+                e.currentTarget.style.transform = 'scale(1.02)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#1DB954';
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
             >
               Next
             </button>
@@ -265,11 +358,33 @@ export default function SignupPage() {
             </div>
 
             {/* Social Login Buttons */}
-            <button onClick={() => handleSocialLogin('google')} className="btn-social">
+            <button
+              onClick={() => handleSocialLogin('google')}
+              style={styles.btnSocial}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = '#ffffff';
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = '#727272';
+                e.currentTarget.style.background = 'transparent';
+              }}
+            >
               <span>🔍</span>
               Continue with Google
             </button>
-            <button onClick={() => handleSocialLogin('apple')} className="btn-social">
+            <button
+              onClick={() => handleSocialLogin('apple')}
+              style={styles.btnSocial}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = '#ffffff';
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = '#727272';
+                e.currentTarget.style.background = 'transparent';
+              }}
+            >
               <span></span>
               Continue with Apple
             </button>
@@ -286,7 +401,7 @@ export default function SignupPage() {
 
         {/* Step 2: Password */}
         {step === 2 && (
-          <div>
+          <div key="step2">
             <h2 style={{ color: '#ffffff', fontSize: '24px', fontWeight: 'bold', marginBottom: '24px', marginTop: 0 }}>
               Create a password
             </h2>
@@ -300,7 +415,9 @@ export default function SignupPage() {
                 value={password}
                 onChange={handlePasswordChange}
                 placeholder="Enter password"
-                className="input-field"
+                style={styles.input}
+                onFocus={(e) => e.currentTarget.style.borderColor = '#1DB954'}
+                onBlur={(e) => e.currentTarget.style.borderColor = '#727272'}
               />
             </div>
 
@@ -325,17 +442,34 @@ export default function SignupPage() {
             </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>
-              <button onClick={() => setStep(1)} className="btn-secondary" style={{ flex: 1 }}>
+              <button
+                onClick={() => setStep(1)}
+                style={{ ...styles.btnSecondary, flex: 1 }}
+                onMouseEnter={(e) => e.currentTarget.style.background = '#3e3e3e'}
+                onMouseLeave={(e) => e.currentTarget.style.background = '#282828'}
+              >
                 Back
               </button>
               <button
                 onClick={handleStep2Continue}
                 disabled={!validatePassword(password)}
-                className="btn-primary"
                 style={{
+                  ...styles.btnPrimary,
                   flex: 1,
                   opacity: validatePassword(password) ? 1 : 0.5,
                   cursor: validatePassword(password) ? 'pointer' : 'not-allowed',
+                }}
+                onMouseEnter={(e) => {
+                  if (validatePassword(password)) {
+                    e.currentTarget.style.background = '#1ed760';
+                    e.currentTarget.style.transform = 'scale(1.02)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (validatePassword(password)) {
+                    e.currentTarget.style.background = '#1DB954';
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }
                 }}
               >
                 Next
@@ -346,7 +480,7 @@ export default function SignupPage() {
 
         {/* Step 3: Profile Details */}
         {step === 3 && (
-          <form onSubmit={handleSignup}>
+          <form onSubmit={handleSignup} key="step3">
             <h2 style={{ color: '#ffffff', fontSize: '24px', fontWeight: 'bold', marginBottom: '24px', marginTop: 0 }}>
               Tell us about yourself
             </h2>
@@ -362,7 +496,9 @@ export default function SignupPage() {
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Enter your name"
                 required
-                className="input-field"
+                style={styles.input}
+                onFocus={(e) => e.currentTarget.style.borderColor = '#1DB954'}
+                onBlur={(e) => e.currentTarget.style.borderColor = '#727272'}
               />
               <p style={{ color: '#b3b3b3', fontSize: '11px', marginTop: '4px', marginBottom: 0 }}>
                 This will appear on your profile
@@ -380,8 +516,9 @@ export default function SignupPage() {
                 onChange={(e) => setDateOfBirth(e.target.value)}
                 required
                 max={new Date().toISOString().split('T')[0]}
-                className="input-field"
-                style={{ colorScheme: 'dark' }}
+                style={{ ...styles.input, colorScheme: 'dark' }}
+                onFocus={(e) => e.currentTarget.style.borderColor = '#1DB954'}
+                onBlur={(e) => e.currentTarget.style.borderColor = '#727272'}
               />
               <p style={{ color: '#b3b3b3', fontSize: '11px', marginTop: '4px', marginBottom: 0 }}>
                 You must be at least 13 years old
@@ -407,7 +544,17 @@ export default function SignupPage() {
                 ].map((option) => (
                   <label
                     key={option.value}
-                    className={`gender-option ${gender === option.value ? 'selected' : ''}`}
+                    style={styles.genderOption(gender === option.value)}
+                    onMouseEnter={(e) => {
+                      if (gender !== option.value) {
+                        e.currentTarget.style.background = '#181818';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (gender !== option.value) {
+                        e.currentTarget.style.background = 'transparent';
+                      }
+                    }}
                   >
                     <input
                       type="radio"
@@ -434,19 +581,32 @@ export default function SignupPage() {
               <button
                 type="button"
                 onClick={() => setStep(2)}
-                className="btn-secondary"
-                style={{ flex: 1 }}
+                style={{ ...styles.btnSecondary, flex: 1 }}
+                onMouseEnter={(e) => e.currentTarget.style.background = '#3e3e3e'}
+                onMouseLeave={(e) => e.currentTarget.style.background = '#282828'}
               >
                 Back
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-primary"
                 style={{
+                  ...styles.btnPrimary,
                   flex: 1,
                   opacity: loading ? 0.5 : 1,
                   cursor: loading ? 'not-allowed' : 'pointer',
+                }}
+                onMouseEnter={(e) => {
+                  if (!loading) {
+                    e.currentTarget.style.background = '#1ed760';
+                    e.currentTarget.style.transform = 'scale(1.02)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!loading) {
+                    e.currentTarget.style.background = '#1DB954';
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }
                 }}
               >
                 {loading ? 'Creating account...' : 'Sign up'}
@@ -455,120 +615,6 @@ export default function SignupPage() {
           </form>
         )}
       </div>
-
-      <style jsx>{`
-        .signup-container {
-          min-height: 100vh;
-          background: linear-gradient(135deg, #121212 0%, #1a1a1a 100%);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 40px 20px;
-        }
-
-        .signup-card {
-          width: 100%;
-          max-width: 450px;
-          background: #181818;
-          border-radius: 12px;
-          border: 1px solid #282828;
-          padding: 48px 40px;
-        }
-
-        .input-field {
-          width: 100%;
-          padding: 14px 16px;
-          background: #121212;
-          color: #ffffff;
-          border: 1px solid #727272;
-          border-radius: 4px;
-          font-size: 16px;
-          outline: none;
-          box-sizing: border-box;
-        }
-
-        .input-field:focus {
-          border-color: #1DB954;
-        }
-
-        .btn-primary {
-          width: 100%;
-          padding: 16px;
-          background: #1DB954;
-          color: #000000;
-          border: none;
-          border-radius: 500px;
-          font-size: 16px;
-          font-weight: 700;
-          cursor: pointer;
-          margin-bottom: 16px;
-          transition: all 0.2s;
-        }
-
-        .btn-primary:hover:not(:disabled) {
-          background: #1ed760;
-          transform: scale(1.02);
-        }
-
-        .btn-secondary {
-          padding: 16px;
-          background: #282828;
-          color: #ffffff;
-          border: none;
-          border-radius: 500px;
-          font-size: 16px;
-          font-weight: 700;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .btn-secondary:hover {
-          background: #3e3e3e;
-        }
-
-        .btn-social {
-          width: 100%;
-          padding: 14px 16px;
-          background: transparent;
-          color: #ffffff;
-          border: 1px solid #727272;
-          border-radius: 500px;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-          margin-bottom: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          transition: all 0.2s;
-        }
-
-        .btn-social:hover {
-          border-color: #ffffff;
-          background: rgba(255, 255, 255, 0.1);
-        }
-
-        .gender-option {
-          display: flex;
-          align-items: center;
-          padding: 12px;
-          background: transparent;
-          border: 1px solid #282828;
-          border-radius: 4px;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .gender-option:hover {
-          background: #181818;
-        }
-
-        .gender-option.selected {
-          background: #282828;
-          border-color: #1DB954;
-        }
-      `}</style>
     </div>
   );
 }
