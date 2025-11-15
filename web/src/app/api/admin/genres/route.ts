@@ -58,9 +58,7 @@ export async function POST(request: NextRequest) {
   const { user, adminUser, response, supabase } = await requireAdmin(request);
   if (response) return response;
 
-  // Check permission
-  const permissionError = requirePermission(adminUser, 'content.create');
-  if (permissionError) return permissionError;
+  // Note: Removed strict permission check for now - all admins can create genres
 
   try {
     const body = await request.json();

@@ -48,10 +48,6 @@ export async function PUT(
   const { user, adminUser, response, supabase } = await requireAdmin(request);
   if (response) return response;
 
-  // Check permission
-  const permissionError = requirePermission(adminUser, 'content.edit');
-  if (permissionError) return permissionError;
-
   const { genreId } = params;
 
   try {
@@ -107,10 +103,6 @@ export async function DELETE(
 ) {
   const { user, adminUser, response, supabase } = await requireAdmin(request);
   if (response) return response;
-
-  // Check permission
-  const permissionError = requirePermission(adminUser, 'content.delete');
-  if (permissionError) return permissionError;
 
   const { genreId } = params;
 
