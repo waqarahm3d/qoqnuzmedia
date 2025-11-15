@@ -13,7 +13,6 @@ interface User {
   created_at: string;
   admin_users: Array<{
     role_id: string;
-    is_active: boolean;
   }> | null;
 }
 
