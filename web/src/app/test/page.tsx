@@ -101,266 +101,625 @@ export default function TestPage() {
   };
 
   return (
-    <div style={{ padding: '40px', maxWidth: '800px', margin: '0 auto', fontFamily: 'system-ui', background: '#ffffff', minHeight: '100vh' }}>
-      <h1 style={{ fontSize: '32px', marginBottom: '20px', color: '#000' }}>🎵 Qoqnuz Music - Test Dashboard</h1>
-
-      {/* Upload Section */}
-      <div style={{ marginBottom: '30px', padding: '20px', background: '#f0f8ff', borderRadius: '8px', border: '2px solid #1DB954' }}>
-        <h2 style={{ fontSize: '20px', marginBottom: '15px', color: '#000' }}>📤 Upload MP3 File</h2>
-        <p style={{ marginBottom: '15px', color: '#333' }}>
-          Upload an MP3 file to R2 storage and create a track record in the database:
-        </p>
-
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', color: '#000', fontWeight: 'bold' }}>
-            Artist Name *
-          </label>
-          <input
-            type="text"
-            value={artistName}
-            onChange={(e) => setArtistName(e.target.value)}
-            placeholder="Enter artist name"
+    <div
+      style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+        padding: '40px 20px',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      }}
+    >
+      <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+          <h1
             style={{
-              width: '100%',
-              padding: '10px',
-              fontSize: '14px',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              boxSizing: 'border-box',
+              fontSize: '36px',
+              fontWeight: '700',
+              color: '#ffffff',
+              marginBottom: '10px',
+              letterSpacing: '-0.5px',
             }}
-          />
+          >
+            🎵 Qoqnuz Music
+          </h1>
+          <p style={{ fontSize: '16px', color: '#a0a0b0', margin: 0 }}>
+            Test Dashboard - Upload & Stream MP3 Files
+          </p>
         </div>
 
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', color: '#000', fontWeight: 'bold' }}>
-            Track Title *
-          </label>
-          <input
-            type="text"
-            value={trackTitle}
-            onChange={(e) => setTrackTitle(e.target.value)}
-            placeholder="Enter track title"
-            style={{
-              width: '100%',
-              padding: '10px',
-              fontSize: '14px',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              boxSizing: 'border-box',
-            }}
-          />
-        </div>
-
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', color: '#000', fontWeight: 'bold' }}>
-            MP3 File *
-          </label>
-          <input
-            id="fileInput"
-            type="file"
-            accept="audio/mpeg,audio/mp3"
-            onChange={handleFileChange}
-            style={{
-              width: '100%',
-              padding: '10px',
-              fontSize: '14px',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              boxSizing: 'border-box',
-            }}
-          />
-          {selectedFile && (
-            <p style={{ marginTop: '5px', fontSize: '12px', color: '#666' }}>
-              Selected: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+        {/* Upload Section */}
+        <div
+          style={{
+            marginBottom: '30px',
+            padding: '30px',
+            background: '#242442',
+            borderRadius: '16px',
+            border: '1px solid #3a3a5a',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+          }}
+        >
+          <div style={{ marginBottom: '20px' }}>
+            <h2
+              style={{
+                fontSize: '22px',
+                fontWeight: '600',
+                color: '#ffffff',
+                marginBottom: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+              }}
+            >
+              <span style={{ fontSize: '24px' }}>📤</span>
+              Upload MP3 File
+            </h2>
+            <p style={{ fontSize: '14px', color: '#9090a0', margin: 0 }}>
+              Upload an MP3 file to R2 storage and create a track record in the database
             </p>
+          </div>
+
+          {/* Artist Name Input */}
+          <div style={{ marginBottom: '20px' }}>
+            <label
+              style={{
+                display: 'block',
+                marginBottom: '8px',
+                color: '#e0e0e0',
+                fontSize: '14px',
+                fontWeight: '500',
+              }}
+            >
+              Artist Name <span style={{ color: '#ff6b6b' }}>*</span>
+            </label>
+            <input
+              type="text"
+              value={artistName}
+              onChange={(e) => setArtistName(e.target.value)}
+              placeholder="Enter artist name"
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                fontSize: '15px',
+                background: '#1a1a2e',
+                color: '#ffffff',
+                border: '2px solid #3a3a5a',
+                borderRadius: '8px',
+                boxSizing: 'border-box',
+                outline: 'none',
+                transition: 'border-color 0.2s',
+              }}
+              onFocus={(e) => (e.target.style.borderColor = '#1DB954')}
+              onBlur={(e) => (e.target.style.borderColor = '#3a3a5a')}
+            />
+          </div>
+
+          {/* Track Title Input */}
+          <div style={{ marginBottom: '20px' }}>
+            <label
+              style={{
+                display: 'block',
+                marginBottom: '8px',
+                color: '#e0e0e0',
+                fontSize: '14px',
+                fontWeight: '500',
+              }}
+            >
+              Track Title <span style={{ color: '#ff6b6b' }}>*</span>
+            </label>
+            <input
+              type="text"
+              value={trackTitle}
+              onChange={(e) => setTrackTitle(e.target.value)}
+              placeholder="Enter track title"
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                fontSize: '15px',
+                background: '#1a1a2e',
+                color: '#ffffff',
+                border: '2px solid #3a3a5a',
+                borderRadius: '8px',
+                boxSizing: 'border-box',
+                outline: 'none',
+                transition: 'border-color 0.2s',
+              }}
+              onFocus={(e) => (e.target.style.borderColor = '#1DB954')}
+              onBlur={(e) => (e.target.style.borderColor = '#3a3a5a')}
+            />
+          </div>
+
+          {/* MP3 File Input */}
+          <div style={{ marginBottom: '20px' }}>
+            <label
+              style={{
+                display: 'block',
+                marginBottom: '8px',
+                color: '#e0e0e0',
+                fontSize: '14px',
+                fontWeight: '500',
+              }}
+            >
+              MP3 File <span style={{ color: '#ff6b6b' }}>*</span>
+            </label>
+            <input
+              id="fileInput"
+              type="file"
+              accept="audio/mpeg,audio/mp3"
+              onChange={handleFileChange}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                fontSize: '14px',
+                background: '#1a1a2e',
+                color: '#ffffff',
+                border: '2px solid #3a3a5a',
+                borderRadius: '8px',
+                boxSizing: 'border-box',
+                cursor: 'pointer',
+              }}
+            />
+            {selectedFile && (
+              <p
+                style={{
+                  marginTop: '8px',
+                  fontSize: '13px',
+                  color: '#1DB954',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                ✓ Selected: <strong>{selectedFile.name}</strong> (
+                {(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+              </p>
+            )}
+          </div>
+
+          {/* Upload Button */}
+          <button
+            onClick={handleUpload}
+            disabled={uploadLoading || !selectedFile || !artistName || !trackTitle}
+            style={{
+              width: '100%',
+              padding: '14px 24px',
+              fontSize: '16px',
+              fontWeight: '600',
+              background:
+                uploadLoading || !selectedFile || !artistName || !trackTitle
+                  ? '#4a4a6a'
+                  : 'linear-gradient(135deg, #1DB954 0%, #1ed760 100%)',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '8px',
+              cursor:
+                uploadLoading || !selectedFile || !artistName || !trackTitle
+                  ? 'not-allowed'
+                  : 'pointer',
+              transition: 'all 0.2s',
+              boxShadow:
+                uploadLoading || !selectedFile || !artistName || !trackTitle
+                  ? 'none'
+                  : '0 4px 16px rgba(29, 185, 84, 0.3)',
+            }}
+          >
+            {uploadLoading ? '⏳ Uploading...' : '📤 Upload to R2 Storage'}
+          </button>
+
+          {/* Upload Error */}
+          {uploadError && (
+            <div
+              style={{
+                marginTop: '20px',
+                padding: '16px',
+                background: 'rgba(255, 59, 48, 0.1)',
+                border: '1px solid rgba(255, 59, 48, 0.3)',
+                borderRadius: '8px',
+                color: '#ff6b6b',
+                fontSize: '14px',
+              }}
+            >
+              <strong>⚠️ Upload Error:</strong> {uploadError}
+            </div>
+          )}
+
+          {/* Upload Success */}
+          {uploadSuccess && (
+            <div
+              style={{
+                marginTop: '20px',
+                padding: '20px',
+                background: 'rgba(29, 185, 84, 0.1)',
+                border: '1px solid rgba(29, 185, 84, 0.3)',
+                borderRadius: '8px',
+                color: '#ffffff',
+              }}
+            >
+              <div
+                style={{
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  marginBottom: '12px',
+                  color: '#1ed760',
+                }}
+              >
+                ✅ Upload Successful!
+              </div>
+              <div style={{ fontSize: '14px', lineHeight: '1.8' }}>
+                <div style={{ color: '#d0d0d0' }}>
+                  <strong style={{ color: '#ffffff' }}>Track ID:</strong>{' '}
+                  <code
+                    style={{
+                      background: '#1a1a2e',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      color: '#1ed760',
+                      fontSize: '13px',
+                    }}
+                  >
+                    {uploadSuccess.track?.id}
+                  </code>
+                </div>
+                <div style={{ color: '#d0d0d0' }}>
+                  <strong style={{ color: '#ffffff' }}>Title:</strong>{' '}
+                  {uploadSuccess.track?.title}
+                </div>
+                <div style={{ color: '#d0d0d0' }}>
+                  <strong style={{ color: '#ffffff' }}>Artist:</strong>{' '}
+                  {uploadSuccess.track?.artists?.name}
+                </div>
+                <div style={{ color: '#d0d0d0', wordBreak: 'break-all' }}>
+                  <strong style={{ color: '#ffffff' }}>Audio URL:</strong>{' '}
+                  <span style={{ fontSize: '11px' }}>{uploadSuccess.track?.audio_url}</span>
+                </div>
+              </div>
+              <p
+                style={{
+                  marginTop: '12px',
+                  fontSize: '13px',
+                  color: '#1ed760',
+                  background: 'rgba(29, 185, 84, 0.1)',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  margin: '12px 0 0 0',
+                }}
+              >
+                💡 You can now use this Track ID to test streaming below!
+              </p>
+            </div>
           )}
         </div>
 
-        <button
-          onClick={handleUpload}
-          disabled={uploadLoading || !selectedFile || !artistName || !trackTitle}
+        {/* Streaming Test Section */}
+        <div
           style={{
-            padding: '12px 24px',
-            fontSize: '16px',
-            background: uploadLoading ? '#ccc' : '#1DB954',
-            color: 'white',
-            border: 'none',
-            borderRadius: '24px',
-            cursor: uploadLoading || !selectedFile || !artistName || !trackTitle ? 'not-allowed' : 'pointer',
-            opacity: uploadLoading || !selectedFile || !artistName || !trackTitle ? 0.6 : 1,
+            marginBottom: '30px',
+            padding: '30px',
+            background: '#242442',
+            borderRadius: '16px',
+            border: '1px solid #3a3a5a',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
           }}
         >
-          {uploadLoading ? 'Uploading...' : 'Upload to R2'}
-        </button>
-
-        {uploadError && (
-          <div style={{
-            marginTop: '15px',
-            padding: '15px',
-            background: '#fee',
-            border: '1px solid #fcc',
-            borderRadius: '8px',
-            color: '#c00',
-          }}>
-            <strong>Upload Error:</strong> {uploadError}
-          </div>
-        )}
-
-        {uploadSuccess && (
-          <div style={{
-            marginTop: '15px',
-            padding: '15px',
-            background: '#efe',
-            border: '1px solid #cfc',
-            borderRadius: '8px',
-            color: '#000',
-          }}>
-            <strong>✅ Upload Successful!</strong>
-            <div style={{ marginTop: '10px' }}>
-              <div><strong>Track ID:</strong> {uploadSuccess.track?.id}</div>
-              <div><strong>Title:</strong> {uploadSuccess.track?.title}</div>
-              <div><strong>Artist:</strong> {uploadSuccess.track?.artists?.name}</div>
-              <div><strong>Audio URL:</strong> <span style={{ fontSize: '11px', wordBreak: 'break-all' }}>{uploadSuccess.track?.audio_url}</span></div>
-            </div>
-            <p style={{ marginTop: '10px', fontSize: '14px', color: '#060' }}>
-              You can now use this Track ID to test streaming below!
+          <div style={{ marginBottom: '20px' }}>
+            <h2
+              style={{
+                fontSize: '22px',
+                fontWeight: '600',
+                color: '#ffffff',
+                marginBottom: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+              }}
+            >
+              <span style={{ fontSize: '24px' }}>🎧</span>
+              Test R2 Streaming
+            </h2>
+            <p style={{ fontSize: '14px', color: '#9090a0', margin: 0 }}>
+              Enter a track ID from your database to test streaming functionality
             </p>
           </div>
-        )}
-      </div>
 
-      {/* Streaming Test Section */}
-      <div style={{ marginBottom: '30px', padding: '20px', background: '#f5f5f5', borderRadius: '8px' }}>
-        <h2 style={{ fontSize: '20px', marginBottom: '15px', color: '#000' }}>🎧 Test R2 Streaming</h2>
-        <p style={{ marginBottom: '10px', color: '#333' }}>
-          Enter a track ID from your database to test streaming:
-        </p>
+          <div style={{ marginBottom: '20px' }}>
+            <label
+              style={{
+                display: 'block',
+                marginBottom: '8px',
+                color: '#e0e0e0',
+                fontSize: '14px',
+                fontWeight: '500',
+              }}
+            >
+              Track ID
+            </label>
+            <input
+              type="text"
+              value={trackId}
+              onChange={(e) => setTrackId(e.target.value)}
+              placeholder="Enter track ID (e.g., t3333333-3333-3333-3333-333333333331)"
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                fontSize: '14px',
+                background: '#1a1a2e',
+                color: '#ffffff',
+                border: '2px solid #3a3a5a',
+                borderRadius: '8px',
+                fontFamily: 'monospace',
+                boxSizing: 'border-box',
+                outline: 'none',
+                transition: 'border-color 0.2s',
+              }}
+              onFocus={(e) => (e.target.style.borderColor = '#1DB954')}
+              onBlur={(e) => (e.target.style.borderColor = '#3a3a5a')}
+            />
+          </div>
 
-        <div style={{ marginBottom: '15px' }}>
-          <input
-            type="text"
-            value={trackId}
-            onChange={(e) => setTrackId(e.target.value)}
-            placeholder="Enter track ID"
+          <button
+            onClick={testStream}
+            disabled={loading || !trackId}
             style={{
               width: '100%',
-              padding: '10px',
-              fontSize: '14px',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              fontFamily: 'monospace',
-              boxSizing: 'border-box',
-            }}
-          />
-        </div>
-
-        <button
-          onClick={testStream}
-          disabled={loading || !trackId}
-          style={{
-            padding: '12px 24px',
-            fontSize: '16px',
-            background: '#1DB954',
-            color: 'white',
-            border: 'none',
-            borderRadius: '24px',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            opacity: loading ? 0.6 : 1,
-          }}
-        >
-          {loading ? 'Loading...' : 'Test Stream'}
-        </button>
-      </div>
-
-      {error && (
-        <div
-          style={{
-            padding: '15px',
-            background: '#fee',
-            border: '1px solid #fcc',
-            borderRadius: '8px',
-            marginBottom: '20px',
-            color: '#c00',
-          }}
-        >
-          <strong>Error:</strong> {error}
-        </div>
-      )}
-
-      {trackInfo && (
-        <div
-          style={{
-            padding: '15px',
-            background: '#efe',
-            border: '1px solid #cfc',
-            borderRadius: '8px',
-            marginBottom: '20px',
-            color: '#000',
-          }}
-        >
-          <strong>Track Info:</strong>
-          <div style={{ marginTop: '10px' }}>
-            <div><strong>Title:</strong> {trackInfo.title}</div>
-            <div><strong>Artist:</strong> {trackInfo.artist}</div>
-            <div><strong>ID:</strong> {trackInfo.id}</div>
-          </div>
-        </div>
-      )}
-
-      {streamUrl && (
-        <div style={{ marginTop: '30px' }}>
-          <h3 style={{ fontSize: '20px', marginBottom: '15px', color: '#000' }}>✅ Stream URL Generated!</h3>
-
-          <div
-            style={{
-              padding: '15px',
-              background: '#fff',
-              border: '1px solid #ddd',
+              padding: '14px 24px',
+              fontSize: '16px',
+              fontWeight: '600',
+              background:
+                loading || !trackId
+                  ? '#4a4a6a'
+                  : 'linear-gradient(135deg, #1DB954 0%, #1ed760 100%)',
+              color: '#ffffff',
+              border: 'none',
               borderRadius: '8px',
-              marginBottom: '20px',
-              wordBreak: 'break-all',
-              fontSize: '12px',
-              fontFamily: 'monospace',
-              color: '#000',
+              cursor: loading || !trackId ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s',
+              boxShadow:
+                loading || !trackId ? 'none' : '0 4px 16px rgba(29, 185, 84, 0.3)',
             }}
           >
-            {streamUrl}
-          </div>
+            {loading ? '⏳ Loading...' : '▶️ Test Stream'}
+          </button>
 
-          <div style={{ marginTop: '20px' }}>
-            <h4 style={{ marginBottom: '10px', color: '#000' }}>Audio Player:</h4>
-            <audio
-              controls
-              src={streamUrl}
-              style={{ width: '100%', marginBottom: '20px' }}
-              autoPlay
+          {/* Error Display */}
+          {error && (
+            <div
+              style={{
+                marginTop: '20px',
+                padding: '16px',
+                background: 'rgba(255, 59, 48, 0.1)',
+                border: '1px solid rgba(255, 59, 48, 0.3)',
+                borderRadius: '8px',
+                color: '#ff6b6b',
+                fontSize: '14px',
+              }}
             >
-              Your browser does not support the audio element.
-            </audio>
-          </div>
+              <strong>⚠️ Error:</strong> {error}
+            </div>
+          )}
 
-          <div style={{ fontSize: '14px', color: '#666' }}>
-            <p><strong>Note:</strong> This URL expires in 1 hour for security.</p>
+          {/* Track Info Display */}
+          {trackInfo && (
+            <div
+              style={{
+                marginTop: '20px',
+                padding: '20px',
+                background: 'rgba(29, 185, 84, 0.1)',
+                border: '1px solid rgba(29, 185, 84, 0.3)',
+                borderRadius: '8px',
+                color: '#ffffff',
+              }}
+            >
+              <div
+                style={{
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  marginBottom: '12px',
+                  color: '#1ed760',
+                }}
+              >
+                ℹ️ Track Information
+              </div>
+              <div style={{ fontSize: '14px', lineHeight: '1.8', color: '#d0d0d0' }}>
+                <div>
+                  <strong style={{ color: '#ffffff' }}>Title:</strong> {trackInfo.title}
+                </div>
+                <div>
+                  <strong style={{ color: '#ffffff' }}>Artist:</strong> {trackInfo.artist}
+                </div>
+                <div>
+                  <strong style={{ color: '#ffffff' }}>ID:</strong>{' '}
+                  <code
+                    style={{
+                      background: '#1a1a2e',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      color: '#1ed760',
+                      fontSize: '13px',
+                    }}
+                  >
+                    {trackInfo.id}
+                  </code>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Audio Player */}
+          {streamUrl && (
+            <div style={{ marginTop: '20px' }}>
+              <div
+                style={{
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  marginBottom: '12px',
+                  color: '#1ed760',
+                }}
+              >
+                ✅ Stream URL Generated!
+              </div>
+
+              <div
+                style={{
+                  padding: '16px',
+                  background: '#1a1a2e',
+                  border: '1px solid #3a3a5a',
+                  borderRadius: '8px',
+                  marginBottom: '16px',
+                  wordBreak: 'break-all',
+                  fontSize: '12px',
+                  fontFamily: 'monospace',
+                  color: '#9090a0',
+                  lineHeight: '1.6',
+                }}
+              >
+                {streamUrl}
+              </div>
+
+              <div
+                style={{
+                  padding: '20px',
+                  background: '#1a1a2e',
+                  borderRadius: '8px',
+                  border: '1px solid #3a3a5a',
+                }}
+              >
+                <h4
+                  style={{
+                    marginTop: 0,
+                    marginBottom: '12px',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                  }}
+                >
+                  🎵 Audio Player
+                </h4>
+                <audio
+                  controls
+                  src={streamUrl}
+                  style={{
+                    width: '100%',
+                    outline: 'none',
+                    filter: 'brightness(0.9)',
+                  }}
+                  autoPlay
+                >
+                  Your browser does not support the audio element.
+                </audio>
+                <p
+                  style={{
+                    marginTop: '12px',
+                    marginBottom: 0,
+                    fontSize: '12px',
+                    color: '#9090a0',
+                  }}
+                >
+                  ⏱️ This URL expires in 1 hour for security purposes.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Sample Track IDs */}
+        <div
+          style={{
+            padding: '24px',
+            background: '#242442',
+            borderRadius: '16px',
+            border: '1px solid #3a3a5a',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+          }}
+        >
+          <h3
+            style={{
+              fontSize: '18px',
+              fontWeight: '600',
+              marginBottom: '16px',
+              color: '#ffffff',
+            }}
+          >
+            📋 Sample Track IDs
+          </h3>
+          <p style={{ fontSize: '13px', color: '#9090a0', marginBottom: '16px' }}>
+            These IDs will work after you run the seed data SQL script
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div
+              style={{
+                padding: '12px',
+                background: '#1a1a2e',
+                borderRadius: '6px',
+                border: '1px solid #3a3a5a',
+              }}
+            >
+              <code
+                style={{
+                  color: '#1ed760',
+                  fontSize: '13px',
+                  fontFamily: 'monospace',
+                }}
+              >
+                t3333333-3333-3333-3333-333333333331
+              </code>
+              <div style={{ color: '#9090a0', fontSize: '13px', marginTop: '4px' }}>
+                Maya Rivers - Golden
+              </div>
+            </div>
+
+            <div
+              style={{
+                padding: '12px',
+                background: '#1a1a2e',
+                borderRadius: '6px',
+                border: '1px solid #3a3a5a',
+              }}
+            >
+              <code
+                style={{
+                  color: '#1ed760',
+                  fontSize: '13px',
+                  fontFamily: 'monospace',
+                }}
+              >
+                t1111111-1111-1111-1111-111111111111
+              </code>
+              <div style={{ color: '#9090a0', fontSize: '13px', marginTop: '4px' }}>
+                Luna Eclipse - Aurora
+              </div>
+            </div>
+
+            <div
+              style={{
+                padding: '12px',
+                background: '#1a1a2e',
+                borderRadius: '6px',
+                border: '1px solid #3a3a5a',
+              }}
+            >
+              <code
+                style={{
+                  color: '#1ed760',
+                  fontSize: '13px',
+                  fontFamily: 'monospace',
+                }}
+              >
+                t2222222-2222-2222-2222-222222222222
+              </code>
+              <div style={{ color: '#9090a0', fontSize: '13px', marginTop: '4px' }}>
+                The Crimson Waves - Ocean Heart
+              </div>
+            </div>
           </div>
         </div>
-      )}
 
-      <div style={{ marginTop: '40px', padding: '20px', background: '#f9f9f9', borderRadius: '8px' }}>
-        <h3 style={{ fontSize: '18px', marginBottom: '10px', color: '#000' }}>Sample Track IDs (from seed data):</h3>
-        <ul style={{ listStyle: 'none', padding: 0 }}>
-          <li style={{ marginBottom: '8px', fontFamily: 'monospace', fontSize: '13px', color: '#333' }}>
-            <code style={{ background: '#fff', padding: '2px 6px', borderRadius: '3px' }}>t3333333-3333-3333-3333-333333333331</code> - Maya Rivers - Golden
-          </li>
-          <li style={{ marginBottom: '8px', fontFamily: 'monospace', fontSize: '13px', color: '#333' }}>
-            <code style={{ background: '#fff', padding: '2px 6px', borderRadius: '3px' }}>t1111111-1111-1111-1111-111111111111</code> - Luna Eclipse - Aurora
-          </li>
-          <li style={{ marginBottom: '8px', fontFamily: 'monospace', fontSize: '13px', color: '#333' }}>
-            <code style={{ background: '#fff', padding: '2px 6px', borderRadius: '3px' }}>t2222222-2222-2222-2222-222222222222</code> - The Crimson Waves - Ocean Heart
-          </li>
-        </ul>
-        <p style={{ marginTop: '15px', fontSize: '14px', color: '#666' }}>
-          These IDs will work after you run the seed data SQL script.
-        </p>
+        {/* Footer */}
+        <div style={{ textAlign: 'center', marginTop: '40px', paddingBottom: '20px' }}>
+          <p style={{ fontSize: '13px', color: '#7070a0', margin: 0 }}>
+            Qoqnuz Music - Test Dashboard v1.0
+          </p>
+        </div>
       </div>
     </div>
   );
