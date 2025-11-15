@@ -12,6 +12,7 @@ interface Artist {
   cover_image_url: string | null;
   is_verified: boolean;
   follower_count: number;
+  genres: string[] | null;
   created_at: string;
 }
 
@@ -193,6 +194,23 @@ export default function ArtistsManagement() {
                                   {artist.bio}
                                 </p>
                               )}
+                              {artist.genres && artist.genres.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {artist.genres.slice(0, 3).map((genreId, idx) => (
+                                    <span
+                                      key={idx}
+                                      className="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded"
+                                    >
+                                      {genreId}
+                                    </span>
+                                  ))}
+                                  {artist.genres.length > 3 && (
+                                    <span className="text-xs text-gray-500">
+                                      +{artist.genres.length - 3} more
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </td>
@@ -273,6 +291,12 @@ export default function ArtistsManagement() {
   );
 }
 
+interface Genre {
+  id: string;
+  name: string;
+  slug: string;
+}
+
 interface ArtistModalProps {
   artist: Artist | null;
   onClose: () => void;
@@ -286,8 +310,40 @@ function ArtistModal({ artist, onClose, onSuccess }: ArtistModalProps) {
     profile_image_url: artist?.profile_image_url || '',
     cover_image_url: artist?.cover_image_url || '',
     is_verified: artist?.is_verified || false,
+    genres: artist?.genres || [] as string[],
   });
   const [loading, setLoading] = useState(false);
+  const [genres, setGenres] = useState<Genre[]>([]);
+
+  useEffect(() => {
+    fetchGenres();
+  }, []);
+
+  const fetchGenres = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const response = await fetch('/api/admin/genres?limit=1000', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setGenres(data.genres || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch genres:', error);
+    }
+  };
+
+  const toggleGenre = (genreId: string) => {
+    const newGenres = formData.genres.includes(genreId)
+      ? formData.genres.filter(g => g !== genreId)
+      : [...formData.genres, genreId];
+    setFormData({ ...formData, genres: newGenres });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -382,6 +438,27 @@ function ArtistModal({ artist, onClose, onSuccess }: ArtistModalProps) {
               }
               className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
             />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Genres
+            </label>
+            <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto p-2 bg-gray-700 rounded-lg">
+              {genres.map((genre) => (
+                <button
+                  key={genre.id}
+                  type="button"
+                  onClick={() => toggleGenre(genre.id)}
+                  className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
+                    formData.genres.includes(genre.id)
+                      ? 'bg-green-600 text-white'
+                      : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                  }`}
+                >
+                  {genre.name}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="flex items-center space-x-2">
             <input
