@@ -39,12 +39,12 @@ export default function TestPage() {
   };
 
   return (
-    <div style={{ padding: '40px', maxWidth: '800px', margin: '0 auto', fontFamily: 'system-ui' }}>
-      <h1 style={{ fontSize: '32px', marginBottom: '20px' }}>🎵 Qoqnuz Music - Streaming Test</h1>
+    <div style={{ padding: '40px', maxWidth: '800px', margin: '0 auto', fontFamily: 'system-ui', background: '#ffffff', minHeight: '100vh' }}>
+      <h1 style={{ fontSize: '32px', marginBottom: '20px', color: '#000' }}>🎵 Qoqnuz Music - Streaming Test</h1>
 
       <div style={{ marginBottom: '30px', padding: '20px', background: '#f5f5f5', borderRadius: '8px' }}>
-        <h2 style={{ fontSize: '20px', marginBottom: '15px' }}>Milestone A: Test R2 Streaming</h2>
-        <p style={{ marginBottom: '10px' }}>
+        <h2 style={{ fontSize: '20px', marginBottom: '15px', color: '#000' }}>Milestone A: Test R2 Streaming</h2>
+        <p style={{ marginBottom: '10px', color: '#333' }}>
           Enter a track ID from your database to test streaming:
         </p>
 
@@ -106,6 +106,7 @@ export default function TestPage() {
             border: '1px solid #cfc',
             borderRadius: '8px',
             marginBottom: '20px',
+            color: '#000',
           }}
         >
           <strong>Track Info:</strong>
@@ -119,7 +120,7 @@ export default function TestPage() {
 
       {streamUrl && (
         <div style={{ marginTop: '30px' }}>
-          <h3 style={{ fontSize: '20px', marginBottom: '15px' }}>✅ Stream URL Generated!</h3>
+          <h3 style={{ fontSize: '20px', marginBottom: '15px', color: '#000' }}>✅ Stream URL Generated!</h3>
 
           <div
             style={{
@@ -131,13 +132,14 @@ export default function TestPage() {
               wordBreak: 'break-all',
               fontSize: '12px',
               fontFamily: 'monospace',
+              color: '#000',
             }}
           >
             {streamUrl}
           </div>
 
           <div style={{ marginTop: '20px' }}>
-            <h4 style={{ marginBottom: '10px' }}>Audio Player:</h4>
+            <h4 style={{ marginBottom: '10px', color: '#000' }}>Audio Player:</h4>
             <audio
               controls
               src={streamUrl}
@@ -155,16 +157,16 @@ export default function TestPage() {
       )}
 
       <div style={{ marginTop: '40px', padding: '20px', background: '#f9f9f9', borderRadius: '8px' }}>
-        <h3 style={{ fontSize: '18px', marginBottom: '10px' }}>Sample Track IDs (from seed data):</h3>
+        <h3 style={{ fontSize: '18px', marginBottom: '10px', color: '#000' }}>Sample Track IDs (from seed data):</h3>
         <ul style={{ listStyle: 'none', padding: 0 }}>
-          <li style={{ marginBottom: '8px', fontFamily: 'monospace', fontSize: '13px' }}>
-            <code>t3333333-3333-3333-3333-333333333331</code> - Maya Rivers - Golden
+          <li style={{ marginBottom: '8px', fontFamily: 'monospace', fontSize: '13px', color: '#333' }}>
+            <code style={{ background: '#fff', padding: '2px 6px', borderRadius: '3px' }}>t3333333-3333-3333-3333-333333333331</code> - Maya Rivers - Golden
           </li>
-          <li style={{ marginBottom: '8px', fontFamily: 'monospace', fontSize: '13px' }}>
-            <code>t1111111-1111-1111-1111-111111111111</code> - Luna Eclipse - Aurora
+          <li style={{ marginBottom: '8px', fontFamily: 'monospace', fontSize: '13px', color: '#333' }}>
+            <code style={{ background: '#fff', padding: '2px 6px', borderRadius: '3px' }}>t1111111-1111-1111-1111-111111111111</code> - Luna Eclipse - Aurora
           </li>
-          <li style={{ marginBottom: '8px', fontFamily: 'monospace', fontSize: '13px' }}>
-            <code>t2222222-2222-2222-2222-222222222222</code> - The Crimson Waves - Ocean Heart
+          <li style={{ marginBottom: '8px', fontFamily: 'monospace', fontSize: '13px', color: '#333' }}>
+            <code style={{ background: '#fff', padding: '2px 6px', borderRadius: '3px' }}>t2222222-2222-2222-2222-222222222222</code> - The Crimson Waves - Ocean Heart
           </li>
         </ul>
         <p style={{ marginTop: '15px', fontSize: '14px', color: '#666' }}>
