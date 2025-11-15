@@ -72,8 +72,8 @@ export default function TestPage() {
     try {
       const formData = new FormData();
       formData.append('file', selectedFile);
-      formData.append('artist_name', artistName);
-      formData.append('track_title', trackTitle);
+      formData.append('artistName', artistName);
+      formData.append('title', trackTitle);
 
       const response = await fetch('/api/upload', {
         method: 'POST',
@@ -366,7 +366,7 @@ export default function TestPage() {
                 </div>
                 <div style={{ color: '#d0d0d0' }}>
                   <strong style={{ color: '#ffffff' }}>Artist:</strong>{' '}
-                  {uploadSuccess.track?.artists?.name}
+                  {uploadSuccess.track?.artist}
                 </div>
                 <div style={{ color: '#d0d0d0', wordBreak: 'break-all' }}>
                   <strong style={{ color: '#ffffff' }}>Audio URL:</strong>{' '}

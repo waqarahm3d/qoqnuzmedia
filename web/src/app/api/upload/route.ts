@@ -1,116 +1,145 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import { createClient } from '@supabase/supabase-js';
-
-const r2Client = new S3Client({
-  region: 'auto',
-  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-  credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
-  },
-});
-
-const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME || 'qoqnuz-media';
-
 /**
- * POST /api/upload
- * Upload an MP3 file to R2 and create database records
+ * Upload API Route
+ * Handles file upload to R2 and creates database entry
  */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { createAdminSupabaseClient } from '@/lib/supabase';
+import { uploadToR2 } from '@/lib/r2';
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    const artistName = formData.get('artist_name') as string;
-    const trackTitle = formData.get('track_title') as string;
+    const title = formData.get('title') as string;
+    const artistName = formData.get('artistName') as string;
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    if (!artistName || !trackTitle) {
-      return NextResponse.json(
-        { error: 'Artist name and track title are required' },
-        { status: 400 }
-      );
+    if (!title || !artistName) {
+      return NextResponse.json({ error: 'Title and artist name required' }, { status: 400 });
     }
 
-    // Create admin Supabase client (bypasses RLS)
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Validate file type
+    if (!file.type.includes('audio')) {
+      return NextResponse.json({ error: 'File must be an audio file' }, { status: 400 });
+    }
 
-    // Find or create artist
-    let { data: artist } = await supabase
+    // Use admin client to bypass RLS
+    const supabase = createAdminSupabaseClient();
+
+    console.log('Creating/finding artist:', artistName);
+
+    // Create or get artist
+    let artistId: string;
+
+    const { data: existingArtist, error: findError } = await supabase
       .from('artists')
       .select('id')
       .eq('name', artistName)
-      .single();
+      .maybeSingle();
 
-    if (!artist) {
+    if (findError) {
+      console.error('Error finding artist:', findError);
+    }
+
+    if (existingArtist) {
+      artistId = existingArtist.id;
+      console.log('Using existing artist:', artistId);
+    } else {
+      console.log('Creating new artist...');
       const { data: newArtist, error: artistError } = await supabase
         .from('artists')
-        .insert({ name: artistName })
+        .insert({
+          name: artistName,
+          bio: `Artist: ${artistName}`,
+          verified: false,
+          monthly_listeners: 0,
+          genres: ['Other'],
+        })
         .select('id')
         .single();
 
-      if (artistError) throw artistError;
-      artist = newArtist;
+      if (artistError) {
+        console.error('Artist creation error:', artistError);
+        return NextResponse.json({
+          error: 'Failed to create artist',
+          details: artistError.message
+        }, { status: 500 });
+      }
+
+      if (!newArtist) {
+        return NextResponse.json({ error: 'Artist created but no data returned' }, { status: 500 });
+      }
+
+      artistId = newArtist.id;
+      console.log('Created new artist:', artistId);
     }
 
-    // Generate clean filename with artist folder structure
+    // Generate clean filename
     const timestamp = Date.now();
-    const cleanArtist = artistName.replace(/[^a-zA-Z0-9]/g, '_');
-    const cleanTitle = trackTitle.replace(/[^a-zA-Z0-9]/g, '_');
-    const fileName = `tracks/${cleanArtist}/${cleanTitle}_${timestamp}.mp3`;
+    const cleanArtistName = artistName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    const cleanTitle = title.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    const extension = file.name.split('.').pop();
+    const r2Path = `tracks/${cleanArtistName}/${cleanTitle}-${timestamp}.${extension}`;
+
+    console.log('Uploading to R2:', r2Path);
 
     // Upload to R2
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const fileBuffer = Buffer.from(await file.arrayBuffer());
+    await uploadToR2(r2Path, fileBuffer, file.type);
 
-    await r2Client.send(
-      new PutObjectCommand({
-        Bucket: R2_BUCKET_NAME,
-        Key: fileName,
-        Body: buffer,
-        ContentType: 'audio/mpeg',
-      })
-    );
+    console.log('R2 upload successful');
+    console.log('Creating track record...');
 
-    // Create track record
-    // Store just the R2 key (path), not the full URL
-    // The stream endpoint will generate signed URLs from this path
-    const audio_url = fileName;
-
+    // Create track in database
     const { data: track, error: trackError } = await supabase
       .from('tracks')
       .insert({
-        title: trackTitle,
-        artist_id: artist.id,
-        audio_url,
-        duration_ms: 0, // Could be calculated from file metadata
+        title: title,
+        artist_id: artistId,
+        duration_ms: 180000,
+        audio_url: r2Path,
+        explicit: false,
+        genres: ['Other'],
+        play_count: 0,
+        popularity: 50,
       })
-      .select(`
-        id,
-        title,
-        audio_url,
-        artists!tracks_artist_id_fkey(id, name)
-      `)
+      .select('id, title, audio_url')
       .single();
 
-    if (trackError) throw trackError;
+    if (trackError) {
+      console.error('Track creation error:', trackError);
+      return NextResponse.json({
+        error: 'Failed to create track',
+        details: trackError.message
+      }, { status: 500 });
+    }
 
-    return NextResponse.json(
-      {
-        message: 'Upload successful',
-        track,
+    if (!track) {
+      return NextResponse.json({ error: 'Track created but no data returned' }, { status: 500 });
+    }
+
+    console.log('Track created successfully:', track.id);
+
+    return NextResponse.json({
+      success: true,
+      track: {
+        id: track.id,
+        title: track.title,
+        artist: artistName,
+        audio_url: track.audio_url,
       },
-      { status: 201 }
-    );
-  } catch (error: any) {
+    });
+  } catch (error) {
     console.error('Upload error:', error);
     return NextResponse.json(
-      { error: 'Upload failed', details: error.message },
+      {
+        error: 'Upload failed',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
