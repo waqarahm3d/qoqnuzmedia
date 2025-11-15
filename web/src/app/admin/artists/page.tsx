@@ -130,87 +130,105 @@ export default function ArtistsManagement() {
           </div>
         ) : (
           <>
-            <div className="bg-gray-800 rounded-lg overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-gray-900">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">
-                      Artist
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">
-                      Verified
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">
-                      Followers
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">
-                      Created
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-700">
-                  {artists.map((artist) => (
-                    <tr key={artist.id} className="hover:bg-gray-700/50">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center text-xl">
-                            {artist.profile_image_url ? (
-                              <img
-                                src={artist.profile_image_url}
-                                alt={artist.name}
-                                className="w-10 h-10 rounded-full object-cover"
-                              />
-                            ) : (
-                              '🎤'
-                            )}
-                          </div>
-                          <div>
-                            <p className="text-white font-medium">
-                              {artist.name}
-                            </p>
-                            {artist.bio && (
-                              <p className="text-sm text-gray-400 truncate max-w-md">
-                                {artist.bio}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        {artist.is_verified ? (
-                          <span className="text-green-500">✓ Verified</span>
-                        ) : (
-                          <span className="text-gray-500">-</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-white">
-                        {artist.follower_count.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 text-gray-400">
-                        {new Date(artist.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 text-right space-x-2">
-                        <button
-                          onClick={() => setEditingArtist(artist)}
-                          className="text-blue-400 hover:text-blue-300"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(artist.id)}
-                          className="text-red-400 hover:text-red-300"
-                        >
-                          Delete
-                        </button>
-                      </td>
+            {artists.length === 0 ? (
+              <div className="bg-gray-800 rounded-lg p-12 text-center">
+                <div className="text-6xl mb-4">🎤</div>
+                <h3 className="text-white text-xl font-bold mb-2">No artists yet</h3>
+                <p className="text-gray-400 mb-4">
+                  {search ? 'No artists match your search' : 'Get started by adding your first artist'}
+                </p>
+                {!search && (
+                  <button
+                    onClick={() => setShowCreateModal(true)}
+                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                  >
+                    + Add Artist
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="bg-gray-800 rounded-lg overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-gray-900">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">
+                        Artist
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">
+                        Verified
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">
+                        Followers
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">
+                        Created
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase">
+                        Actions
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-gray-700">
+                    {artists.map((artist) => (
+                      <tr key={artist.id} className="hover:bg-gray-700/50">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center text-xl">
+                              {artist.profile_image_url ? (
+                                <img
+                                  src={artist.profile_image_url}
+                                  alt={artist.name}
+                                  className="w-10 h-10 rounded-full object-cover"
+                                />
+                              ) : (
+                                '🎤'
+                              )}
+                            </div>
+                            <div>
+                              <p className="text-white font-medium">
+                                {artist.name}
+                              </p>
+                              {artist.bio && (
+                                <p className="text-sm text-gray-400 truncate max-w-md">
+                                  {artist.bio}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          {artist.is_verified ? (
+                            <span className="text-green-500">✓ Verified</span>
+                          ) : (
+                            <span className="text-gray-500">-</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-white">
+                          {artist.follower_count.toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 text-gray-400">
+                          {new Date(artist.created_at).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 text-right space-x-2">
+                          <button
+                            onClick={() => setEditingArtist(artist)}
+                            className="text-blue-400 hover:text-blue-300"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(artist.id)}
+                            className="text-red-400 hover:text-red-300"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
             {/* Pagination */}
             <div className="flex items-center justify-between">

@@ -140,90 +140,100 @@ export default function UsersManagement() {
           </div>
         ) : (
           <>
-            <div className="bg-gray-800 rounded-lg overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-gray-900">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">
-                      User
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">
-                      Role
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">
-                      Joined
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-700">
-                  {users.map((user) => {
-                    const isAdmin = user.admin_users && user.admin_users.length > 0;
+            {users.length === 0 ? (
+              <div className="bg-gray-800 rounded-lg p-12 text-center">
+                <div className="text-6xl mb-4">👥</div>
+                <h3 className="text-white text-xl font-bold mb-2">No users found</h3>
+                <p className="text-gray-400">
+                  {search ? 'No users match your search criteria' : 'Users will appear here once they sign up'}
+                </p>
+              </div>
+            ) : (
+              <div className="bg-gray-800 rounded-lg overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-gray-900">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">
+                        User
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">
+                        Role
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">
+                        Joined
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-700">
+                    {users.map((user) => {
+                      const isAdmin = user.admin_users && user.admin_users.length > 0;
 
-                    return (
-                      <tr key={user.id} className="hover:bg-gray-700/50">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center">
-                              {user.avatar_url ? (
-                                <img
-                                  src={user.avatar_url}
-                                  alt={user.display_name || 'User'}
-                                  className="w-10 h-10 rounded-full object-cover"
-                                />
-                              ) : (
-                                <span className="text-white text-lg">👤</span>
-                              )}
-                            </div>
-                            <div>
-                              <p className="text-white font-medium">
-                                {user.display_name || 'Unknown User'}
-                              </p>
-                              {user.bio && (
-                                <p className="text-sm text-gray-400 truncate max-w-md">
-                                  {user.bio}
+                      return (
+                        <tr key={user.id} className="hover:bg-gray-700/50">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center">
+                                {user.avatar_url ? (
+                                  <img
+                                    src={user.avatar_url}
+                                    alt={user.display_name || 'User'}
+                                    className="w-10 h-10 rounded-full object-cover"
+                                  />
+                                ) : (
+                                  <span className="text-white text-lg">👤</span>
+                                )}
+                              </div>
+                              <div>
+                                <p className="text-white font-medium">
+                                  {user.display_name || 'Unknown User'}
                                 </p>
-                              )}
+                                {user.bio && (
+                                  <p className="text-sm text-gray-400 truncate max-w-md">
+                                    {user.bio}
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          {isAdmin ? (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900/30 text-green-400">
-                              Admin
-                            </span>
-                          ) : (
-                            <span className="text-gray-500">User</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-gray-400">
-                          {new Date(user.created_at).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 text-right space-x-2">
-                          {isAdmin ? (
-                            <button
-                              onClick={() => handleRemoveAdmin(user.id)}
-                              className="text-red-400 hover:text-red-300"
-                            >
-                              Remove Admin
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => setManagingUser(user)}
-                              className="text-green-400 hover:text-green-300"
-                            >
-                              Make Admin
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            {isAdmin ? (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900/30 text-green-400">
+                                Admin
+                              </span>
+                            ) : (
+                              <span className="text-gray-500">User</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 text-gray-400">
+                            {new Date(user.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 text-right space-x-2">
+                            {isAdmin ? (
+                              <button
+                                onClick={() => handleRemoveAdmin(user.id)}
+                                className="text-red-400 hover:text-red-300"
+                              >
+                                Remove Admin
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => setManagingUser(user)}
+                                className="text-green-400 hover:text-green-300"
+                              >
+                                Make Admin
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
             {/* Pagination */}
             <div className="flex items-center justify-between">

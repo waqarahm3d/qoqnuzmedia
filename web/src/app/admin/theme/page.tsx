@@ -59,17 +59,25 @@ export default function ThemeCustomization() {
 
       const data = await response.json();
 
+      // Convert array to object
+      const settingsObj: any = {};
+      if (Array.isArray(data.settings)) {
+        data.settings.forEach((setting: any) => {
+          settingsObj[setting.key] = setting.value;
+        });
+      }
+
       // Merge with defaults
       setSettings({
-        site_name: data.settings.site_name || 'Qoqnuz Music',
-        primary_color: data.settings.primary_color || '#1DB954',
-        secondary_color: data.settings.secondary_color || '#191414',
-        background_color: data.settings.background_color || '#121212',
-        surface_color: data.settings.surface_color || '#181818',
-        text_color: data.settings.text_color || '#FFFFFF',
-        text_secondary_color: data.settings.text_secondary_color || '#B3B3B3',
-        logo_url: data.settings.logo_url || '',
-        favicon_url: data.settings.favicon_url || '',
+        site_name: settingsObj.site_name || 'Qoqnuz Music',
+        primary_color: settingsObj.primary_color || '#1DB954',
+        secondary_color: settingsObj.secondary_color || '#191414',
+        background_color: settingsObj.background_color || '#121212',
+        surface_color: settingsObj.surface_color || '#181818',
+        text_color: settingsObj.text_color || '#FFFFFF',
+        text_secondary_color: settingsObj.text_secondary_color || '#B3B3B3',
+        logo_url: settingsObj.logo_url || '',
+        favicon_url: settingsObj.favicon_url || '',
       });
     } catch (err: any) {
       setError(err.message);
@@ -87,17 +95,25 @@ export default function ThemeCustomization() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
 
+      // Convert object to array format expected by API
+      const settingsArray = Object.entries(settings).map(([key, value]) => ({
+        key,
+        value,
+        description: '', // Optional description
+      }));
+
       const response = await fetch('/api/admin/settings', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ settings }),
+        body: JSON.stringify({ settings: settingsArray }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save settings');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save settings');
       }
 
       setSuccess('Theme settings saved successfully!');

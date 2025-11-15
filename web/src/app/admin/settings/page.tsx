@@ -38,18 +38,38 @@ export default function SettingsPage() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch settings');
+        const errorText = await response.text();
+        let errorMessage = 'Failed to fetch settings';
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          // If response is not JSON, use status text
+          errorMessage = `Failed to fetch settings (${response.status})`;
+        }
+        throw new Error(errorMessage);
       }
 
-      const data = await response.json();
+      const responseText = await response.text();
+      if (!responseText) {
+        // Empty response, initialize with empty settings
+        setSettings({});
+        return;
+      }
+
+      const data = JSON.parse(responseText);
       const settingsMap: Record<string, Setting> = {};
-      data.settings.forEach((setting: Setting) => {
-        settingsMap[setting.key] = setting;
-      });
+
+      if (Array.isArray(data.settings)) {
+        data.settings.forEach((setting: Setting) => {
+          settingsMap[setting.key] = setting;
+        });
+      }
+
       setSettings(settingsMap);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'An error occurred while fetching settings');
+      console.error('Settings fetch error:', err);
     } finally {
       setLoading(false);
     }
@@ -59,8 +79,9 @@ export default function SettingsPage() {
     setSettings({
       ...settings,
       [key]: {
-        ...settings[key],
+        key,
         value,
+        description: settings[key]?.description || '',
       },
     });
   };
