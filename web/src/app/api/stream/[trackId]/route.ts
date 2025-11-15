@@ -11,6 +11,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/supabase';
 import { getTrackStreamUrl } from '@/lib/r2';
 
+// Type definition for track query result
+interface TrackWithArtist {
+  id: string;
+  title: string;
+  audio_url: string;
+  artist_id: string;
+  artists: {
+    name: string;
+  } | null;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { trackId: string } }
@@ -36,11 +47,11 @@ export async function GET(
 
     // Fetch track details from database using admin client
     // Use explicit relationship name to avoid ambiguity
-    const { data: track, error: trackError } = await adminSupabase
+    const { data: track, error: trackError } = (await adminSupabase
       .from('tracks')
       .select('id, title, audio_url, artist_id, artists!tracks_artist_id_fkey(name)')
       .eq('id', trackId)
-      .single();
+      .single()) as { data: TrackWithArtist | null; error: any };
 
     if (trackError || !track) {
       console.error('Track fetch error:', trackError);
