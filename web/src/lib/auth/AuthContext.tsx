@@ -19,8 +19,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -39,6 +42,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Prevent hydration mismatch by not rendering auth-dependent content until mounted
+  if (!mounted) {
+    return <>{children}</>;
+  }
 
   const signUp = async (email: string, password: string) => {
     const { error } = await supabase.auth.signUp({
