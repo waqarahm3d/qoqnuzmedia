@@ -1,0 +1,253 @@
+'use client';
+
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { SearchIcon } from '@/components/icons';
+import { Input } from '@/components/ui/Input';
+import { Card } from '@/components/ui/Card';
+import { TrackRow } from '@/components/ui/TrackRow';
+
+function SearchContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const query = searchParams?.get('q') || '';
+  const [searchQuery, setSearchQuery] = useState(query);
+  const [results, setResults] = useState<any>({
+    tracks: [],
+    albums: [],
+    artists: [],
+    playlists: [],
+  });
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'all' | 'tracks' | 'albums' | 'artists' | 'playlists'>('all');
+
+  useEffect(() => {
+    if (query) {
+      performSearch(query);
+    }
+  }, [query]);
+
+  const performSearch = async (q: string) => {
+    if (!q.trim()) return;
+
+    setLoading(true);
+    try {
+      // Demo data - replace with actual API call
+      setResults({
+        tracks: [
+          { id: '1', title: 'Midnight Dreams', artist: 'The Dreamers', album: 'Night Sessions', duration: '3:45' },
+          { id: '2', title: 'Summer Vibes', artist: 'Beach Boys Redux', album: 'Coastal Sounds', duration: '4:12' },
+          { id: '3', title: 'City Lights', artist: 'Urban Sound', album: 'Metropolitan', duration: '3:28' },
+        ],
+        albums: [
+          { id: '1', title: 'Midnight Dreams Album', artist: 'The Dreamers' },
+          { id: '2', title: 'Summer Collection', artist: 'Various Artists' },
+        ],
+        artists: [
+          { id: '1', name: 'The Dreamers' },
+          { id: '2', name: 'Beach Boys Redux' },
+        ],
+        playlists: [
+          { id: '1', name: 'Dreamy Nights', description: 'Curated playlist for late nights' },
+          { id: '2', name: 'Summer Hits', description: 'Best summer tracks' },
+        ],
+      });
+    } catch (error) {
+      console.error('Search error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+
+  const tabs = [
+    { id: 'all', label: 'All' },
+    { id: 'tracks', label: 'Songs' },
+    { id: 'albums', label: 'Albums' },
+    { id: 'artists', label: 'Artists' },
+    { id: 'playlists', label: 'Playlists' },
+  ] as const;
+
+  const hasResults = Object.values(results).some((arr: any) => arr.length > 0);
+
+  return (
+    <div className="px-4 lg:px-8 py-6">
+      {/* Search Bar */}
+      <div className="max-w-2xl mb-6">
+        <form onSubmit={handleSearch}>
+          <Input
+            type="text"
+            placeholder="What do you want to listen to?"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            icon={<SearchIcon size={20} />}
+            className="text-base"
+          />
+        </form>
+      </div>
+
+      {/* Tabs */}
+      {query && (
+        <div className="flex gap-2 mb-6 overflow-x-auto scrollbar-none">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2 rounded-full font-semibold text-sm whitespace-nowrap transition-colors ${
+                activeTab === tab.id
+                  ? 'bg-white text-black'
+                  : 'bg-white/10 text-white hover:bg-white/20'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Loading State */}
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      )}
+
+      {/* Results */}
+      {!loading && query && hasResults && (
+        <div className="space-y-8">
+          {/* Tracks */}
+          {(activeTab === 'all' || activeTab === 'tracks') && results.tracks.length > 0 && (
+            <section>
+              <h2 className="text-2xl font-bold mb-4">Songs</h2>
+              <div className="space-y-1">
+                {results.tracks.slice(0, activeTab === 'all' ? 4 : undefined).map((track: any) => (
+                  <TrackRow
+                    key={track.id}
+                    title={track.title}
+                    artist={track.artist}
+                    album={track.album}
+                    duration={track.duration}
+                    showImage={true}
+                    onPlay={() => console.log('Play track:', track.id)}
+                    onLike={() => console.log('Like track:', track.id)}
+                  />
+                ))}
+              </div>
+              {activeTab === 'all' && results.tracks.length > 4 && (
+                <button
+                  onClick={() => setActiveTab('tracks')}
+                  className="mt-4 text-sm font-semibold text-white/60 hover:text-white transition-colors"
+                >
+                  Show all songs
+                </button>
+              )}
+            </section>
+          )}
+
+          {/* Artists */}
+          {(activeTab === 'all' || activeTab === 'artists') && results.artists.length > 0 && (
+            <section>
+              <h2 className="text-2xl font-bold mb-4">Artists</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                {results.artists.slice(0, activeTab === 'all' ? 6 : undefined).map((artist: any) => (
+                  <Card
+                    key={artist.id}
+                    title={artist.name}
+                    subtitle="Artist"
+                    href={`/artist/${artist.id}`}
+                    type="circle"
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Albums */}
+          {(activeTab === 'all' || activeTab === 'albums') && results.albums.length > 0 && (
+            <section>
+              <h2 className="text-2xl font-bold mb-4">Albums</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                {results.albums.slice(0, activeTab === 'all' ? 6 : undefined).map((album: any) => (
+                  <Card
+                    key={album.id}
+                    title={album.title}
+                    subtitle={album.artist}
+                    href={`/album/${album.id}`}
+                    onPlay={() => console.log('Play album:', album.id)}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Playlists */}
+          {(activeTab === 'all' || activeTab === 'playlists') && results.playlists.length > 0 && (
+            <section>
+              <h2 className="text-2xl font-bold mb-4">Playlists</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                {results.playlists.slice(0, activeTab === 'all' ? 6 : undefined).map((playlist: any) => (
+                  <Card
+                    key={playlist.id}
+                    title={playlist.name}
+                    subtitle={playlist.description}
+                    href={`/playlist/${playlist.id}`}
+                    onPlay={() => console.log('Play playlist:', playlist.id)}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+      )}
+
+      {/* No Results */}
+      {!loading && query && !hasResults && (
+        <div className="text-center py-12">
+          <p className="text-xl text-white/60">No results found for "{query}"</p>
+          <p className="text-sm text-white/40 mt-2">Try searching for something else</p>
+        </div>
+      )}
+
+      {/* Browse Categories (when no search) */}
+      {!query && (
+        <div>
+          <h2 className="text-2xl font-bold mb-4">Browse all</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {[
+              { name: 'Pop', color: 'from-pink-500 to-pink-700' },
+              { name: 'Rock', color: 'from-red-500 to-red-700' },
+              { name: 'Hip-Hop', color: 'from-purple-500 to-purple-700' },
+              { name: 'Electronic', color: 'from-blue-500 to-blue-700' },
+              { name: 'Jazz', color: 'from-yellow-500 to-yellow-700' },
+              { name: 'Classical', color: 'from-green-500 to-green-700' },
+              { name: 'R&B', color: 'from-indigo-500 to-indigo-700' },
+              { name: 'Country', color: 'from-orange-500 to-orange-700' },
+            ].map((genre, index) => (
+              <a
+                key={index}
+                href={`/genre/${genre.name.toLowerCase()}`}
+                className={`relative h-40 rounded-lg overflow-hidden bg-gradient-to-br ${genre.color} p-4 hover:scale-105 transition-transform`}
+              >
+                <h3 className="text-2xl font-bold">{genre.name}</h3>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div></div>}>
+      <SearchContent />
+    </Suspense>
+  );
+}

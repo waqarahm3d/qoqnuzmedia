@@ -24,16 +24,25 @@ export default function Home() {
           <p className="text-xl text-gray-400 mb-8">
             Modern music streaming platform with social features
           </p>
-          <div className="flex gap-4 justify-center">
+          <div className="flex gap-4 justify-center flex-wrap">
             <Link
-              href="/test"
+              href="/home"
               className="px-8 py-3 bg-green-500 hover:bg-green-600 text-white rounded-full font-semibold transition"
             >
-              Test Streaming (Milestone A)
+              Open App
             </Link>
-            <button className="px-8 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-full font-semibold transition">
-              Sign Up (Coming Soon)
-            </button>
+            <Link
+              href="/auth/signin"
+              className="px-8 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-full font-semibold transition"
+            >
+              Sign In
+            </Link>
+            <Link
+              href="/admin"
+              className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-full font-semibold transition"
+            >
+              Admin Portal
+            </Link>
           </div>
         </div>
 

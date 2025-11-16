@@ -9,6 +9,9 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        primary: '#1DB954',
+        background: '#121212',
+        surface: '#181818',
         qoqnuz: {
           primary: '#1DB954',
           secondary: '#191414',
