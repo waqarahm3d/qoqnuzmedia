@@ -9,12 +9,14 @@ import { PlayIcon, MoreIcon, ShareIcon } from '@/components/icons';
 import { useState, useEffect } from 'react';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
 import { getMediaUrl } from '@/lib/media-utils';
+import { EmbedModal } from '@/components/ui/EmbedModal';
 
 export default function ArtistPage() {
   const params = useParams();
   const [artist, setArtist] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [showEmbedModal, setShowEmbedModal] = useState(false);
   const { playTrack } = usePlayer();
 
   useEffect(() => {
@@ -160,6 +162,22 @@ export default function ArtistPage() {
           >
             <ShareIcon size={24} />
           </button>
+          <button
+            onClick={() => setShowEmbedModal(true)}
+            className="text-white/60 hover:text-white transition-colors"
+            title="Embed artist"
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <polyline points="16 18 22 12 16 6" />
+              <polyline points="8 6 2 12 8 18" />
+            </svg>
+          </button>
           <button className="text-white/60 hover:text-white transition-colors">
             <MoreIcon size={24} />
           </button>
@@ -229,6 +247,17 @@ export default function ArtistPage() {
             </div>
           )}
       </div>
+
+      {/* Embed Modal */}
+      {artist && (
+        <EmbedModal
+          isOpen={showEmbedModal}
+          onClose={() => setShowEmbedModal(false)}
+          type="artist"
+          id={artist.id}
+          title={artist.name}
+        />
+      )}
     </div>
   );
 }

@@ -9,12 +9,14 @@ import { useState, useEffect } from 'react';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { getMediaUrl } from '@/lib/media-utils';
+import { EmbedModal } from '@/components/ui/EmbedModal';
 
 export default function PlaylistPage() {
   const params = useParams();
   const [playlist, setPlaylist] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
+  const [showEmbedModal, setShowEmbedModal] = useState(false);
   const { playTrack, setQueue } = usePlayer();
   const { user } = useAuth();
 
@@ -205,6 +207,22 @@ export default function PlaylistPage() {
           >
             <ShareIcon size={32} />
           </button>
+          <button
+            onClick={() => setShowEmbedModal(true)}
+            className="text-white/60 hover:text-white transition-colors"
+            title="Embed playlist"
+          >
+            <svg
+              className="w-8 h-8"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <polyline points="16 18 22 12 16 6" />
+              <polyline points="8 6 2 12 8 18" />
+            </svg>
+          </button>
           <button className="text-white/60 hover:text-white transition-colors">
             <DownloadIcon size={28} />
           </button>
@@ -243,6 +261,17 @@ export default function PlaylistPage() {
           </div>
         )}
       </div>
+
+      {/* Embed Modal */}
+      {playlist && (
+        <EmbedModal
+          isOpen={showEmbedModal}
+          onClose={() => setShowEmbedModal(false)}
+          type="playlist"
+          id={playlist.id}
+          title={playlist.name}
+        />
+      )}
     </div>
   );
 }
