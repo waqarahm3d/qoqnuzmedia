@@ -307,11 +307,11 @@ function ArtistModal({ artist, onClose, onSuccess }: ArtistModalProps) {
   const [formData, setFormData] = useState({
     name: artist?.name || '',
     bio: artist?.bio || '',
-    avatar_url: artist?.avatar_url || '',
-    cover_image_url: artist?.cover_image_url || '',
     verified: artist?.verified || false,
     genres: artist?.genres || [] as string[],
   });
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [genres, setGenres] = useState<Genre[]>([]);
 
@@ -358,17 +358,25 @@ function ArtistModal({ artist, onClose, onSuccess }: ArtistModalProps) {
         : '/api/admin/artists';
       const method = artist ? 'PUT' : 'POST';
 
+      // Create FormData for file upload
+      const submitData = new FormData();
+      submitData.append('name', formData.name);
+      submitData.append('bio', formData.bio);
+      submitData.append('verified', formData.verified.toString());
+      if (avatarFile) submitData.append('avatar', avatarFile);
+      if (coverFile) submitData.append('cover', coverFile);
+
       const response = await fetch(url, {
         method,
         headers: {
-          'Content-Type': 'application/json',
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify(formData),
+        body: submitData,
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save artist');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save artist');
       }
 
       onSuccess();
@@ -415,29 +423,35 @@ function ArtistModal({ artist, onClose, onSuccess }: ArtistModalProps) {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">
-              Avatar URL
+              Avatar Image
             </label>
             <input
-              type="url"
-              value={formData.avatar_url}
-              onChange={(e) =>
-                setFormData({ ...formData, avatar_url: e.target.value })
-              }
-              className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
+              type="file"
+              accept="image/jpeg,image/jpg,image/png,image/webp"
+              onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
+              className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-600 file:text-white hover:file:bg-green-700"
             />
+            {artist?.avatar_url && (
+              <p className="text-xs text-gray-400 mt-1">
+                Current: {artist.avatar_url}
+              </p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">
-              Cover Image URL
+              Cover Image
             </label>
             <input
-              type="url"
-              value={formData.cover_image_url}
-              onChange={(e) =>
-                setFormData({ ...formData, cover_image_url: e.target.value })
-              }
-              className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
+              type="file"
+              accept="image/jpeg,image/jpg,image/png,image/webp"
+              onChange={(e) => setCoverFile(e.target.files?.[0] || null)}
+              className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-600 file:text-white hover:file:bg-green-700"
             />
+            {artist?.cover_image_url && (
+              <p className="text-xs text-gray-400 mt-1">
+                Current: {artist.cover_image_url}
+              </p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">

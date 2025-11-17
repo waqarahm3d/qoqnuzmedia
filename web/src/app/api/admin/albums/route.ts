@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin, requirePermission } from '@/lib/auth/admin-middleware';
+import { uploadToR2 } from '@/lib/r2';
 
 /**
  * GET /api/admin/albums
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/admin/albums
- * Create new album
+ * Create new album with optional cover image upload
  */
 export async function POST(request: NextRequest) {
   const { user, adminUser, response, supabase } = await requireAdmin(request);
@@ -70,15 +71,13 @@ export async function POST(request: NextRequest) {
   if (permissionError) return permissionError;
 
   try {
-    const body = await request.json();
-    const {
-      artist_id,
-      title,
-      description,
-      cover_image_url,
-      release_date,
-      album_type,
-    } = body;
+    const formData = await request.formData();
+    const artist_id = formData.get('artist_id') as string;
+    const title = formData.get('title') as string;
+    const description = formData.get('description') as string;
+    const release_date = formData.get('release_date') as string;
+    const album_type = formData.get('album_type') as string;
+    const coverFile = formData.get('cover') as File | null;
 
     if (!artist_id || !title) {
       return NextResponse.json(
@@ -87,13 +86,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Upload cover image if provided
+    let cover_art_url = null;
+    if (coverFile && coverFile.size > 0) {
+      const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!validImageTypes.includes(coverFile.type)) {
+        return NextResponse.json(
+          { error: 'Invalid cover file type. Use JPG, PNG, or WebP' },
+          { status: 400 }
+        );
+      }
+
+      const fileExt = coverFile.name.split('.').pop();
+      const fileName = `${title.toLowerCase().replace(/\s+/g, '-')}-cover.${fileExt}`;
+      const filePath = `albums/covers/${fileName}`;
+
+      const buffer = Buffer.from(await coverFile.arrayBuffer());
+      await uploadToR2(filePath, buffer, coverFile.type);
+      cover_art_url = filePath;
+    }
+
     const { data: album, error } = await supabase
       .from('albums')
       .insert({
         artist_id,
         title,
-        description,
-        cover_art_url: cover_image_url,
+        description: description || null,
+        cover_art_url,
         release_date: release_date || new Date().toISOString(),
         album_type: album_type || 'album',
       })

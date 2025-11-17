@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin, requirePermission } from '@/lib/auth/admin-middleware';
+import { uploadToR2 } from '@/lib/r2';
 
 /**
  * GET /api/admin/genres
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/admin/genres
- * Create a new genre
+ * Create a new genre with optional image upload
  */
 export async function POST(request: NextRequest) {
   const { user, adminUser, response, supabase } = await requireAdmin(request);
@@ -61,8 +62,12 @@ export async function POST(request: NextRequest) {
   // Note: Removed strict permission check for now - all admins can create genres
 
   try {
-    const body = await request.json();
-    const { name, description, image_url, color, display_order } = body;
+    const formData = await request.formData();
+    const name = formData.get('name') as string;
+    const description = formData.get('description') as string;
+    const color = formData.get('color') as string;
+    const display_order = formData.get('display_order') as string;
+    const imageFile = formData.get('image') as File | null;
 
     if (!name) {
       return NextResponse.json(
@@ -77,15 +82,35 @@ export async function POST(request: NextRequest) {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
 
+    // Upload image if provided
+    let image_url = null;
+    if (imageFile && imageFile.size > 0) {
+      const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!validImageTypes.includes(imageFile.type)) {
+        return NextResponse.json(
+          { error: 'Invalid image file type. Use JPG, PNG, or WebP' },
+          { status: 400 }
+        );
+      }
+
+      const fileExt = imageFile.name.split('.').pop();
+      const fileName = `${slug}-image.${fileExt}`;
+      const filePath = `genres/${fileName}`;
+
+      const buffer = Buffer.from(await imageFile.arrayBuffer());
+      await uploadToR2(filePath, buffer, imageFile.type);
+      image_url = filePath;
+    }
+
     const { data: genre, error } = await supabase
       .from('genres')
       .insert({
         name,
         slug,
-        description,
+        description: description || null,
         image_url,
         color: color || '#1DB954',
-        display_order: display_order || 0,
+        display_order: display_order ? parseInt(display_order) : 0,
       })
       .select()
       .single();

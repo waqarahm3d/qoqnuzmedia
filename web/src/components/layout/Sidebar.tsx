@@ -9,6 +9,7 @@ import {
   PlusIcon,
   HeartFilledIcon,
 } from '../icons';
+import { usePlaylists } from '@/lib/hooks/useMusic';
 
 const navItems = [
   { name: 'Home', href: '/home', icon: HomeIcon },
@@ -23,6 +24,7 @@ const libraryItems = [
 
 export const Sidebar = () => {
   const pathname = usePathname();
+  const { playlists, loading } = usePlaylists(10);
 
   const isActive = (href: string) => pathname === href;
 
@@ -62,22 +64,21 @@ export const Sidebar = () => {
       {/* Playlists Scroll Area */}
       <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
         <div className="space-y-2 pr-2">
-          {/* These will be dynamically loaded playlists */}
-          {[
-            'My Playlist #1',
-            'Chill Vibes',
-            'Workout Mix',
-            'Study Session',
-            'Party Hits',
-          ].map((playlist, i) => (
-            <Link
-              key={i}
-              href={`/playlist/${i + 1}`}
-              className="block text-sm text-white/60 hover:text-white transition-colors py-1"
-            >
-              {playlist}
-            </Link>
-          ))}
+          {loading ? (
+            <div className="text-sm text-white/40 py-1">Loading playlists...</div>
+          ) : playlists.length > 0 ? (
+            playlists.map((playlist: any) => (
+              <Link
+                key={playlist.id}
+                href={`/playlist/${playlist.id}`}
+                className="block text-sm text-white/60 hover:text-white transition-colors py-1"
+              >
+                {playlist.name}
+              </Link>
+            ))
+          ) : (
+            <div className="text-sm text-white/40 py-1">No playlists yet</div>
+          )}
         </div>
       </div>
 

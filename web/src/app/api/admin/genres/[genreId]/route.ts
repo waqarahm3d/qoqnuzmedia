@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin, requirePermission } from '@/lib/auth/admin-middleware';
+import { uploadToR2 } from '@/lib/r2';
 
 /**
  * GET /api/admin/genres/[genreId]
@@ -39,7 +40,7 @@ export async function GET(
 
 /**
  * PUT /api/admin/genres/[genreId]
- * Update genre
+ * Update genre with optional image upload
  */
 export async function PUT(
   request: NextRequest,
@@ -51,12 +52,16 @@ export async function PUT(
   const { genreId } = params;
 
   try {
-    const body = await request.json();
-    const { name, description, image_url, color, display_order, is_active } =
-      body;
+    const formData = await request.formData();
+    const name = formData.get('name') as string;
+    const description = formData.get('description') as string;
+    const color = formData.get('color') as string;
+    const display_order = formData.get('display_order') as string;
+    const is_active = formData.get('is_active') as string;
+    const imageFile = formData.get('image') as File | null;
 
     const updateData: any = {};
-    if (name !== undefined) {
+    if (name !== undefined && name !== '') {
       updateData.name = name;
       // Update slug if name changed
       updateData.slug = name
@@ -65,10 +70,33 @@ export async function PUT(
         .replace(/(^-|-$)/g, '');
     }
     if (description !== undefined) updateData.description = description;
-    if (image_url !== undefined) updateData.image_url = image_url;
     if (color !== undefined) updateData.color = color;
-    if (display_order !== undefined) updateData.display_order = display_order;
-    if (is_active !== undefined) updateData.is_active = is_active;
+    if (display_order !== undefined) updateData.display_order = parseInt(display_order);
+    if (is_active !== undefined) updateData.is_active = is_active === 'true';
+
+    // Upload image if provided
+    if (imageFile && imageFile.size > 0) {
+      const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!validImageTypes.includes(imageFile.type)) {
+        return NextResponse.json(
+          { error: 'Invalid image file type. Use JPG, PNG, or WebP' },
+          { status: 400 }
+        );
+      }
+
+      const slug = updateData.slug || name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+
+      const fileExt = imageFile.name.split('.').pop();
+      const fileName = `${slug}-image.${fileExt}`;
+      const filePath = `genres/${fileName}`;
+
+      const buffer = Buffer.from(await imageFile.arrayBuffer());
+      await uploadToR2(filePath, buffer, imageFile.type);
+      updateData.image_url = filePath;
+    }
 
     const { data: genre, error } = await supabase
       .from('genres')

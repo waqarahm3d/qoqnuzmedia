@@ -60,24 +60,49 @@ export async function PUT(
 
   try {
     const body = await request.json();
+    console.log('[Track Update] Received data:', body);
+
     const {
       title,
       album_id,
       audio_url,
+      cover_art_url,
       duration_ms,
       track_number,
       lyrics,
+      explicit,
       is_explicit,
+      genres,
     } = body;
+
+    // Get genre names from genre IDs
+    let genreNames: string[] | null = null;
+    if (genres && Array.isArray(genres) && genres.length > 0) {
+      const { data: genresData, error: genresError } = await supabase
+        .from('genres')
+        .select('name')
+        .in('id', genres);
+
+      if (!genresError && genresData) {
+        genreNames = genresData.map(g => g.name);
+      }
+    }
 
     const updateData: any = {};
     if (title !== undefined) updateData.title = title;
-    if (album_id !== undefined) updateData.album_id = album_id;
+    if (album_id !== undefined) updateData.album_id = album_id || null;
     if (audio_url !== undefined) updateData.audio_url = audio_url;
+    if (cover_art_url !== undefined) updateData.cover_art_url = cover_art_url || null;
     if (duration_ms !== undefined) updateData.duration_ms = duration_ms;
     if (track_number !== undefined) updateData.track_number = track_number;
-    if (lyrics !== undefined) updateData.lyrics = lyrics;
-    if (is_explicit !== undefined) updateData.is_explicit = is_explicit;
+    if (lyrics !== undefined) updateData.lyrics = lyrics || null;
+    if (genreNames !== null) updateData.genres = genreNames;
+
+    // Handle explicit field (accept both is_explicit and explicit)
+    const explicitValue = explicit !== undefined ? explicit : is_explicit;
+    if (explicitValue !== undefined) updateData.explicit = explicitValue;
+
+    console.log('[Track Update] Updating with data:', updateData);
 
     const { data: track, error } = await supabase
       .from('tracks')
@@ -90,15 +115,19 @@ export async function PUT(
       `)
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('[Track Update] Database error:', error);
+      throw error;
+    }
 
     if (!track) {
       return NextResponse.json({ error: 'Track not found' }, { status: 404 });
     }
 
+    console.log('[Track Update] Success:', track.id);
     return NextResponse.json({ track });
   } catch (error: any) {
-    console.error('Update track error:', error);
+    console.error('[Track Update] Error:', error);
     return NextResponse.json(
       { error: 'Failed to update track', details: error.message },
       { status: 500 }

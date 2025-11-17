@@ -213,6 +213,13 @@ export default function TracksPage() {
 
   const handleEdit = (track: Track) => {
     setEditingTrack(track);
+
+    // Convert genre names to genre IDs
+    const trackGenreNames = track.genres || [];
+    const genreIds = genres
+      .filter(g => trackGenreNames.includes(g.name))
+      .map(g => g.id);
+
     setFormData({
       title: track.title,
       artist_id: track.artist_id,
@@ -221,7 +228,7 @@ export default function TracksPage() {
       cover_art_url: track.cover_art_url || '',
       duration_ms: track.duration_ms,
       explicit: track.explicit,
-      genres: track.genres || [],
+      genres: genreIds,
       lyrics: track.lyrics || '',
       track_number: 1,
     });

@@ -322,11 +322,11 @@ function AlbumModal({
     title: album?.title || '',
     artist_id: album?.artist_id || '',
     description: album?.description || '',
-    cover_art_url: album?.cover_art_url || '',
     release_date: album?.release_date || new Date().toISOString().split('T')[0],
     genres: album?.genres || [] as string[],
     album_type: 'album',
   });
+  const [coverFile, setCoverFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [artists, setArtists] = useState<Artist[]>([]);
   const [tracks, setTracks] = useState<Track[]>([]);
@@ -426,21 +426,26 @@ function AlbumModal({
         : '/api/admin/albums';
       const method = album ? 'PUT' : 'POST';
 
+      // Create FormData for file upload
+      const submitData = new FormData();
+      submitData.append('title', formData.title);
+      submitData.append('artist_id', formData.artist_id);
+      submitData.append('description', formData.description);
+      submitData.append('release_date', formData.release_date);
+      submitData.append('album_type', formData.album_type);
+      if (coverFile) submitData.append('cover', coverFile);
+
       const response = await fetch(url, {
         method,
         headers: {
-          'Content-Type': 'application/json',
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({
-          ...formData,
-          cover_image_url: formData.cover_art_url,
-          selectedTracks: selectedTracks,
-        }),
+        body: submitData,
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save album');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save album');
       }
 
       onSuccess();
@@ -504,15 +509,18 @@ function AlbumModal({
             </div>
 
             <div className="col-span-2">
-              <label className="block text-gray-300 mb-2">Cover Art URL</label>
+              <label className="block text-gray-300 mb-2">Cover Art Image</label>
               <input
-                type="url"
-                value={formData.cover_art_url}
-                onChange={(e) =>
-                  setFormData({ ...formData, cover_art_url: e.target.value })
-                }
-                className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg"
+                type="file"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
+                onChange={(e) => setCoverFile(e.target.files?.[0] || null)}
+                className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-600 file:text-white hover:file:bg-green-700"
               />
+              {album?.cover_art_url && (
+                <p className="text-xs text-gray-400 mt-1">
+                  Current: {album.cover_art_url}
+                </p>
+              )}
             </div>
 
             <div className="col-span-2">

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin, requirePermission } from '@/lib/auth/admin-middleware';
+import { uploadToR2 } from '@/lib/r2';
 
 /**
  * GET /api/admin/albums/[albumId]
@@ -43,7 +44,7 @@ export async function GET(
 
 /**
  * PUT /api/admin/albums/[albumId]
- * Update album
+ * Update album with optional cover image upload
  */
 export async function PUT(
   request: NextRequest,
@@ -59,22 +60,37 @@ export async function PUT(
   const { albumId } = params;
 
   try {
-    const body = await request.json();
-    const {
-      title,
-      description,
-      cover_image_url,
-      release_date,
-      album_type,
-    } = body;
+    const formData = await request.formData();
+    const title = formData.get('title') as string;
+    const description = formData.get('description') as string;
+    const release_date = formData.get('release_date') as string;
+    const album_type = formData.get('album_type') as string;
+    const coverFile = formData.get('cover') as File | null;
 
     const updateData: any = {};
     if (title !== undefined) updateData.title = title;
     if (description !== undefined) updateData.description = description;
-    if (cover_image_url !== undefined)
-      updateData.cover_art_url = cover_image_url;
     if (release_date !== undefined) updateData.release_date = release_date;
     if (album_type !== undefined) updateData.album_type = album_type;
+
+    // Upload cover image if provided
+    if (coverFile && coverFile.size > 0) {
+      const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!validImageTypes.includes(coverFile.type)) {
+        return NextResponse.json(
+          { error: 'Invalid cover file type. Use JPG, PNG, or WebP' },
+          { status: 400 }
+        );
+      }
+
+      const fileExt = coverFile.name.split('.').pop();
+      const fileName = `${title.toLowerCase().replace(/\s+/g, '-')}-cover.${fileExt}`;
+      const filePath = `albums/covers/${fileName}`;
+
+      const buffer = Buffer.from(await coverFile.arrayBuffer());
+      await uploadToR2(filePath, buffer, coverFile.type);
+      updateData.cover_art_url = filePath;
+    }
 
     const { data: album, error } = await supabase
       .from('albums')

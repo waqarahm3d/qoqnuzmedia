@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin, requirePermission } from '@/lib/auth/admin-middleware';
+import { uploadToR2 } from '@/lib/r2';
 
 /**
  * GET /api/admin/artists
@@ -51,7 +52,7 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/admin/artists
- * Create new artist
+ * Create new artist with optional image uploads
  */
 export async function POST(request: NextRequest) {
   const { user, adminUser, response, supabase } = await requireAdmin(request);
@@ -62,14 +63,12 @@ export async function POST(request: NextRequest) {
   if (permissionError) return permissionError;
 
   try {
-    const body = await request.json();
-    const {
-      name,
-      bio,
-      avatar_url,
-      cover_image_url,
-      verified,
-    } = body;
+    const formData = await request.formData();
+    const name = formData.get('name') as string;
+    const bio = formData.get('bio') as string;
+    const verified = formData.get('verified') === 'true';
+    const avatarFile = formData.get('avatar') as File | null;
+    const coverFile = formData.get('cover') as File | null;
 
     if (!name) {
       return NextResponse.json(
@@ -78,11 +77,51 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Upload avatar if provided
+    let avatar_url = null;
+    if (avatarFile && avatarFile.size > 0) {
+      const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!validImageTypes.includes(avatarFile.type)) {
+        return NextResponse.json(
+          { error: 'Invalid avatar file type. Use JPG, PNG, or WebP' },
+          { status: 400 }
+        );
+      }
+
+      const fileExt = avatarFile.name.split('.').pop();
+      const fileName = `${name.toLowerCase().replace(/\s+/g, '-')}-avatar.${fileExt}`;
+      const filePath = `artists/avatars/${fileName}`;
+
+      const buffer = Buffer.from(await avatarFile.arrayBuffer());
+      await uploadToR2(filePath, buffer, avatarFile.type);
+      avatar_url = filePath;
+    }
+
+    // Upload cover image if provided
+    let cover_image_url = null;
+    if (coverFile && coverFile.size > 0) {
+      const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!validImageTypes.includes(coverFile.type)) {
+        return NextResponse.json(
+          { error: 'Invalid cover file type. Use JPG, PNG, or WebP' },
+          { status: 400 }
+        );
+      }
+
+      const fileExt = coverFile.name.split('.').pop();
+      const fileName = `${name.toLowerCase().replace(/\s+/g, '-')}-cover.${fileExt}`;
+      const filePath = `artists/covers/${fileName}`;
+
+      const buffer = Buffer.from(await coverFile.arrayBuffer());
+      await uploadToR2(filePath, buffer, coverFile.type);
+      cover_image_url = filePath;
+    }
+
     const { data: artist, error } = await supabase
       .from('artists')
       .insert({
         name,
-        bio,
+        bio: bio || null,
         avatar_url,
         cover_image_url,
         verified: verified || false,

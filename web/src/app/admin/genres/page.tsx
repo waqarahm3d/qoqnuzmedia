@@ -22,10 +22,10 @@ export default function GenresManagement() {
   const [search, setSearch] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingGenre, setEditingGenre] = useState<Genre | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    image_url: '',
     color: '#1DB954',
     display_order: 0,
   });
@@ -67,38 +67,49 @@ export default function GenresManagement() {
         : '/api/admin/genres';
       const method = editingGenre ? 'PUT' : 'POST';
 
+      // Create FormData for file upload
+      const submitData = new FormData();
+      submitData.append('name', formData.name);
+      submitData.append('description', formData.description);
+      submitData.append('color', formData.color);
+      submitData.append('display_order', formData.display_order.toString());
+      if (imageFile) submitData.append('image', imageFile);
+
       const response = await fetch(url, {
         method,
         headers: {
-          'Content-Type': 'application/json',
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify(formData),
+        body: submitData,
       });
 
       if (response.ok) {
         setShowCreateModal(false);
         setEditingGenre(null);
+        setImageFile(null);
         setFormData({
           name: '',
           description: '',
-          image_url: '',
           color: '#1DB954',
           display_order: 0,
         });
         fetchGenres();
+      } else {
+        const errorData = await response.json();
+        alert('Error: ' + (errorData.error || 'Failed to save genre'));
       }
     } catch (error) {
       console.error('Failed to save genre:', error);
+      alert('Failed to save genre');
     }
   };
 
   const handleEdit = (genre: Genre) => {
     setEditingGenre(genre);
+    setImageFile(null);
     setFormData({
       name: genre.name,
       description: genre.description || '',
-      image_url: genre.image_url || '',
       color: genre.color,
       display_order: genre.display_order,
     });
@@ -166,10 +177,10 @@ export default function GenresManagement() {
           <button
             onClick={() => {
               setEditingGenre(null);
+              setImageFile(null);
               setFormData({
                 name: '',
                 description: '',
-                image_url: '',
                 color: '#1DB954',
                 display_order: 0,
               });
@@ -309,15 +320,18 @@ export default function GenresManagement() {
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-300 mb-2">Image URL</label>
+                  <label className="block text-gray-300 mb-2">Genre Image</label>
                   <input
-                    type="url"
-                    value={formData.image_url}
-                    onChange={(e) =>
-                      setFormData({ ...formData, image_url: e.target.value })
-                    }
-                    className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg"
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                    onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                    className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-600 file:text-white hover:file:bg-green-700"
                   />
+                  {editingGenre?.image_url && (
+                    <p className="text-xs text-gray-400 mt-1">
+                      Current: {editingGenre.image_url}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-gray-300 mb-2">Color</label>
