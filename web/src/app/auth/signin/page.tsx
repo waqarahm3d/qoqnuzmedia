@@ -129,7 +129,7 @@ export default function SignInPage() {
           </div>
 
           {/* Password Field */}
-          <div style={{ marginBottom: '24px' }}>
+          <div style={{ marginBottom: '8px' }}>
             <label
               htmlFor="password"
               style={{
@@ -164,6 +164,23 @@ export default function SignInPage() {
               onFocus={(e) => (e.target.style.borderColor = '#1DB954')}
               onBlur={(e) => (e.target.style.borderColor = '#727272')}
             />
+          </div>
+
+          {/* Forgot Password Link */}
+          <div style={{ marginBottom: '24px', textAlign: 'right' }}>
+            <Link
+              href="/auth/forgot-password"
+              style={{
+                color: '#b3b3b3',
+                fontSize: '14px',
+                textDecoration: 'none',
+                transition: 'color 0.2s',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = '#ffffff')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = '#b3b3b3')}
+            >
+              Forgot your password?
+            </Link>
           </div>
 
           {/* Submit Button */}
@@ -212,8 +229,43 @@ export default function SignInPage() {
           }}
         >
           <div style={{ flex: 1, height: '1px', background: '#282828' }} />
-          <div style={{ height: '1px', background: '#282828' }} />
+          <span style={{ color: '#b3b3b3', fontSize: '12px', fontWeight: '700' }}>OR</span>
+          <div style={{ flex: 1, height: '1px', background: '#282828' }} />
         </div>
+
+        {/* Magic Link Login */}
+        <Link
+          href="/auth/magic-link"
+          style={{
+            display: 'block',
+            width: '100%',
+            padding: '14px 32px',
+            marginBottom: '32px',
+            color: '#ffffff',
+            fontSize: '14px',
+            fontWeight: '700',
+            textDecoration: 'none',
+            textAlign: 'center',
+            border: '1px solid #727272',
+            borderRadius: '500px',
+            transition: 'all 0.2s',
+            textTransform: 'uppercase',
+            letterSpacing: '1.5px',
+            boxSizing: 'border-box',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = '#ffffff';
+            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+            e.currentTarget.style.transform = 'scale(1.02)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = '#727272';
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.transform = 'scale(1)';
+          }}
+        >
+          Login with one-time code
+        </Link>
 
         {/* Sign Up Link */}
         <div style={{ textAlign: 'center' }}>

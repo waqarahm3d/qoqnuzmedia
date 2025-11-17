@@ -11,6 +11,10 @@ interface AuthContextType {
   signUp: (email: string, password: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{ error: any }>;
+  updatePassword: (newPassword: string) => Promise<{ error: any }>;
+  signInWithOTP: (email: string) => Promise<{ error: any }>;
+  verifyOTP: (email: string, token: string) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -71,6 +75,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabase.auth.signOut();
   };
 
+  const resetPassword = async (email: string) => {
+    const redirectUrl =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      (typeof window !== 'undefined' ? window.location.origin : '');
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: redirectUrl ? `${redirectUrl}/auth/reset-password` : undefined,
+    });
+    return { error };
+  };
+
+  const updatePassword = async (newPassword: string) => {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+    return { error };
+  };
+
+  const signInWithOTP = async (email: string) => {
+    const redirectUrl =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      (typeof window !== 'undefined' ? window.location.origin : '');
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: redirectUrl ? `${redirectUrl}/auth/callback` : undefined,
+      },
+    });
+    return { error };
+  };
+
+  const verifyOTP = async (email: string, token: string) => {
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'email',
+    });
+    return { error };
+  };
+
   const value = {
     user,
     session,
@@ -78,6 +123,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signIn,
     signOut,
+    resetPassword,
+    updatePassword,
+    signInWithOTP,
+    verifyOTP,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
