@@ -79,7 +79,7 @@ export default function TrackPage({
       artistId: track.artist_id,
       album: track.albums?.title || 'Single',
       albumId: track.album_id || undefined,
-      image: track.albums?.cover_art_url || track.cover_art_url,
+      image: track.albums?.cover_art_url || track.cover_art_url || undefined,
       duration: track.duration_ms,
     });
   };
