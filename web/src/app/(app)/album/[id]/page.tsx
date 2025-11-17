@@ -8,12 +8,14 @@ import { PlayIcon, HeartIcon, HeartFilledIcon, MoreIcon, ShareIcon } from '@/com
 import { useState, useEffect } from 'react';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
 import { getMediaUrl } from '@/lib/media-utils';
+import { EmbedModal } from '@/components/ui/EmbedModal';
 
 export default function AlbumPage() {
   const params = useParams();
   const [album, setAlbum] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
+  const [showEmbedModal, setShowEmbedModal] = useState(false);
   const { playTrack, setQueue } = usePlayer();
 
   useEffect(() => {
@@ -193,6 +195,22 @@ export default function AlbumPage() {
           >
             <ShareIcon size={32} />
           </button>
+          <button
+            onClick={() => setShowEmbedModal(true)}
+            className="text-white/60 hover:text-white transition-colors"
+            title="Embed album"
+          >
+            <svg
+              className="w-8 h-8"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <polyline points="16 18 22 12 16 6" />
+              <polyline points="8 6 2 12 8 18" />
+            </svg>
+          </button>
           <button className="text-white/60 hover:text-white transition-colors">
             <MoreIcon size={32} />
           </button>
@@ -241,6 +259,17 @@ export default function AlbumPage() {
           <p>&reg; {getReleaseYear()} {album.artists?.name}</p>
         </div>
       </div>
+
+      {/* Embed Modal */}
+      {album && (
+        <EmbedModal
+          isOpen={showEmbedModal}
+          onClose={() => setShowEmbedModal(false)}
+          type="album"
+          id={album.id}
+          title={`${album.title} - ${album.artists?.name || 'Unknown Artist'}`}
+        />
+      )}
     </div>
   );
 }

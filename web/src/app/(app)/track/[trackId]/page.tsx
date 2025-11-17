@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
 import { supabase } from '@/lib/supabase-client';
 import { getMediaUrl } from '@/lib/media-utils';
+import { EmbedModal } from '@/components/ui/EmbedModal';
 
 interface Track {
   id: string;
@@ -45,6 +46,7 @@ export default function TrackPage() {
   const [reactions, setReactions] = useState<{ emoji: string; count: number }[]>([]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [userReactions, setUserReactions] = useState<string[]>([]);
+  const [showEmbedModal, setShowEmbedModal] = useState(false);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -429,6 +431,24 @@ export default function TrackPage() {
               </svg>
             </button>
 
+            {/* Embed Button */}
+            <button
+              onClick={() => setShowEmbedModal(true)}
+              className="text-gray-400 hover:text-white transition-colors"
+              title="Embed"
+            >
+              <svg
+                className="w-7 h-7"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <polyline points="16 18 22 12 16 6" />
+                <polyline points="8 6 2 12 8 18" />
+              </svg>
+            </button>
+
             {/* More Options */}
             <button
               className="text-gray-400 hover:text-white transition-colors"
@@ -572,6 +592,17 @@ export default function TrackPage() {
           </Link>
         </div>
       </div>
+
+      {/* Embed Modal */}
+      {track && (
+        <EmbedModal
+          isOpen={showEmbedModal}
+          onClose={() => setShowEmbedModal(false)}
+          type="track"
+          id={track.id}
+          title={`${track.title} - ${track.artists.name}`}
+        />
+      )}
     </div>
   );
 }
