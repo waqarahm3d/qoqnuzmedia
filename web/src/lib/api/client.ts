@@ -64,7 +64,7 @@ export async function getAlbum(id: string) {
       tracks (
         id,
         title,
-        duration,
+        duration_ms,
         track_number,
         play_count
       )
@@ -119,7 +119,7 @@ export async function getArtistTracks(artistId: string, limit = 10) {
     .select(`
       id,
       title,
-      duration,
+      duration_ms,
       play_count,
       albums (
         id,
@@ -252,7 +252,7 @@ export async function getPlaylist(id: string) {
         tracks (
           id,
           title,
-          duration,
+          duration_ms,
           artists (
             id,
             name
@@ -312,7 +312,7 @@ export async function getLikedTracks() {
       tracks (
         id,
         title,
-        duration,
+        duration_ms,
         artists (
           id,
           name

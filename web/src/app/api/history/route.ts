@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
           title,
           duration_ms,
           artists!tracks_artist_id_fkey(id, name),
-          albums!tracks_album_id_fkey(id, title, cover_image_url)
+          albums!tracks_album_id_fkey(id, title, cover_art_url)
         )
       `)
       .eq('user_id', user.id)

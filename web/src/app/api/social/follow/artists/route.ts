@@ -13,16 +13,16 @@ export async function GET(request: NextRequest) {
     const { data: follows, error } = await supabase
       .from('artist_follows')
       .select(`
-        followed_at,
+        created_at,
         artist:artists(
           id,
           name,
-          profile_image_url,
-          is_verified
+          avatar_url,
+          verified
         )
       `)
       .eq('user_id', user.id)
-      .order('followed_at', { ascending: false });
+      .order('created_at', { ascending: false });
 
     if (error) throw error;
 

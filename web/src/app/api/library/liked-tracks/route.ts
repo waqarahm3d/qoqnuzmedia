@@ -13,17 +13,17 @@ export async function GET(request: NextRequest) {
     const { data: likedTracks, error } = await supabase
       .from('liked_tracks')
       .select(`
-        liked_at,
+        created_at,
         track:tracks(
           id,
           title,
           duration_ms,
           artists!tracks_artist_id_fkey(id, name),
-          albums!tracks_album_id_fkey(id, title, cover_image_url)
+          albums!tracks_album_id_fkey(id, title, cover_art_url)
         )
       `)
       .eq('user_id', user.id)
-      .order('liked_at', { ascending: false });
+      .order('created_at', { ascending: false });
 
     if (error) throw error;
 

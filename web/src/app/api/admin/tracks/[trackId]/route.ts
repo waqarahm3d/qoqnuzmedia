@@ -19,7 +19,7 @@ export async function GET(
       .from('tracks')
       .select(`
         *,
-        artists!tracks_artist_id_fkey(id, name, profile_image_url),
+        artists!tracks_artist_id_fkey(id, name, avatar_url),
         albums!tracks_album_id_fkey(id, title, cover_art_url)
       `)
       .eq('id', trackId)
