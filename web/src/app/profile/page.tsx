@@ -5,6 +5,7 @@ import { getUserProfile, getUserPlaylists, getLikedTracks } from '@/lib/api/clie
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { getMediaUrl } from '@/lib/media-utils';
 
 interface Profile {
   id: string;
@@ -137,9 +138,9 @@ export default function ProfilePage() {
                   className="bg-gray-800/50 p-4 rounded-lg hover:bg-gray-800 transition-all hover:scale-105 group"
                 >
                   <div className="aspect-square bg-gray-700 rounded mb-4 overflow-hidden">
-                    {playlist.cover_image_url ? (
+                    {playlist.cover_image_url && getMediaUrl(playlist.cover_image_url) ? (
                       <img
-                        src={playlist.cover_image_url}
+                        src={getMediaUrl(playlist.cover_image_url)!}
                         alt={playlist.name}
                         className="w-full h-full object-cover"
                       />

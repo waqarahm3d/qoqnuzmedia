@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { getLikedTracks } from '@/lib/api/client';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useRouter } from 'next/navigation';
+import { getMediaUrl } from '@/lib/media-utils';
 
 interface Track {
   id: string;
@@ -133,7 +134,7 @@ export default function LikedSongsPage() {
                   </div>
                   <div className="flex items-center gap-3 min-w-0">
                     <img
-                      src={track.albums[0]?.cover_art_url || '/placeholder-album.png'}
+                      src={getMediaUrl(track.albums[0]?.cover_art_url) || '/placeholder-album.png'}
                       alt={track.albums[0]?.title}
                       className="w-10 h-10 rounded"
                     />

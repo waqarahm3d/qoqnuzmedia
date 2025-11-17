@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase-client';
 import Link from 'next/link';
+import { getMediaUrl } from '@/lib/media-utils';
 
 interface Profile {
   id: string;
@@ -102,9 +103,9 @@ export default function UserPage() {
       <div className="bg-gradient-to-b from-gray-800 to-gray-900 p-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-end gap-6">
-            {profile.avatar_url ? (
+            {profile.avatar_url && getMediaUrl(profile.avatar_url) ? (
               <img
-                src={profile.avatar_url}
+                src={getMediaUrl(profile.avatar_url)!}
                 alt={profile.display_name || 'User'}
                 className="w-52 h-52 rounded-full shadow-2xl object-cover"
               />
@@ -170,9 +171,9 @@ export default function UserPage() {
                   className="bg-gray-800/50 p-4 rounded-lg hover:bg-gray-800 transition-all hover:scale-105 group"
                 >
                   <div className="aspect-square bg-gray-700 rounded mb-4 overflow-hidden">
-                    {playlist.cover_image_url ? (
+                    {playlist.cover_image_url && getMediaUrl(playlist.cover_image_url) ? (
                       <img
-                        src={playlist.cover_image_url}
+                        src={getMediaUrl(playlist.cover_image_url)!}
                         alt={playlist.name}
                         className="w-full h-full object-cover"
                       />

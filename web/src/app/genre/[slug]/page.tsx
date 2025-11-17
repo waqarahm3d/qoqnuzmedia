@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { getGenres, getGenrePlaylists } from '@/lib/api/client';
 import Link from 'next/link';
+import { getMediaUrl } from '@/lib/media-utils';
 
 interface Genre {
   id: string;
@@ -142,9 +143,9 @@ export default function GenrePage() {
                 className="bg-gray-800/50 p-4 rounded-lg hover:bg-gray-800 transition-all hover:scale-105 group"
               >
                 <div className="aspect-square bg-gray-700 rounded mb-4 overflow-hidden">
-                  {playlist.cover_image_url ? (
+                  {playlist.cover_image_url && getMediaUrl(playlist.cover_image_url) ? (
                     <img
-                      src={playlist.cover_image_url}
+                      src={getMediaUrl(playlist.cover_image_url)!}
                       alt={playlist.name}
                       className="w-full h-full object-cover"
                     />
