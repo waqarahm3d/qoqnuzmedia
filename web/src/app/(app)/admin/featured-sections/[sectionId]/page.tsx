@@ -1,8 +1,9 @@
 'use client';
 
-import { use, useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
+import { getMediaUrl } from '@/lib/media-utils';
 
 interface FeaturedItem {
   id: string;
@@ -11,12 +12,9 @@ interface FeaturedItem {
   details: any;
 }
 
-export default function ManageSectionItemsPage({
-  params,
-}: {
-  params: Promise<{ sectionId: string }>;
-}) {
-  const { sectionId } = use(params);
+export default function ManageSectionItemsPage() {
+  const params = useParams();
+  const sectionId = params?.sectionId as string;
   const router = useRouter();
   const [items, setItems] = useState<FeaturedItem[]>([]);
   const [sectionType, setSectionType] = useState<string>('');
@@ -183,10 +181,10 @@ export default function ManageSectionItemsPage({
 
               {item.details && (
                 <>
-                  {(item.details.cover_art_url || item.details.avatar_url) && (
+                  {(item.details.cover_art_url || item.details.avatar_url) && getMediaUrl(item.details.cover_art_url || item.details.avatar_url) && (
                     <div className="relative w-12 h-12 flex-shrink-0">
                       <Image
-                        src={item.details.cover_art_url || item.details.avatar_url}
+                        src={getMediaUrl(item.details.cover_art_url || item.details.avatar_url)!}
                         alt={item.details.title || item.details.name}
                         fill
                         className="object-cover rounded"
@@ -254,10 +252,10 @@ export default function ManageSectionItemsPage({
                     key={result.id}
                     className="bg-black/40 rounded-lg p-3 flex items-center gap-3 hover:bg-black/60"
                   >
-                    {(result.cover_art_url || result.avatar_url) && (
+                    {(result.cover_art_url || result.avatar_url) && getMediaUrl(result.cover_art_url || result.avatar_url) && (
                       <div className="relative w-12 h-12 flex-shrink-0">
                         <Image
-                          src={result.cover_art_url || result.avatar_url}
+                          src={getMediaUrl(result.cover_art_url || result.avatar_url)!}
                           alt={result.title || result.name}
                           fill
                           className="object-cover rounded"

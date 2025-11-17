@@ -2,6 +2,7 @@
 
 import { useAlbums, useArtists } from '@/lib/hooks/useMusic';
 import { Card } from '@/components/ui/Card';
+import { getMediaUrl } from '@/lib/media-utils';
 
 export default function DiscoverPage() {
   const { albums } = useAlbums(24);
@@ -22,7 +23,7 @@ export default function DiscoverPage() {
                 title={artist.name}
                 subtitle="Artist"
                 href={`/artist/${artist.id}`}
-                image={artist.avatar_url}
+                image={getMediaUrl(artist.avatar_url)}
                 type="circle"
               />
             ))}
@@ -40,7 +41,7 @@ export default function DiscoverPage() {
                 title={album.title}
                 subtitle={album.artists?.name || 'Unknown Artist'}
                 href={`/album/${album.id}`}
-                image={album.cover_art_url}
+                image={getMediaUrl(album.cover_art_url)}
               />
             ))}
           </div>

@@ -2,6 +2,7 @@
 
 import { useAlbums } from '@/lib/hooks/useMusic';
 import { Card } from '@/components/ui/Card';
+import { getMediaUrl } from '@/lib/media-utils';
 
 export default function ReleasesPage() {
   const { albums, loading } = useAlbums(50);
@@ -26,7 +27,7 @@ export default function ReleasesPage() {
             title={album.title}
             subtitle={album.artists?.name || 'Unknown Artist'}
             href={`/album/${album.id}`}
-            image={album.cover_art_url}
+            image={getMediaUrl(album.cover_art_url)}
             onPlay={() => window.location.href = `/album/${album.id}`}
           />
         ))}

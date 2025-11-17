@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { getPlayHistory } from '@/lib/api/client';
 import { TrackRow } from '@/components/ui/TrackRow';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
+import { getMediaUrl } from '@/lib/media-utils';
 
 export default function RecentPage() {
   const [history, setHistory] = useState<any[]>([]);
@@ -33,7 +34,7 @@ export default function RecentPage() {
       artistId: track.artist_id,
       album: track.albums?.title || 'Unknown Album',
       albumId: track.album_id,
-      image: track.albums?.cover_art_url,
+      image: getMediaUrl(track.albums?.cover_art_url),
       duration: track.duration_ms || 0,
     });
   };
@@ -68,7 +69,7 @@ export default function RecentPage() {
                 artist={track.artists?.name || track.artist || 'Unknown Artist'}
                 album={track.albums?.title || track.album || 'Unknown Album'}
                 duration={track.duration_ms ? `${Math.floor(track.duration_ms / 60000)}:${String(Math.floor((track.duration_ms % 60000) / 1000)).padStart(2, '0')}` : '0:00'}
-                image={track.albums?.cover_art_url || track.image}
+                image={getMediaUrl(track.albums?.cover_art_url || track.image)}
                 showImage={true}
                 onPlay={() => handlePlayTrack(track)}
                 onLike={() => {}}
