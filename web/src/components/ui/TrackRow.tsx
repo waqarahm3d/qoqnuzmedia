@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import { PlayIcon, HeartIcon, HeartFilledIcon, MoreIcon, ClockIcon } from '../icons';
 import { useState } from 'react';
 
@@ -15,6 +16,9 @@ interface TrackRowProps {
   onLike?: () => void;
   showImage?: boolean;
   showAlbum?: boolean;
+  trackId?: string;
+  artistId?: string;
+  albumId?: string;
 }
 
 export const TrackRow = ({
@@ -30,6 +34,9 @@ export const TrackRow = ({
   onLike,
   showImage = false,
   showAlbum = true,
+  trackId,
+  artistId,
+  albumId,
 }: TrackRowProps) => {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -69,10 +76,30 @@ export const TrackRow = ({
           </div>
         )}
         <div className="min-w-0">
-          <div className={`font-medium truncate ${isPlaying ? 'text-primary' : 'text-white'}`}>
-            {title}
-          </div>
-          <div className="text-sm text-white/60 truncate">{artist}</div>
+          {trackId ? (
+            <Link
+              href={`/track/${trackId}`}
+              className={`font-medium truncate hover:underline block ${
+                isPlaying ? 'text-primary' : 'text-white'
+              }`}
+            >
+              {title}
+            </Link>
+          ) : (
+            <div className={`font-medium truncate ${isPlaying ? 'text-primary' : 'text-white'}`}>
+              {title}
+            </div>
+          )}
+          {artistId ? (
+            <Link
+              href={`/artist/${artistId}`}
+              className="text-sm text-white/60 truncate hover:underline block"
+            >
+              {artist}
+            </Link>
+          ) : (
+            <div className="text-sm text-white/60 truncate">{artist}</div>
+          )}
         </div>
       </div>
 

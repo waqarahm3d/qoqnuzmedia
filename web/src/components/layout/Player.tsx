@@ -45,7 +45,7 @@ export const Player = () => {
   // Always render the player bar, but show empty state when no track
   if (!currentTrack) {
     return (
-      <div className="fixed bottom-0 left-0 right-0 bg-black border-t border-white/10 px-4 py-3 z-50">
+      <div className="fixed bottom-0 left-0 right-0 bg-black border-t border-white/10 px-4 py-3 z-[60] mb-16 lg:mb-0">
         <div className="flex items-center justify-center h-20">
           <div className="text-center text-gray-500">
             <svg
@@ -69,7 +69,7 @@ export const Player = () => {
   }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-black border-t border-white/10 px-4 py-3 z-50">
+    <div className="fixed bottom-0 left-0 right-0 bg-black border-t border-white/10 px-4 py-3 z-[60] mb-16 lg:mb-0">
       <div className="flex items-center justify-between gap-4 max-w-screen-2xl mx-auto">
         {/* Current Track Info */}
         <div className="flex items-center gap-3 min-w-0 flex-1 lg:w-[30%]">

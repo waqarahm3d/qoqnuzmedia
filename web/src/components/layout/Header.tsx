@@ -1,14 +1,17 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { ChevronLeftIcon, ChevronRightIcon, UserIcon, LogoutIcon } from '../icons';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useState, useRef, useEffect } from 'react';
+import { supabase } from '@/lib/supabase-client';
 
 export const Header = () => {
   const router = useRouter();
   const { user, signOut } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -21,6 +24,28 @@ export const Header = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      checkAdminStatus();
+    }
+  }, [user]);
+
+  const checkAdminStatus = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('admin_users')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      setIsAdmin(!!data);
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+    }
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -64,7 +89,7 @@ export const Header = () => {
 
           {/* Dropdown Menu */}
           {showDropdown && (
-            <div className="absolute right-0 mt-2 w-48 bg-surface rounded-md shadow-xl border border-white/10 py-1">
+            <div className="absolute right-0 mt-2 w-48 bg-surface rounded-md shadow-xl border border-white/10 py-1 z-50">
               <Link
                 href="/profile"
                 className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/5 transition-colors"
@@ -84,6 +109,23 @@ export const Header = () => {
                 </svg>
                 Settings
               </Link>
+              {isAdmin && (
+                <>
+                  <div className="border-t border-white/10 my-1" />
+                  <Link
+                    href="/admin"
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/5 transition-colors text-green-400"
+                    onClick={() => setShowDropdown(false)}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                      <path d="M2 17l10 5 10-5" />
+                      <path d="M2 12l10 5 10-5" />
+                    </svg>
+                    Admin Panel
+                  </Link>
+                </>
+              )}
               <div className="border-t border-white/10 my-1" />
               <button
                 onClick={handleSignOut}
@@ -99,6 +141,3 @@ export const Header = () => {
     </header>
   );
 };
-
-// Need to import Link
-import Link from 'next/link';

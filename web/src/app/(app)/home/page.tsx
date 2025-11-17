@@ -9,10 +9,16 @@ export default function HomePage() {
   const { albums, loading: albumsLoading } = useAlbums(12);
   const { artists, loading: artistsLoading } = useArtists(12);
   const { playlists, loading: playlistsLoading } = usePlaylists(12);
-  const { tracks, loading: tracksLoading } = useTracks(10);
+  const { tracks, loading: tracksLoading } = useTracks(20);
   const { setQueue, playTrack } = usePlayer();
 
   const loading = albumsLoading || artistsLoading || playlistsLoading || tracksLoading;
+
+  // Sort tracks by play_count for trending (client-side for now)
+  const trendingTracks = [...tracks]
+    .filter(t => t.play_count > 0)
+    .sort((a, b) => (b.play_count || 0) - (a.play_count || 0))
+    .slice(0, 10);
 
   const handlePlayAlbum = async (albumId: string) => {
     const album = albums.find(a => a.id === albumId);
@@ -80,15 +86,18 @@ export default function HomePage() {
         ))}
       </div>
 
-      {/* Recently Uploaded Tracks */}
-      {tracks.length > 0 && (
+      {/* Trending Songs */}
+      {trendingTracks.length > 0 && (
         <section className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold">Recently Uploaded</h2>
+            <h2 className="text-2xl font-bold">Trending Songs</h2>
+            <a href="/browse/trending" className="text-sm font-semibold text-white/60 hover:text-white transition-colors">
+              Show all
+            </a>
           </div>
           <div className="bg-black/20 rounded-lg p-4">
             <div className="space-y-2">
-              {tracks.slice(0, 5).map((track: any, index: number) => (
+              {trendingTracks.map((track: any, index: number) => (
                 <TrackRow
                   key={track.id}
                   number={index + 1}
@@ -97,6 +106,53 @@ export default function HomePage() {
                   album={track.albums?.title || 'Single'}
                   image={track.albums?.cover_art_url || track.cover_art_url}
                   duration={formatDuration(track.duration_ms || 0)}
+                  trackId={track.id}
+                  artistId={track.artist_id}
+                  albumId={track.album_id}
+                  showImage={true}
+                  onPlay={() => {
+                    playTrack({
+                      id: track.id,
+                      title: track.title,
+                      artist: track.artists?.name || 'Unknown Artist',
+                      artistId: track.artist_id,
+                      album: track.albums?.title || 'Single',
+                      albumId: track.album_id,
+                      image: track.albums?.cover_art_url || track.cover_art_url,
+                      duration: track.duration_ms || 0,
+                    });
+                  }}
+                  onLike={() => {}}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* New to Qoqnuz */}
+      {tracks.length > 0 && (
+        <section className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold">New to Qoqnuz</h2>
+            <a href="/browse/new" className="text-sm font-semibold text-white/60 hover:text-white transition-colors">
+              Show all
+            </a>
+          </div>
+          <div className="bg-black/20 rounded-lg p-4">
+            <div className="space-y-2">
+              {tracks.slice(0, 10).map((track: any, index: number) => (
+                <TrackRow
+                  key={track.id}
+                  number={index + 1}
+                  title={track.title}
+                  artist={track.artists?.name || 'Unknown Artist'}
+                  album={track.albums?.title || 'Single'}
+                  image={track.albums?.cover_art_url || track.cover_art_url}
+                  duration={formatDuration(track.duration_ms || 0)}
+                  trackId={track.id}
+                  artistId={track.artist_id}
+                  albumId={track.album_id}
                   onPlay={() => {
                     playTrack({
                       id: track.id,
