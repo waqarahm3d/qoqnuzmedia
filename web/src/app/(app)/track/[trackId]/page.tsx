@@ -1,7 +1,7 @@
 'use client';
 
-import { use, useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, useRef } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
@@ -33,12 +33,9 @@ interface Track {
   } | null;
 }
 
-export default function TrackPage({
-  params,
-}: {
-  params: Promise<{ trackId: string }>;
-}) {
-  const { trackId } = use(params);
+export default function TrackPage() {
+  const params = useParams();
+  const trackId = params?.trackId as string;
   const router = useRouter();
   const { playTrack, currentTrack, isPlaying } = usePlayer();
   const [track, setTrack] = useState<Track | null>(null);
