@@ -4,6 +4,22 @@ import { ReactNode, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth/AuthContext';
+import {
+  DashboardIcon,
+  AnalyticsIcon,
+  MicrophoneIcon,
+  DiscIcon,
+  MusicIcon,
+  PlaylistIcon,
+  TheaterIcon,
+  UsersIcon,
+  PaletteIcon,
+  SettingsIcon,
+  CloseIcon,
+  LogoutIcon,
+  MenuIcon,
+  ChevronLeftIcon,
+} from '@/components/icons/admin-icons';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -15,16 +31,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const { user, signOut } = useAuth();
 
   const navigation = [
-    { name: 'Dashboard', href: '/admin', icon: '📊' },
-    { name: 'Analytics', href: '/admin/analytics', icon: '📈' },
-    { name: 'Artists', href: '/admin/artists', icon: '🎤' },
-    { name: 'Albums', href: '/admin/albums', icon: '💿' },
-    { name: 'Tracks', href: '/admin/tracks', icon: '🎵' },
-    { name: 'Playlists', href: '/admin/playlists', icon: '📝' },
-    { name: 'Genres', href: '/admin/genres', icon: '🎭' },
-    { name: 'Users', href: '/admin/users', icon: '👥' },
-    { name: 'Theme', href: '/admin/theme', icon: '🎨' },
-    { name: 'Settings', href: '/admin/settings', icon: '⚙️' },
+    { name: 'Dashboard', href: '/admin', Icon: DashboardIcon },
+    { name: 'Analytics', href: '/admin/analytics', Icon: AnalyticsIcon },
+    { name: 'Artists', href: '/admin/artists', Icon: MicrophoneIcon },
+    { name: 'Albums', href: '/admin/albums', Icon: DiscIcon },
+    { name: 'Tracks', href: '/admin/tracks', Icon: MusicIcon },
+    { name: 'Playlists', href: '/admin/playlists', Icon: PlaylistIcon },
+    { name: 'Genres', href: '/admin/genres', Icon: TheaterIcon },
+    { name: 'Users', href: '/admin/users', Icon: UsersIcon },
+    { name: 'Theme', href: '/admin/theme', Icon: PaletteIcon },
+    { name: 'Settings', href: '/admin/settings', Icon: SettingsIcon },
   ];
 
   const isActive = (href: string) => {
@@ -52,26 +68,29 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               onClick={() => setSidebarOpen(false)}
               className="text-gray-400 hover:text-white lg:hidden"
             >
-              ✕
+              <CloseIcon size={20} />
             </button>
           </div>
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                  isActive(item.href)
-                    ? 'bg-green-600 text-white'
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                }`}
-              >
-                <span className="mr-3 text-lg">{item.icon}</span>
-                {item.name}
-              </Link>
-            ))}
+            {navigation.map((item) => {
+              const Icon = item.Icon;
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                    isActive(item.href)
+                      ? 'bg-green-600 text-white'
+                      : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  }`}
+                >
+                  <Icon className="mr-3" size={20} />
+                  {item.name}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* User Menu */}
@@ -92,10 +111,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               </div>
               <button
                 onClick={signOut}
-                className="text-gray-400 hover:text-white"
+                className="text-gray-400 hover:text-white transition-colors"
                 title="Sign out"
               >
-                🚪
+                <LogoutIcon size={20} />
               </button>
             </div>
           </div>
@@ -113,16 +132,17 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           <div className="flex items-center justify-between h-16 px-6">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="text-gray-400 hover:text-white"
+              className="text-gray-400 hover:text-white transition-colors"
             >
-              ☰
+              <MenuIcon size={24} />
             </button>
             <div className="flex items-center space-x-4">
               <Link
                 href="/"
-                className="text-sm text-gray-400 hover:text-white"
+                className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1"
               >
-                ← Back to Site
+                <ChevronLeftIcon size={16} />
+                Back to Site
               </Link>
             </div>
           </div>
