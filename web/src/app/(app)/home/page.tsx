@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/Card';
 import { TrackRow } from '@/components/ui/TrackRow';
 import { useAlbums, useArtists, usePlaylists, useTracks } from '@/lib/hooks/useMusic';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
+import { getMediaUrl } from '@/lib/media-utils';
 
 export default function HomePage() {
   const { albums, loading: albumsLoading } = useAlbums(12);
@@ -104,7 +105,7 @@ export default function HomePage() {
                   title={track.title}
                   artist={track.artists?.name || 'Unknown Artist'}
                   album={track.albums?.title || 'Single'}
-                  image={track.albums?.cover_art_url || track.cover_art_url}
+                  image={getMediaUrl(track.albums?.cover_art_url || track.cover_art_url)}
                   duration={formatDuration(track.duration_ms || 0)}
                   trackId={track.id}
                   artistId={track.artist_id}
@@ -118,7 +119,7 @@ export default function HomePage() {
                       artistId: track.artist_id,
                       album: track.albums?.title || 'Single',
                       albumId: track.album_id,
-                      image: track.albums?.cover_art_url || track.cover_art_url,
+                      image: getMediaUrl(track.albums?.cover_art_url || track.cover_art_url),
                       duration: track.duration_ms || 0,
                     });
                   }}
@@ -148,7 +149,7 @@ export default function HomePage() {
                   title={track.title}
                   artist={track.artists?.name || 'Unknown Artist'}
                   album={track.albums?.title || 'Single'}
-                  image={track.albums?.cover_art_url || track.cover_art_url}
+                  image={getMediaUrl(track.albums?.cover_art_url || track.cover_art_url)}
                   duration={formatDuration(track.duration_ms || 0)}
                   trackId={track.id}
                   artistId={track.artist_id}
@@ -161,7 +162,7 @@ export default function HomePage() {
                       artistId: track.artist_id,
                       album: track.albums?.title || 'Single',
                       albumId: track.album_id,
-                      image: track.albums?.cover_art_url || track.cover_art_url,
+                      image: getMediaUrl(track.albums?.cover_art_url || track.cover_art_url),
                       duration: track.duration_ms || 0,
                     });
                   }}
@@ -189,7 +190,7 @@ export default function HomePage() {
                 title={playlist.name}
                 subtitle={playlist.description || `${playlist.profiles?.display_name || 'Playlist'}`}
                 href={`/playlist/${playlist.id}`}
-                image={playlist.cover_url}
+                image={getMediaUrl(playlist.cover_url)}
                 onPlay={() => handlePlayPlaylist(playlist.id)}
               />
             ))}
@@ -213,7 +214,7 @@ export default function HomePage() {
                 title={album.title}
                 subtitle={album.artists?.name || 'Unknown Artist'}
                 href={`/album/${album.id}`}
-                image={album.cover_art_url}
+                image={getMediaUrl(album.cover_art_url)}
                 onPlay={() => handlePlayAlbum(album.id)}
               />
             ))}
@@ -237,7 +238,7 @@ export default function HomePage() {
                 title={artist.name}
                 subtitle="Artist"
                 href={`/artist/${artist.id}`}
-                image={artist.avatar_url}
+                image={getMediaUrl(artist.avatar_url)}
                 type="circle"
               />
             ))}
