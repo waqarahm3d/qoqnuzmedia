@@ -40,7 +40,7 @@ function SearchContent() {
       album: track.albums?.title || track.album || 'Unknown Album',
       albumId: track.album_id,
       image: track.albums?.cover_art_url || track.image,
-      duration: track.duration || 0,
+      duration: track.duration_ms || 0,
     });
   };
 
@@ -115,7 +115,7 @@ function SearchContent() {
                     title={track.title}
                     artist={track.artists?.name || 'Unknown Artist'}
                     album={track.albums?.title || 'Unknown Album'}
-                    duration={track.duration ? `${Math.floor(track.duration / 60)}:${String(track.duration % 60).padStart(2, '0')}` : '0:00'}
+                    duration={track.duration_ms ? `${Math.floor(track.duration_ms / 60000)}:${String(Math.floor((track.duration_ms % 60000) / 1000)).padStart(2, '0')}` : '0:00'}
                     image={track.albums?.cover_art_url}
                     showImage={true}
                     onPlay={() => handlePlayTrack(track)}
