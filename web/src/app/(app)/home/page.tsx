@@ -230,7 +230,7 @@ export default function HomePage() {
                       artist: item.subtitle,
                       artistId: item.artist_id,
                       album: 'Single',
-                      albumId: null,
+                      albumId: undefined,
                       image: item.image,
                       duration: item.duration_ms || 0,
                     });
