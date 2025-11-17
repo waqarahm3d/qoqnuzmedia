@@ -8,6 +8,7 @@ import { PlayIcon, HeartIcon, HeartFilledIcon, MoreIcon, DownloadIcon } from '@/
 import { useState, useEffect } from 'react';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { getMediaUrl } from '@/lib/media-utils';
 
 export default function PlaylistPage() {
   const params = useParams();
@@ -45,7 +46,7 @@ export default function PlaylistPage() {
       artistId: track.artists?.id,
       album: track.albums?.title || 'Unknown Album',
       albumId: track.albums?.id,
-      image: track.albums?.cover_art_url,
+      image: getMediaUrl(track.albums?.cover_art_url),
       duration: track.duration_ms || 0,
     });
   };
@@ -65,7 +66,7 @@ export default function PlaylistPage() {
           artistId: track.artists?.id,
           album: track.albums?.title || 'Unknown Album',
           albumId: track.albums?.id,
-          image: track.albums?.cover_art_url,
+          image: getMediaUrl(track.albums?.cover_art_url),
           duration: track.duration_ms || 0,
         };
       })
@@ -125,9 +126,9 @@ export default function PlaylistPage() {
         <div className="flex flex-col md:flex-row gap-6 items-end">
           {/* Playlist Cover */}
           <div className="relative w-48 h-48 md:w-56 md:h-56 lg:w-64 lg:h-64 flex-shrink-0 shadow-2xl">
-            {playlist.cover_url ? (
+            {playlist.cover_url && getMediaUrl(playlist.cover_url) ? (
               <Image
-                src={playlist.cover_url}
+                src={getMediaUrl(playlist.cover_url)!}
                 alt={playlist.name}
                 fill
                 className="object-cover rounded"
@@ -201,7 +202,7 @@ export default function PlaylistPage() {
                   artist={track.artists?.name || 'Unknown Artist'}
                   album={track.albums?.title || 'Unknown Album'}
                   duration={formatDuration(track.duration_ms || 0)}
-                  image={track.albums?.cover_art_url}
+                  image={getMediaUrl(track.albums?.cover_art_url)}
                   showImage={true}
                   onPlay={() => handlePlayTrack(item)}
                   onLike={() => console.log('Like track:', track.id)}

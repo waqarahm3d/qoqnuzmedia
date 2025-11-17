@@ -7,6 +7,7 @@ import { TrackRow, TrackListHeader } from '@/components/ui/TrackRow';
 import { PlayIcon, HeartIcon, HeartFilledIcon, MoreIcon } from '@/components/icons';
 import { useState, useEffect } from 'react';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
+import { getMediaUrl } from '@/lib/media-utils';
 
 export default function AlbumPage() {
   const params = useParams();
@@ -40,7 +41,7 @@ export default function AlbumPage() {
       artistId: track.artists?.id || album?.artists?.id,
       album: album?.title || 'Unknown Album',
       albumId: album?.id,
-      image: album?.cover_art_url,
+      image: getMediaUrl(album?.cover_art_url),
       duration: track.duration_ms || 0,
     });
   };
@@ -55,7 +56,7 @@ export default function AlbumPage() {
       artistId: track.artists?.id || album.artists?.id,
       album: album.title,
       albumId: album.id,
-      image: album.cover_art_url,
+      image: getMediaUrl(album.cover_art_url),
       duration: track.duration_ms || 0,
     }));
 
@@ -111,9 +112,9 @@ export default function AlbumPage() {
         <div className="flex flex-col md:flex-row gap-6 items-end">
           {/* Album Cover */}
           <div className="relative w-48 h-48 md:w-56 md:h-56 lg:w-64 lg:h-64 flex-shrink-0 shadow-2xl">
-            {album.cover_art_url ? (
+            {album.cover_art_url && getMediaUrl(album.cover_art_url) ? (
               <Image
-                src={album.cover_art_url}
+                src={getMediaUrl(album.cover_art_url)!}
                 alt={album.title}
                 fill
                 className="object-cover rounded"

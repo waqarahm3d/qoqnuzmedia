@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { TrackRow } from '@/components/ui/TrackRow';
 import { useSearch, useGenres } from '@/lib/hooks/useMusic';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
+import { getMediaUrl } from '@/lib/media-utils';
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -39,7 +40,7 @@ function SearchContent() {
       artistId: track.artist_id,
       album: track.albums?.title || track.album || 'Unknown Album',
       albumId: track.album_id,
-      image: track.albums?.cover_art_url || track.image,
+      image: getMediaUrl(track.albums?.cover_art_url || track.image),
       duration: track.duration_ms || 0,
     });
   };
@@ -116,7 +117,7 @@ function SearchContent() {
                     artist={track.artists?.name || 'Unknown Artist'}
                     album={track.albums?.title || 'Unknown Album'}
                     duration={track.duration_ms ? `${Math.floor(track.duration_ms / 60000)}:${String(Math.floor((track.duration_ms % 60000) / 1000)).padStart(2, '0')}` : '0:00'}
-                    image={track.albums?.cover_art_url}
+                    image={getMediaUrl(track.albums?.cover_art_url)}
                     showImage={true}
                     onPlay={() => handlePlayTrack(track)}
                     onLike={() => console.log('Like track:', track.id)}
@@ -145,7 +146,7 @@ function SearchContent() {
                     title={artist.name}
                     subtitle="Artist"
                     href={`/artist/${artist.id}`}
-                    image={artist.avatar_url}
+                    image={getMediaUrl(artist.avatar_url)}
                     type="circle"
                   />
                 ))}
@@ -164,7 +165,7 @@ function SearchContent() {
                     title={album.title}
                     subtitle={album.artists?.name || 'Unknown Artist'}
                     href={`/album/${album.id}`}
-                    image={album.cover_art_url}
+                    image={getMediaUrl(album.cover_art_url)}
                     onPlay={() => window.location.href = `/album/${album.id}`}
                   />
                 ))}
@@ -183,7 +184,7 @@ function SearchContent() {
                     title={playlist.name}
                     subtitle={playlist.description}
                     href={`/playlist/${playlist.id}`}
-                    image={playlist.cover_url}
+                    image={getMediaUrl(playlist.cover_url)}
                     onPlay={() => window.location.href = `/playlist/${playlist.id}`}
                   />
                 ))}

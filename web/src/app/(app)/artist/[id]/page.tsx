@@ -8,6 +8,7 @@ import { TrackRow } from '@/components/ui/TrackRow';
 import { PlayIcon, MoreIcon } from '@/components/icons';
 import { useState, useEffect } from 'react';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
+import { getMediaUrl } from '@/lib/media-utils';
 
 export default function ArtistPage() {
   const params = useParams();
@@ -41,7 +42,7 @@ export default function ArtistPage() {
       artistId: artist?.id,
       album: track.albums?.title || 'Unknown Album',
       albumId: track.album_id,
-      image: track.albums?.cover_art_url,
+      image: getMediaUrl(track.albums?.cover_art_url),
       duration: track.duration_ms || 0,
     });
   };
@@ -85,10 +86,10 @@ export default function ArtistPage() {
     <div className="min-h-screen">
       {/* Hero Section */}
       <div className="relative h-80 lg:h-96 bg-gradient-to-b from-purple-900 to-background">
-        {artist.cover_image_url ? (
+        {artist.cover_image_url && getMediaUrl(artist.cover_image_url) ? (
           <div className="absolute inset-0">
             <Image
-              src={artist.cover_image_url}
+              src={getMediaUrl(artist.cover_image_url)!}
               alt={artist.name}
               fill
               className="object-cover opacity-40"
@@ -150,7 +151,7 @@ export default function ArtistPage() {
                     artist={artist.name}
                     album={track.albums?.title || 'Single'}
                     duration={formatDuration(track.duration_ms || 0)}
-                    image={track.albums?.cover_art_url}
+                    image={getMediaUrl(track.albums?.cover_art_url)}
                     showImage={true}
                     showAlbum={true}
                     onPlay={() => handlePlayTrack(track)}
@@ -175,7 +176,7 @@ export default function ArtistPage() {
                   title={album.title}
                   subtitle={`${album.release_date ? new Date(album.release_date).getFullYear() : ''} • ${album.album_type || 'Album'}`}
                   href={`/album/${album.id}`}
-                  image={album.cover_art_url}
+                  image={getMediaUrl(album.cover_art_url)}
                   onPlay={() => (window.location.href = `/album/${album.id}`)}
                 />
               ))}

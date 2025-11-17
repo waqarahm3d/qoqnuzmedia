@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { PlaylistIcon, MusicIcon, MicrophoneIcon, HeartFilledIcon } from '@/components/icons';
 import { useUserLibrary, useLikedTracks } from '@/lib/hooks/useMusic';
+import { getMediaUrl } from '@/lib/media-utils';
 
 export default function LibraryPage() {
   const [activeTab, setActiveTab] = useState<'playlists' | 'artists' | 'albums'>('playlists');
@@ -79,7 +80,7 @@ export default function LibraryPage() {
                   title={playlist.name}
                   subtitle={playlist.description || `${playlist.track_count || 0} songs`}
                   href={`/playlist/${playlist.id}`}
-                  image={playlist.cover_url}
+                  image={getMediaUrl(playlist.cover_url)}
                   onPlay={() => window.location.href = `/playlist/${playlist.id}`}
                 />
               ))}
@@ -102,7 +103,7 @@ export default function LibraryPage() {
                 title={artist.name}
                 subtitle="Artist"
                 href={`/artist/${artist.id}`}
-                image={artist.avatar_url}
+                image={getMediaUrl(artist.avatar_url)}
                 type="circle"
               />
             ))}
@@ -123,7 +124,7 @@ export default function LibraryPage() {
                 title={album.title}
                 subtitle={album.artists?.name || 'Unknown Artist'}
                 href={`/album/${album.id}`}
-                image={album.cover_art_url}
+                image={getMediaUrl(album.cover_art_url)}
                 onPlay={() => window.location.href = `/album/${album.id}`}
               />
             ))}
