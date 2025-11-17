@@ -38,7 +38,7 @@ export async function getAlbums(params?: { limit?: number; offset?: number }) {
       artists (
         id,
         name,
-        image_url
+        avatar_url
       )
     `)
     .order('created_at', { ascending: false });
@@ -59,7 +59,7 @@ export async function getAlbum(id: string) {
       artists (
         id,
         name,
-        image_url
+        avatar_url
       ),
       tracks (
         id,
@@ -102,7 +102,7 @@ export async function getArtist(id: string) {
       albums (
         id,
         title,
-        cover_url,
+        cover_art_url,
         release_date
       )
     `)
@@ -124,7 +124,7 @@ export async function getArtistTracks(artistId: string, limit = 10) {
       albums (
         id,
         title,
-        cover_url
+        cover_art_url
       )
     `)
     .eq('artist_id', artistId)
@@ -178,7 +178,7 @@ export async function getTracks(params?: { limit?: number; offset?: number }) {
       albums (
         id,
         title,
-        cover_url
+        cover_art_url
       )
     `)
     .order('created_at', { ascending: false });
@@ -260,7 +260,7 @@ export async function getPlaylist(id: string) {
           albums (
             id,
             title,
-            cover_url
+            cover_art_url
           )
         )
       )
@@ -320,7 +320,7 @@ export async function getLikedTracks() {
         albums (
           id,
           title,
-          cover_url
+          cover_art_url
         )
       )
     `)
@@ -375,7 +375,7 @@ export async function getUserLibrary() {
       artists (
         id,
         name,
-        image_url
+        avatar_url
       )
     `)
     .eq('user_id', user.id);
@@ -387,7 +387,7 @@ export async function getUserLibrary() {
       albums (
         id,
         title,
-        cover_url,
+        cover_art_url,
         artists (
           id,
           name

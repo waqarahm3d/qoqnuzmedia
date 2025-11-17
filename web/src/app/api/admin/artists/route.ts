@@ -66,9 +66,9 @@ export async function POST(request: NextRequest) {
     const {
       name,
       bio,
-      profile_image_url,
+      avatar_url,
       cover_image_url,
-      is_verified,
+      verified,
     } = body;
 
     if (!name) {
@@ -83,9 +83,9 @@ export async function POST(request: NextRequest) {
       .insert({
         name,
         bio,
-        profile_image_url,
+        avatar_url,
         cover_image_url,
-        is_verified: is_verified || false,
+        verified: verified || false,
       })
       .select()
       .single();

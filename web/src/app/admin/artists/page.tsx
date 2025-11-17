@@ -8,9 +8,9 @@ interface Artist {
   id: string;
   name: string;
   bio: string | null;
-  profile_image_url: string | null;
+  avatar_url: string | null;
   cover_image_url: string | null;
-  is_verified: boolean;
+  verified: boolean;
   follower_count: number;
   genres: string[] | null;
   created_at: string;
@@ -175,9 +175,9 @@ export default function ArtistsManagement() {
                         <td className="px-6 py-4">
                           <div className="flex items-center space-x-3">
                             <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center text-xl">
-                              {artist.profile_image_url ? (
+                              {artist.avatar_url ? (
                                 <img
-                                  src={artist.profile_image_url}
+                                  src={artist.avatar_url}
                                   alt={artist.name}
                                   className="w-10 h-10 rounded-full object-cover"
                                 />
@@ -215,7 +215,7 @@ export default function ArtistsManagement() {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          {artist.is_verified ? (
+                          {artist.verified ? (
                             <span className="text-green-500">✓ Verified</span>
                           ) : (
                             <span className="text-gray-500">-</span>
@@ -307,9 +307,9 @@ function ArtistModal({ artist, onClose, onSuccess }: ArtistModalProps) {
   const [formData, setFormData] = useState({
     name: artist?.name || '',
     bio: artist?.bio || '',
-    profile_image_url: artist?.profile_image_url || '',
+    avatar_url: artist?.avatar_url || '',
     cover_image_url: artist?.cover_image_url || '',
-    is_verified: artist?.is_verified || false,
+    verified: artist?.verified || false,
     genres: artist?.genres || [] as string[],
   });
   const [loading, setLoading] = useState(false);
@@ -415,13 +415,13 @@ function ArtistModal({ artist, onClose, onSuccess }: ArtistModalProps) {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">
-              Profile Image URL
+              Avatar URL
             </label>
             <input
               type="url"
-              value={formData.profile_image_url}
+              value={formData.avatar_url}
               onChange={(e) =>
-                setFormData({ ...formData, profile_image_url: e.target.value })
+                setFormData({ ...formData, avatar_url: e.target.value })
               }
               className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
             />
@@ -463,14 +463,14 @@ function ArtistModal({ artist, onClose, onSuccess }: ArtistModalProps) {
           <div className="flex items-center space-x-2">
             <input
               type="checkbox"
-              id="is_verified"
-              checked={formData.is_verified}
+              id="verified"
+              checked={formData.verified}
               onChange={(e) =>
-                setFormData({ ...formData, is_verified: e.target.checked })
+                setFormData({ ...formData, verified: e.target.checked })
               }
               className="w-4 h-4"
             />
-            <label htmlFor="is_verified" className="text-sm text-gray-300">
+            <label htmlFor="verified" className="text-sm text-gray-300">
               Verified Artist
             </label>
           </div>

@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
           title,
           duration_ms,
           artists!tracks_artist_id_fkey(id, name),
-          albums!tracks_album_id_fkey(id, title, cover_image_url)
+          albums!tracks_album_id_fkey(id, title, cover_art_url)
         `)
         .ilike('title', `%${query}%`)
         .limit(limit);
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     if (type === 'all' || type === 'artists') {
       const { data: artists } = await supabase
         .from('artists')
-        .select('id, name, profile_image_url, is_verified')
+        .select('id, name, avatar_url, verified')
         .ilike('name', `%${query}%`)
         .limit(limit);
 
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
         .select(`
           id,
           title,
-          cover_image_url,
+          cover_art_url,
           release_date,
           artists!albums_artist_id_fkey(id, name)
         `)

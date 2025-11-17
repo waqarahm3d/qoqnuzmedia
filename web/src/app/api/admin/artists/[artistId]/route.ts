@@ -63,19 +63,19 @@ export async function PUT(
     const {
       name,
       bio,
-      profile_image_url,
+      avatar_url,
       cover_image_url,
-      is_verified,
+      verified,
     } = body;
 
     const updateData: any = {};
     if (name !== undefined) updateData.name = name;
     if (bio !== undefined) updateData.bio = bio;
-    if (profile_image_url !== undefined)
-      updateData.profile_image_url = profile_image_url;
+    if (avatar_url !== undefined)
+      updateData.avatar_url = avatar_url;
     if (cover_image_url !== undefined)
       updateData.cover_image_url = cover_image_url;
-    if (is_verified !== undefined) updateData.is_verified = is_verified;
+    if (verified !== undefined) updateData.verified = verified;
 
     const { data: artist, error } = await supabase
       .from('artists')

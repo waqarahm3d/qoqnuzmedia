@@ -39,7 +39,7 @@ function SearchContent() {
       artistId: track.artist_id,
       album: track.albums?.title || track.album || 'Unknown Album',
       albumId: track.album_id,
-      image: track.albums?.cover_url || track.image,
+      image: track.albums?.cover_art_url || track.image,
       duration: track.duration || 0,
     });
   };
@@ -116,7 +116,7 @@ function SearchContent() {
                     artist={track.artists?.name || 'Unknown Artist'}
                     album={track.albums?.title || 'Unknown Album'}
                     duration={track.duration ? `${Math.floor(track.duration / 60)}:${String(track.duration % 60).padStart(2, '0')}` : '0:00'}
-                    image={track.albums?.cover_url}
+                    image={track.albums?.cover_art_url}
                     showImage={true}
                     onPlay={() => handlePlayTrack(track)}
                     onLike={() => console.log('Like track:', track.id)}
@@ -145,7 +145,7 @@ function SearchContent() {
                     title={artist.name}
                     subtitle="Artist"
                     href={`/artist/${artist.id}`}
-                    image={artist.image_url}
+                    image={artist.avatar_url}
                     type="circle"
                   />
                 ))}
@@ -164,7 +164,7 @@ function SearchContent() {
                     title={album.title}
                     subtitle={album.artists?.name || 'Unknown Artist'}
                     href={`/album/${album.id}`}
-                    image={album.cover_url}
+                    image={album.cover_art_url}
                     onPlay={() => window.location.href = `/album/${album.id}`}
                   />
                 ))}

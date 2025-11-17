@@ -102,7 +102,7 @@ export default function LibraryPage() {
                 title={artist.name}
                 subtitle="Artist"
                 href={`/artist/${artist.id}`}
-                image={artist.image_url}
+                image={artist.avatar_url}
                 type="circle"
               />
             ))}
@@ -123,7 +123,7 @@ export default function LibraryPage() {
                 title={album.title}
                 subtitle={album.artists?.name || 'Unknown Artist'}
                 href={`/album/${album.id}`}
-                image={album.cover_url}
+                image={album.cover_art_url}
                 onPlay={() => window.location.href = `/album/${album.id}`}
               />
             ))}
