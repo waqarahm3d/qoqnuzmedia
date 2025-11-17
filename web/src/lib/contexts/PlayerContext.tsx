@@ -26,7 +26,8 @@ interface PlayerContextType {
   shuffle: boolean;
   repeat: 'off' | 'all' | 'one';
   queue: Track[];
-  playTrack: (track: Track) => void;
+  showStillListeningPrompt: boolean;
+  playTrack: (track: Track, skipQueueUpdate?: boolean) => void;
   pause: () => void;
   resume: () => void;
   togglePlayPause: () => void;
@@ -40,6 +41,7 @@ interface PlayerContextType {
   skipBackward: () => void;
   addToQueue: (track: Track) => void;
   setQueue: (tracks: Track[]) => void;
+  confirmStillListening: () => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -58,6 +60,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [repeat, setRepeat] = useState<'off' | 'all' | 'one'>('off');
   const [queue, setQueue] = useState<Track[]>([]);
   const [queueIndex, setQueueIndex] = useState(0);
+  const [showStillListeningPrompt, setShowStillListeningPrompt] = useState(false);
+  const [playbackStartTime, setPlaybackStartTime] = useState<number | null>(null);
+  const stillListeningTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize audio element
   useEffect(() => {
@@ -102,6 +107,50 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
   }, [currentTrack]);
 
+  // Monitor playback time for "still listening" prompt (3 hours)
+  useEffect(() => {
+    if (isPlaying) {
+      // Start or resume timer
+      if (!playbackStartTime) {
+        setPlaybackStartTime(Date.now());
+      }
+
+      // Check every minute if 3 hours have passed
+      stillListeningTimerRef.current = setInterval(() => {
+        if (playbackStartTime) {
+          const elapsedTime = Date.now() - playbackStartTime;
+          const threeHours = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
+
+          if (elapsedTime >= threeHours) {
+            // Pause and show prompt
+            audioRef.current?.pause();
+            setIsPlaying(false);
+            setShowStillListeningPrompt(true);
+
+            // Clear the timer
+            if (stillListeningTimerRef.current) {
+              clearInterval(stillListeningTimerRef.current);
+              stillListeningTimerRef.current = null;
+            }
+          }
+        }
+      }, 60000); // Check every minute
+    } else {
+      // Clear timer when paused
+      if (stillListeningTimerRef.current) {
+        clearInterval(stillListeningTimerRef.current);
+        stillListeningTimerRef.current = null;
+      }
+    }
+
+    return () => {
+      if (stillListeningTimerRef.current) {
+        clearInterval(stillListeningTimerRef.current);
+        stillListeningTimerRef.current = null;
+      }
+    };
+  }, [isPlaying, playbackStartTime]);
+
   const handleTrackEnd = () => {
     if (repeat === 'one') {
       audioRef.current?.play();
@@ -109,7 +158,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
 
     if (repeat === 'all' && queueIndex === queue.length - 1) {
-      playTrack(queue[0]);
+      playTrack(queue[0], true); // Skip queue update when repeating
       setQueueIndex(0);
       return;
     }
@@ -121,7 +170,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const playTrack = async (track: Track) => {
+  const playTrack = async (track: Track, skipQueueUpdate = false) => {
     try {
       setCurrentTrack(track);
 
@@ -135,10 +184,40 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
         // Track play in history
         api.trackPlay(track.id);
+
+        // Auto-queue related tracks if queue is empty or has only current track
+        if (!skipQueueUpdate && queue.length <= 1) {
+          fetchAndQueueRelatedTracks(track);
+        }
       }
     } catch (error) {
       console.error('Error playing track:', error);
       setIsPlaying(false);
+    }
+  };
+
+  const fetchAndQueueRelatedTracks = async (track: Track) => {
+    try {
+      const response = await fetch(`/api/tracks/${track.id}/related?limit=20`);
+      if (response.ok) {
+        const data = await response.json();
+        const relatedTracks = data.tracks.map((t: any) => ({
+          id: t.id,
+          title: t.title,
+          artist: t.artists.name,
+          artistId: t.artist_id,
+          album: t.albums?.title || 'Single',
+          albumId: t.album_id,
+          image: t.albums?.cover_art_url || t.cover_art_url,
+          duration: t.duration_ms,
+        }));
+
+        // Add current track and related tracks to queue
+        setQueue([track, ...relatedTracks]);
+        setQueueIndex(0);
+      }
+    } catch (error) {
+      console.error('Error fetching related tracks:', error);
     }
   };
 
@@ -215,7 +294,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       : Math.min(queueIndex + 1, queue.length - 1);
 
     setQueueIndex(nextIndex);
-    playTrack(queue[nextIndex]);
+    playTrack(queue[nextIndex], true); // Skip queue update when navigating queue
   };
 
   const skipBackward = () => {
@@ -226,7 +305,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       // Otherwise, go to previous track
       const prevIndex = queueIndex - 1;
       setQueueIndex(prevIndex);
-      playTrack(queue[prevIndex]);
+      playTrack(queue[prevIndex], true); // Skip queue update when navigating queue
     }
   };
 
@@ -238,8 +317,15 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setQueue(tracks);
     setQueueIndex(0);
     if (tracks.length > 0) {
-      playTrack(tracks[0]);
+      playTrack(tracks[0], true); // Skip queue update when manually setting queue
     }
+  };
+
+  const confirmStillListening = () => {
+    // Reset the timer and resume playback
+    setPlaybackStartTime(Date.now());
+    setShowStillListeningPrompt(false);
+    resume();
   };
 
   return (
@@ -255,6 +341,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         shuffle,
         repeat,
         queue,
+        showStillListeningPrompt,
         playTrack,
         pause,
         resume,
@@ -269,6 +356,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         skipBackward,
         addToQueue,
         setQueue: setQueueWithTracks,
+        confirmStillListening,
       }}
     >
       {children}

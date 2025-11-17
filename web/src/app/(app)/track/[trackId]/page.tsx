@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
+import { use, useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -43,10 +43,31 @@ export default function TrackPage({
   const [track, setTrack] = useState<Track | null>(null);
   const [loading, setLoading] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [reactions, setReactions] = useState<{ emoji: string; count: number }[]>([]);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [userReactions, setUserReactions] = useState<string[]>([]);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchTrack();
+    fetchLikeStatus();
+    fetchReactions();
   }, [trackId]);
+
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    if (showEmojiPicker) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showEmojiPicker]);
 
   const fetchTrack = async () => {
     try {
@@ -66,6 +87,109 @@ export default function TrackPage({
       console.error('Error fetching track:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchLikeStatus = async () => {
+    try {
+      const response = await fetch(`/api/tracks/${trackId}/like`);
+      if (response.ok) {
+        const data = await response.json();
+        setIsLiked(data.liked);
+        setLikeCount(data.likeCount);
+      }
+    } catch (error) {
+      console.error('Error fetching like status:', error);
+    }
+  };
+
+  const fetchReactions = async () => {
+    try {
+      const response = await fetch(`/api/tracks/${trackId}/reactions`);
+      if (response.ok) {
+        const data = await response.json();
+        setReactions(data.reactions || []);
+        setUserReactions(data.userReactions || []);
+      }
+    } catch (error) {
+      console.error('Error fetching reactions:', error);
+    }
+  };
+
+  const handleLike = async () => {
+    try {
+      if (isLiked) {
+        // Unlike
+        const response = await fetch(`/api/tracks/${trackId}/like`, {
+          method: 'DELETE',
+        });
+
+        if (response.ok) {
+          setIsLiked(false);
+          setLikeCount(prev => Math.max(0, prev - 1));
+        }
+      } else {
+        // Like
+        const response = await fetch(`/api/tracks/${trackId}/like`, {
+          method: 'POST',
+        });
+
+        if (response.ok) {
+          setIsLiked(true);
+          setLikeCount(prev => prev + 1);
+        } else if (response.status === 401) {
+          // Not authenticated
+          alert('Please sign in to like tracks');
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling like:', error);
+    }
+  };
+
+  const handleReaction = async (emoji: string) => {
+    try {
+      const hasReacted = userReactions.includes(emoji);
+
+      if (hasReacted) {
+        // Remove reaction
+        const response = await fetch(`/api/tracks/${trackId}/reactions`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ emoji }),
+        });
+
+        if (response.ok) {
+          setUserReactions(prev => prev.filter(e => e !== emoji));
+          setReactions(prev =>
+            prev.map(r => r.emoji === emoji ? { ...r, count: Math.max(0, r.count - 1) } : r)
+              .filter(r => r.count > 0)
+          );
+        }
+      } else {
+        // Add reaction
+        const response = await fetch(`/api/tracks/${trackId}/reactions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ emoji }),
+        });
+
+        if (response.ok) {
+          setUserReactions(prev => [...prev, emoji]);
+          setReactions(prev => {
+            const existing = prev.find(r => r.emoji === emoji);
+            if (existing) {
+              return prev.map(r => r.emoji === emoji ? { ...r, count: r.count + 1 } : r);
+            } else {
+              return [...prev, { emoji, count: 1 }];
+            }
+          });
+        } else if (response.status === 401) {
+          alert('Please sign in to react to tracks');
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling reaction:', error);
     }
   };
 
@@ -265,21 +389,26 @@ export default function TrackPage({
             </button>
 
             {/* Like Button */}
-            <button
-              onClick={() => setIsLiked(!isLiked)}
-              className="text-gray-400 hover:text-white transition-colors"
-              title={isLiked ? 'Remove from liked songs' : 'Add to liked songs'}
-            >
-              <svg
-                className="w-8 h-8"
-                fill={isLiked ? '#1DB954' : 'none'}
-                stroke={isLiked ? '#1DB954' : 'currentColor'}
-                strokeWidth="2"
-                viewBox="0 0 24 24"
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleLike}
+                className="text-gray-400 hover:text-white transition-colors"
+                title={isLiked ? 'Remove from liked songs' : 'Add to liked songs'}
               >
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-              </svg>
-            </button>
+                <svg
+                  className="w-8 h-8"
+                  fill={isLiked ? '#1DB954' : 'none'}
+                  stroke={isLiked ? '#1DB954' : 'currentColor'}
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+              </button>
+              {likeCount > 0 && (
+                <span className="text-sm text-gray-400">{likeCount.toLocaleString()}</span>
+              )}
+            </div>
 
             {/* Share Button */}
             <button
@@ -317,6 +446,78 @@ export default function TrackPage({
                 <circle cx="12" cy="19" r="2" />
               </svg>
             </button>
+          </div>
+
+          {/* Emoji Reactions */}
+          <div className="mt-6 flex items-center gap-4 flex-wrap">
+            {/* Existing Reactions */}
+            {reactions.length > 0 && (
+              <div className="flex items-center gap-2 flex-wrap">
+                {reactions.map(({ emoji, count }) => (
+                  <button
+                    key={emoji}
+                    onClick={() => handleReaction(emoji)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all ${
+                      userReactions.includes(emoji)
+                        ? 'bg-primary/20 border-primary text-white'
+                        : 'bg-gray-800/50 border-gray-700 text-gray-400 hover:bg-gray-800 hover:border-gray-600'
+                    }`}
+                    title={`${userReactions.includes(emoji) ? 'Remove' : 'Add'} reaction`}
+                  >
+                    <span className="text-lg">{emoji}</span>
+                    <span className="text-sm font-medium">{count}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Add Reaction Button */}
+            <div className="relative" ref={emojiPickerRef}>
+              <button
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-800/50 border border-gray-700 text-gray-400 hover:bg-gray-800 hover:border-gray-600 hover:text-white transition-all"
+                title="Add reaction"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                  <line x1="9" y1="9" x2="9.01" y2="9" />
+                  <line x1="15" y1="9" x2="15.01" y2="9" />
+                </svg>
+                <span className="text-sm">React</span>
+              </button>
+
+              {/* Emoji Picker Dropdown */}
+              {showEmojiPicker && (
+                <div className="absolute top-full left-0 mt-2 bg-surface rounded-lg shadow-2xl border border-white/10 p-3 z-50">
+                  <div className="flex gap-2 flex-wrap max-w-[280px]">
+                    {['🔥', '❤️', '👏', '🎵', '😍', '💯', '🎉', '🎸'].map(emoji => (
+                      <button
+                        key={emoji}
+                        onClick={() => {
+                          handleReaction(emoji);
+                          setShowEmojiPicker(false);
+                        }}
+                        className={`w-10 h-10 rounded-lg flex items-center justify-center text-2xl transition-all ${
+                          userReactions.includes(emoji)
+                            ? 'bg-primary/20 ring-2 ring-primary'
+                            : 'hover:bg-white/10'
+                        }`}
+                        title={`${userReactions.includes(emoji) ? 'Remove' : 'Add'} ${emoji}`}
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

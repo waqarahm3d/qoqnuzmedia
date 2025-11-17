@@ -14,6 +14,7 @@ export const Player = () => {
     isLiked,
     shuffle,
     repeat,
+    showStillListeningPrompt,
     togglePlayPause,
     seek,
     setVolume,
@@ -23,6 +24,7 @@ export const Player = () => {
     toggleRepeat,
     skipForward,
     skipBackward,
+    confirmStillListening,
   } = usePlayer();
 
   const formatTime = (seconds: number) => {
@@ -303,6 +305,38 @@ export const Player = () => {
           </div>
         </div>
       </div>
+
+      {/* Still Listening Prompt Modal */}
+      {showStillListeningPrompt && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[70]">
+          <div className="bg-gray-900 rounded-lg p-8 max-w-md mx-4 text-center">
+            <div className="mb-6">
+              <svg
+                className="w-16 h-16 text-primary mx-auto mb-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                <line x1="9" y1="9" x2="9.01" y2="9" />
+                <line x1="15" y1="9" x2="15.01" y2="9" />
+              </svg>
+              <h2 className="text-2xl font-bold text-white mb-2">Still listening?</h2>
+              <p className="text-gray-400">
+                You've been listening for a while. Are you still there?
+              </p>
+            </div>
+            <button
+              onClick={confirmStillListening}
+              className="w-full px-6 py-3 bg-primary text-black rounded-full font-semibold hover:bg-[#1ed760] transition-colors"
+            >
+              Yes, I'm still listening
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
