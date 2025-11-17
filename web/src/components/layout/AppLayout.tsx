@@ -3,7 +3,7 @@
 import { ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
-import { Player } from './Player';
+import { ResponsivePlayer } from './ResponsivePlayer';
 import { MobileNav } from './MobileNav';
 
 interface AppLayoutProps {
@@ -29,8 +29,8 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         </main>
       </div>
 
-      {/* Player - Fixed at bottom */}
-      <Player />
+      {/* Responsive Player - Fixed at bottom */}
+      <ResponsivePlayer />
 
       {/* Mobile Navigation - Fixed at bottom on mobile */}
       <MobileNav />
