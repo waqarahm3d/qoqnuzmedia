@@ -111,7 +111,25 @@ export async function requireAdmin(request: NextRequest) {
 export function hasPermission(adminUser: any, permission: string): boolean {
   if (!adminUser || !adminUser.role) return false;
 
-  const permissions = adminUser.role.permissions || [];
+  // Handle JSONB permissions from database
+  let permissions = adminUser.role.permissions || [];
+
+  // If permissions is a string (JSONB), parse it
+  if (typeof permissions === 'string') {
+    try {
+      permissions = JSON.parse(permissions);
+    } catch (e) {
+      console.error('Failed to parse permissions:', e);
+      return false;
+    }
+  }
+
+  // Ensure permissions is an array
+  if (!Array.isArray(permissions)) {
+    console.error('Permissions is not an array:', permissions);
+    return false;
+  }
+
   return permissions.includes(permission) || permissions.includes('*');
 }
 
