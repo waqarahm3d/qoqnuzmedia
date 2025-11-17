@@ -1,74 +1,29 @@
 'use client';
 
 import { Card } from '@/components/ui/Card';
-import { useEffect, useState } from 'react';
-
-interface Album {
-  id: string;
-  title: string;
-  artist: string;
-  cover_url?: string;
-}
-
-interface Artist {
-  id: string;
-  name: string;
-  image_url?: string;
-}
-
-interface Playlist {
-  id: string;
-  name: string;
-  description?: string;
-  cover_url?: string;
-}
+import { useAlbums, useArtists, usePlaylists } from '@/lib/hooks/useMusic';
+import { usePlayer } from '@/lib/contexts/PlayerContext';
 
 export default function HomePage() {
-  const [recentAlbums, setRecentAlbums] = useState<Album[]>([]);
-  const [popularArtists, setPopularArtists] = useState<Artist[]>([]);
-  const [featuredPlaylists, setFeaturedPlaylists] = useState<Playlist[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { albums, loading: albumsLoading } = useAlbums(12);
+  const { artists, loading: artistsLoading } = useArtists(12);
+  const { playlists, loading: playlistsLoading } = usePlaylists(12);
+  const { setQueue } = usePlayer();
 
-  useEffect(() => {
-    // Fetch data from APIs
-    const fetchData = async () => {
-      try {
-        // For now, using demo data until API is connected
-        setRecentAlbums([
-          { id: '1', title: 'Midnight Dreams', artist: 'The Dreamers' },
-          { id: '2', title: 'Summer Vibes', artist: 'Beach Boys Redux' },
-          { id: '3', title: 'City Lights', artist: 'Urban Sound' },
-          { id: '4', title: 'Acoustic Sessions', artist: 'John Smith' },
-          { id: '5', title: 'Electronic Waves', artist: 'DJ Pulse' },
-          { id: '6', title: 'Jazz Nights', artist: 'The Jazz Collective' },
-        ]);
+  const loading = albumsLoading || artistsLoading || playlistsLoading;
 
-        setPopularArtists([
-          { id: '1', name: 'The Dreamers' },
-          { id: '2', name: 'Sarah Johnson' },
-          { id: '3', name: 'Rock Masters' },
-          { id: '4', name: 'Pop Icons' },
-          { id: '5', name: 'Classical Ensemble' },
-          { id: '6', name: 'Hip Hop Crew' },
-        ]);
+  const handlePlayAlbum = async (albumId: string) => {
+    const album = albums.find(a => a.id === albumId);
+    if (!album) return;
 
-        setFeaturedPlaylists([
-          { id: '1', name: 'Today\'s Top Hits', description: 'The hottest tracks right now' },
-          { id: '2', name: 'Chill Vibes', description: 'Relax and unwind' },
-          { id: '3', name: 'Workout Motivation', description: 'Get pumped for your workout' },
-          { id: '4', name: 'Focus Flow', description: 'Deep focus music' },
-          { id: '5', name: 'Party Hits', description: 'Dance all night long' },
-          { id: '6', name: 'Mood Booster', description: 'Feel good music' },
-        ]);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    // Navigate to album page where tracks can be played
+    window.location.href = `/album/${albumId}`;
+  };
 
-    fetchData();
-  }, []);
+  const handlePlayPlaylist = async (playlistId: string) => {
+    // Navigate to playlist page where tracks can be played
+    window.location.href = `/playlist/${playlistId}`;
+  };
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -118,70 +73,87 @@ export default function HomePage() {
       </div>
 
       {/* Featured Playlists */}
-      <section className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold">Featured Playlists</h2>
-          <a href="/browse/playlists" className="text-sm font-semibold text-white/60 hover:text-white transition-colors">
-            Show all
-          </a>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {featuredPlaylists.map((playlist) => (
-            <Card
-              key={playlist.id}
-              title={playlist.name}
-              subtitle={playlist.description}
-              href={`/playlist/${playlist.id}`}
-              image={playlist.cover_url}
-              onPlay={() => console.log('Play playlist:', playlist.id)}
-            />
-          ))}
-        </div>
-      </section>
+      {playlists.length > 0 && (
+        <section className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold">Featured Playlists</h2>
+            <a href="/browse/playlists" className="text-sm font-semibold text-white/60 hover:text-white transition-colors">
+              Show all
+            </a>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {playlists.map((playlist: any) => (
+              <Card
+                key={playlist.id}
+                title={playlist.name}
+                subtitle={playlist.description || `${playlist.profiles?.display_name || 'Playlist'}`}
+                href={`/playlist/${playlist.id}`}
+                image={playlist.cover_url}
+                onPlay={() => handlePlayPlaylist(playlist.id)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Recent Albums */}
-      <section className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold">New Releases</h2>
-          <a href="/browse/albums" className="text-sm font-semibold text-white/60 hover:text-white transition-colors">
-            Show all
-          </a>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {recentAlbums.map((album) => (
-            <Card
-              key={album.id}
-              title={album.title}
-              subtitle={album.artist}
-              href={`/album/${album.id}`}
-              image={album.cover_url}
-              onPlay={() => console.log('Play album:', album.id)}
-            />
-          ))}
-        </div>
-      </section>
+      {albums.length > 0 && (
+        <section className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold">New Releases</h2>
+            <a href="/browse/albums" className="text-sm font-semibold text-white/60 hover:text-white transition-colors">
+              Show all
+            </a>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {albums.map((album: any) => (
+              <Card
+                key={album.id}
+                title={album.title}
+                subtitle={album.artists?.name || 'Unknown Artist'}
+                href={`/album/${album.id}`}
+                image={album.cover_url}
+                onPlay={() => handlePlayAlbum(album.id)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Popular Artists */}
-      <section className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold">Popular Artists</h2>
-          <a href="/browse/artists" className="text-sm font-semibold text-white/60 hover:text-white transition-colors">
-            Show all
+      {artists.length > 0 && (
+        <section className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold">Popular Artists</h2>
+            <a href="/browse/artists" className="text-sm font-semibold text-white/60 hover:text-white transition-colors">
+              Show all
+            </a>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {artists.map((artist: any) => (
+              <Card
+                key={artist.id}
+                title={artist.name}
+                subtitle="Artist"
+                href={`/artist/${artist.id}`}
+                image={artist.image_url}
+                type="circle"
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Empty State */}
+      {!loading && albums.length === 0 && artists.length === 0 && playlists.length === 0 && (
+        <div className="text-center py-12">
+          <h3 className="text-xl font-semibold mb-2">No content yet</h3>
+          <p className="text-white/60 mb-4">Add some albums, artists, and playlists from the admin panel to get started!</p>
+          <a href="/admin" className="inline-block px-6 py-3 bg-primary text-black rounded-full font-semibold hover:bg-[#1ed760] transition-colors">
+            Go to Admin Panel
           </a>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {popularArtists.map((artist) => (
-            <Card
-              key={artist.id}
-              title={artist.name}
-              subtitle="Artist"
-              href={`/artist/${artist.id}`}
-              image={artist.image_url}
-              type="circle"
-            />
-          ))}
-        </div>
-      </section>
+      )}
     </div>
   );
 }
