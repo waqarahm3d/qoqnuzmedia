@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * PATCH /api/admin/featured-sections/[sectionId]
  * Update a featured section (admin only)
