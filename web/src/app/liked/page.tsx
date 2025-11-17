@@ -9,13 +9,13 @@ interface Track {
   id: string;
   title: string;
   duration_ms: number;
-  artists: { id: string; name: string };
-  albums: { id: string; title: string; cover_art_url: string };
+  artists: Array<{ id: string; name: string }>;
+  albums: Array<{ id: string; title: string; cover_art_url: string }>;
 }
 
 interface LikedTrack {
   created_at: string;
-  tracks: Track;
+  tracks: Track[];
 }
 
 export default function LikedSongsPage() {
@@ -121,7 +121,8 @@ export default function LikedSongsPage() {
 
             {/* Track List */}
             {tracks.map((item, index) => {
-              const track = item.tracks;
+              const track = item.tracks[0];
+              if (!track) return null;
               return (
                 <div
                   key={track.id}
@@ -132,19 +133,19 @@ export default function LikedSongsPage() {
                   </div>
                   <div className="flex items-center gap-3 min-w-0">
                     <img
-                      src={track.albums.cover_art_url || '/placeholder-album.png'}
-                      alt={track.albums.title}
+                      src={track.albums[0]?.cover_art_url || '/placeholder-album.png'}
+                      alt={track.albums[0]?.title || 'Album'}
                       className="w-10 h-10 rounded"
                     />
                     <div className="min-w-0">
                       <div className="font-semibold truncate">{track.title}</div>
                       <div className="text-sm text-gray-400 truncate">
-                        {track.artists.name}
+                        {track.artists[0]?.name || 'Unknown Artist'}
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center text-gray-400 truncate">
-                    {track.albums.title}
+                    {track.albums[0]?.title || 'Unknown Album'}
                   </div>
                   <div className="flex items-center justify-end text-gray-400">
                     {formatDuration(track.duration_ms)}
