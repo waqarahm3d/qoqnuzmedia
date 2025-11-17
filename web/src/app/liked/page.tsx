@@ -134,18 +134,18 @@ export default function LikedSongsPage() {
                   <div className="flex items-center gap-3 min-w-0">
                     <img
                       src={track.albums[0]?.cover_art_url || '/placeholder-album.png'}
-                      alt={track.albums[0]?.title || 'Album'}
+                      alt={track.albums[0]?.title}
                       className="w-10 h-10 rounded"
                     />
                     <div className="min-w-0">
                       <div className="font-semibold truncate">{track.title}</div>
                       <div className="text-sm text-gray-400 truncate">
-                        {track.artists[0]?.name || 'Unknown Artist'}
+                        {track.artists[0]?.name}
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center text-gray-400 truncate">
-                    {track.albums[0]?.title || 'Unknown Album'}
+                    {track.albums[0]?.title}
                   </div>
                   <div className="flex items-center justify-end text-gray-400">
                     {formatDuration(track.duration_ms)}
