@@ -5,36 +5,118 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { TrackRow, TrackListHeader } from '@/components/ui/TrackRow';
 import { PlayIcon, HeartIcon, HeartFilledIcon, MoreIcon, DownloadIcon } from '@/components/icons';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { usePlayer } from '@/lib/contexts/PlayerContext';
+import { useAuth } from '@/lib/auth/AuthContext';
 
 export default function PlaylistPage() {
   const params = useParams();
+  const [playlist, setPlaylist] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
+  const { playTrack, setQueue } = usePlayer();
+  const { user } = useAuth();
 
-  // Demo data
-  const playlist = {
-    id: params?.id,
-    name: 'Chill Vibes',
-    description: 'Relax and unwind with these smooth tracks',
-    cover: '',
-    owner: 'John Doe',
-    ownerId: 'user1',
-    isPublic: true,
-    totalTracks: 28,
-    duration: '1 hr 45 min',
-    followers: '12,345',
+  useEffect(() => {
+    fetchPlaylist();
+  }, [params?.id]);
+
+  const fetchPlaylist = async () => {
+    try {
+      const response = await fetch(`/api/playlists/${params?.id}`);
+      if (!response.ok) throw new Error('Failed to fetch playlist');
+      const data = await response.json();
+      setPlaylist(data.playlist);
+    } catch (error) {
+      console.error('Failed to fetch playlist:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const tracks = [
-    { id: '1', title: 'Midnight Dreams', artist: 'The Dreamers', album: 'Night Sessions', duration: '3:45', image: '' },
-    { id: '2', title: 'Sunset Boulevard', artist: 'Beach Boys Redux', album: 'Coastal Sounds', duration: '4:12', image: '' },
-    { id: '3', title: 'Neon Lights', artist: 'Urban Sound', album: 'Metropolitan', duration: '3:28', image: '' },
-    { id: '4', title: 'Dream Catcher', artist: 'The Dreamers', album: 'Night Sessions', duration: '4:05', image: '' },
-    { id: '5', title: 'Starlight', artist: 'Indie Folk', album: 'Acoustic Dreams', duration: '3:52', image: '' },
-    { id: '6', title: 'Ocean Waves', artist: 'Nature Sounds', album: 'Relaxation', duration: '5:18', image: '' },
-    { id: '7', title: 'Coffee Shop Jazz', artist: 'Jazz Ensemble', album: 'Café Moods', duration: '4:35', image: '' },
-    { id: '8', title: 'Rainy Day', artist: 'Ambient Collective', album: 'Weather Sounds', duration: '3:58', image: '' },
-  ];
+  const handlePlayTrack = (trackData: any) => {
+    const track = trackData.track || trackData.tracks;
+    if (!track) return;
+
+    playTrack({
+      id: track.id,
+      title: track.title,
+      artist: track.artists?.name || 'Unknown Artist',
+      artistId: track.artists?.id,
+      album: track.albums?.title || 'Unknown Album',
+      albumId: track.albums?.id,
+      image: track.albums?.cover_art_url,
+      duration: track.duration_ms || 0,
+    });
+  };
+
+  const handlePlayAll = () => {
+    if (!playlist?.playlist_tracks || playlist.playlist_tracks.length === 0) return;
+
+    const queue = playlist.playlist_tracks
+      .map((item: any) => {
+        const track = item.track || item.tracks;
+        if (!track) return null;
+
+        return {
+          id: track.id,
+          title: track.title,
+          artist: track.artists?.name || 'Unknown Artist',
+          artistId: track.artists?.id,
+          album: track.albums?.title || 'Unknown Album',
+          albumId: track.albums?.id,
+          image: track.albums?.cover_art_url,
+          duration: track.duration_ms || 0,
+        };
+      })
+      .filter(Boolean);
+
+    if (queue.length > 0) {
+      setQueue(queue);
+      playTrack(queue[0]);
+    }
+  };
+
+  const formatDuration = (ms: number) => {
+    const minutes = Math.floor(ms / 60000);
+    const seconds = Math.floor((ms % 60000) / 1000);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const getTotalDuration = () => {
+    if (!playlist?.playlist_tracks) return '0 min';
+    const totalMs = playlist.playlist_tracks.reduce((sum: number, item: any) => {
+      const track = item.track || item.tracks;
+      return sum + (track?.duration_ms || 0);
+    }, 0);
+    const minutes = Math.floor(totalMs / 60000);
+    const hours = Math.floor(minutes / 60);
+    if (hours > 0) {
+      return `${hours} hr ${minutes % 60} min`;
+    }
+    return `${minutes} min`;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!playlist) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">Playlist not found</h2>
+          <p className="text-white/60">The playlist you're looking for doesn't exist.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const trackCount = playlist.playlist_tracks?.length || 0;
 
   return (
     <div className="min-h-screen">
@@ -43,9 +125,9 @@ export default function PlaylistPage() {
         <div className="flex flex-col md:flex-row gap-6 items-end">
           {/* Playlist Cover */}
           <div className="relative w-48 h-48 md:w-56 md:h-56 lg:w-64 lg:h-64 flex-shrink-0 shadow-2xl">
-            {playlist.cover ? (
+            {playlist.cover_url ? (
               <Image
-                src={playlist.cover}
+                src={playlist.cover_url}
                 alt={playlist.name}
                 fill
                 className="object-cover rounded"
@@ -61,25 +143,18 @@ export default function PlaylistPage() {
           {/* Playlist Info */}
           <div className="flex-1">
             <p className="text-sm font-semibold uppercase mb-2">
-              {playlist.isPublic ? 'Public Playlist' : 'Private Playlist'}
+              {playlist.is_public ? 'Public Playlist' : 'Private Playlist'}
             </p>
             <h1 className="text-4xl lg:text-6xl font-bold mb-4">{playlist.name}</h1>
             {playlist.description && (
               <p className="text-white/80 mb-4">{playlist.description}</p>
             )}
             <div className="flex items-center gap-2 text-sm flex-wrap">
-              <a
-                href={`/user/${playlist.ownerId}`}
-                className="font-semibold hover:underline"
-              >
-                {playlist.owner}
-              </a>
+              <span className="font-semibold">{playlist.owner_id === user?.id ? 'You' : 'Playlist'}</span>
               <span className="text-white/60">•</span>
-              <span className="text-white/60">{playlist.followers} likes</span>
+              <span className="text-white/60">{trackCount} songs</span>
               <span className="text-white/60">•</span>
-              <span className="text-white/60">{playlist.totalTracks} songs</span>
-              <span className="text-white/60">•</span>
-              <span className="text-white/60">{playlist.duration}</span>
+              <span className="text-white/60">{getTotalDuration()}</span>
             </div>
           </div>
         </div>
@@ -89,7 +164,7 @@ export default function PlaylistPage() {
       <div className="px-4 lg:px-8 py-6">
         {/* Action Buttons */}
         <div className="flex items-center gap-4 mb-8">
-          <Button size="lg" className="!w-14 !h-14 !p-0">
+          <Button size="lg" className="!w-14 !h-14 !p-0" onClick={handlePlayAll}>
             <PlayIcon size={24} />
           </Button>
           <button
@@ -111,23 +186,34 @@ export default function PlaylistPage() {
         </div>
 
         {/* Track List */}
-        <div className="space-y-1">
-          <TrackListHeader />
-          {tracks.map((track, index) => (
-            <TrackRow
-              key={track.id}
-              number={index + 1}
-              title={track.title}
-              artist={track.artist}
-              album={track.album}
-              duration={track.duration}
-              image={track.image}
-              showImage={true}
-              onPlay={() => console.log('Play track:', track.id)}
-              onLike={() => console.log('Like track:', track.id)}
-            />
-          ))}
-        </div>
+        {playlist.playlist_tracks && playlist.playlist_tracks.length > 0 ? (
+          <div className="space-y-1">
+            <TrackListHeader />
+            {playlist.playlist_tracks.map((item: any, index: number) => {
+              const track = item.track || item.tracks;
+              if (!track) return null;
+
+              return (
+                <TrackRow
+                  key={`${track.id}-${index}`}
+                  number={index + 1}
+                  title={track.title}
+                  artist={track.artists?.name || 'Unknown Artist'}
+                  album={track.albums?.title || 'Unknown Album'}
+                  duration={formatDuration(track.duration_ms || 0)}
+                  image={track.albums?.cover_art_url}
+                  showImage={true}
+                  onPlay={() => handlePlayTrack(item)}
+                  onLike={() => console.log('Like track:', track.id)}
+                />
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-white/60">This playlist is empty</p>
+          </div>
+        )}
       </div>
     </div>
   );
