@@ -60,7 +60,23 @@ export default function TrackUploadPage() {
   const [uploading, setUploading] = useState(false);
   const [selectedArtistId, setSelectedArtistId] = useState('');
 
+  // Bulk editing states
+  const [bulkAlbumId, setBulkAlbumId] = useState('');
+  const [bulkTags, setBulkTags] = useState('');
+  const [bulkGenres, setBulkGenres] = useState<string[]>([]);
+  const [bulkCoverImage, setBulkCoverImage] = useState<string | null>(null);
+  const [bulkCoverFile, setBulkCoverFile] = useState<File | null>(null);
+  const [showCreateAlbum, setShowCreateAlbum] = useState(false);
+
+  // New album creation states
+  const [newAlbumTitle, setNewAlbumTitle] = useState('');
+  const [newAlbumArtist, setNewAlbumArtist] = useState('');
+  const [newAlbumReleaseDate, setNewAlbumReleaseDate] = useState('');
+  const [newAlbumType, setNewAlbumType] = useState('album');
+  const [creatingAlbum, setCreatingAlbum] = useState(false);
+
   const audioInputRef = useRef<HTMLInputElement>(null);
+  const bulkCoverInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchData();
@@ -69,6 +85,7 @@ export default function TrackUploadPage() {
   useEffect(() => {
     if (selectedArtistId) {
       fetchAlbumsForArtist(selectedArtistId);
+      setNewAlbumArtist(selectedArtistId);
     } else {
       setAlbums([]);
     }
@@ -108,6 +125,59 @@ export default function TrackUploadPage() {
       if (data) setAlbums(data);
     } catch (error) {
       console.error('Failed to fetch albums:', error);
+    }
+  };
+
+  const handleCreateAlbum = async () => {
+    if (!newAlbumTitle || !newAlbumArtist) {
+      alert('Album title and artist are required');
+      return;
+    }
+
+    setCreatingAlbum(true);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const formData = new FormData();
+      formData.append('title', newAlbumTitle);
+      formData.append('artist_id', newAlbumArtist);
+      formData.append('album_type', newAlbumType);
+      if (newAlbumReleaseDate) formData.append('release_date', newAlbumReleaseDate);
+
+      const response = await fetch('/api/admin/albums', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create album');
+      }
+
+      const result = await response.json();
+
+      // Refresh albums list
+      await fetchAlbumsForArtist(newAlbumArtist);
+
+      // Set the new album as selected
+      setBulkAlbumId(result.album.id);
+
+      // Reset form
+      setNewAlbumTitle('');
+      setNewAlbumReleaseDate('');
+      setShowCreateAlbum(false);
+
+      alert('Album created successfully!');
+    } catch (error: any) {
+      console.error('Create album error:', error);
+      alert(error.message || 'Failed to create album');
+    } finally {
+      setCreatingAlbum(false);
     }
   };
 
@@ -155,15 +225,15 @@ export default function TrackUploadPage() {
           metadata: extracted,
           title: extracted.title,
           artistId: matchedArtistId,
-          albumId: '',
-          selectedGenres: [],
-          tags: '',
+          albumId: bulkAlbumId,
+          selectedGenres: [...bulkGenres],
+          tags: bulkTags,
           description: '',
           duration: Math.round(extracted.duration * 1000),
           explicit: false,
           releaseDate: extracted.year ? `${extracted.year}-01-01` : '',
-          coverImage: coverImageUrl,
-          customCoverFile: null,
+          coverImage: bulkCoverImage || coverImageUrl,
+          customCoverFile: bulkCoverFile,
           progress: 0,
           status: 'pending',
         });
@@ -174,15 +244,15 @@ export default function TrackUploadPage() {
           metadata: null,
           title: file.name.replace(/\.[^/.]+$/, ''),
           artistId: selectedArtistId,
-          albumId: '',
-          selectedGenres: [],
-          tags: '',
+          albumId: bulkAlbumId,
+          selectedGenres: [...bulkGenres],
+          tags: bulkTags,
           description: '',
           duration: 0,
           explicit: false,
           releaseDate: '',
-          coverImage: null,
-          customCoverFile: null,
+          coverImage: bulkCoverImage,
+          customCoverFile: bulkCoverFile,
           progress: 0,
           status: 'pending',
         });
@@ -192,22 +262,53 @@ export default function TrackUploadPage() {
     setTracks(prev => [...prev, ...newTracks]);
   };
 
+  const handleBulkCoverSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setBulkCoverFile(file);
+    const imageUrl = URL.createObjectURL(file);
+    setBulkCoverImage(imageUrl);
+
+    // Apply to all existing pending tracks
+    setTracks(prev => prev.map(track =>
+      track.status === 'pending'
+        ? { ...track, coverImage: imageUrl, customCoverFile: file }
+        : track
+    ));
+  };
+
+  const applyBulkSettings = () => {
+    setTracks(prev => prev.map(track => {
+      if (track.status !== 'pending') return track;
+
+      return {
+        ...track,
+        albumId: bulkAlbumId || track.albumId,
+        selectedGenres: bulkGenres.length > 0 ? [...bulkGenres] : track.selectedGenres,
+        tags: bulkTags || track.tags,
+        coverImage: bulkCoverImage || track.coverImage,
+        customCoverFile: bulkCoverFile || track.customCoverFile,
+      };
+    }));
+
+    alert('Bulk settings applied to all pending tracks!');
+  };
+
+  const handleBulkGenreToggle = (genreId: string) => {
+    setBulkGenres(prev =>
+      prev.includes(genreId)
+        ? prev.filter(id => id !== genreId)
+        : [...prev, genreId]
+    );
+  };
+
   const updateTrack = (index: number, updates: Partial<TrackUpload>) => {
     setTracks(prev => prev.map((track, i) => i === index ? { ...track, ...updates } : track));
   };
 
   const removeTrack = (index: number) => {
     setTracks(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const handleGenreToggle = (index: number, genreId: string) => {
-    setTracks(prev => prev.map((track, i) => {
-      if (i !== index) return track;
-      const selectedGenres = track.selectedGenres.includes(genreId)
-        ? track.selectedGenres.filter(id => id !== genreId)
-        : [...track.selectedGenres, genreId];
-      return { ...track, selectedGenres };
-    }));
   };
 
   const uploadSingleTrack = async (track: TrackUpload, index: number): Promise<boolean> => {
@@ -231,7 +332,7 @@ export default function TrackUploadPage() {
 
       if (track.customCoverFile) {
         formData.append('coverImage', track.customCoverFile);
-      } else if (track.metadata?.coverImage && track.coverImage) {
+      } else if (track.metadata?.coverImage && track.coverImage && !bulkCoverFile) {
         const response = await fetch(track.coverImage);
         const blob = await response.blob();
         formData.append('coverImage', blob, 'cover.jpg');
@@ -332,7 +433,7 @@ export default function TrackUploadPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-white mb-2">Upload Tracks</h1>
-            <p className="text-gray-400">Upload multiple tracks with automatic metadata extraction</p>
+            <p className="text-gray-400">Upload multiple tracks with bulk editing and automatic metadata extraction</p>
           </div>
           <a
             href="/admin/tracks"
@@ -377,30 +478,194 @@ export default function TrackUploadPage() {
           </div>
         )}
 
+        {/* Bulk Settings */}
+        <div className="bg-gray-800 rounded-lg p-6">
+          <h2 className="text-xl font-bold text-white mb-4">Bulk Settings (Apply to All Tracks)</h2>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left Column */}
+            <div className="space-y-4">
+              {/* Default Artist */}
+              <div>
+                <label className="block text-gray-300 mb-2 font-medium">Default Artist</label>
+                <select
+                  value={selectedArtistId}
+                  onChange={(e) => setSelectedArtistId(e.target.value)}
+                  className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg"
+                >
+                  <option value="">No default - use metadata</option>
+                  {artists.map((artist) => (
+                    <option key={artist.id} value={artist.id}>
+                      {artist.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Album Selection */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-gray-300 font-medium">Album</label>
+                  <button
+                    onClick={() => setShowCreateAlbum(!showCreateAlbum)}
+                    className="text-sm text-green-400 hover:text-green-300"
+                  >
+                    {showCreateAlbum ? '− Cancel' : '+ Create New Album'}
+                  </button>
+                </div>
+
+                {showCreateAlbum ? (
+                  <div className="bg-gray-700 rounded-lg p-4 space-y-3">
+                    <input
+                      type="text"
+                      value={newAlbumTitle}
+                      onChange={(e) => setNewAlbumTitle(e.target.value)}
+                      placeholder="Album Title"
+                      className="w-full px-3 py-2 bg-gray-600 text-white rounded"
+                    />
+                    <select
+                      value={newAlbumArtist}
+                      onChange={(e) => setNewAlbumArtist(e.target.value)}
+                      className="w-full px-3 py-2 bg-gray-600 text-white rounded"
+                    >
+                      <option value="">Select Artist</option>
+                      {artists.map((artist) => (
+                        <option key={artist.id} value={artist.id}>
+                          {artist.name}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="grid grid-cols-2 gap-3">
+                      <select
+                        value={newAlbumType}
+                        onChange={(e) => setNewAlbumType(e.target.value)}
+                        className="px-3 py-2 bg-gray-600 text-white rounded"
+                      >
+                        <option value="album">Album</option>
+                        <option value="single">Single</option>
+                        <option value="ep">EP</option>
+                      </select>
+                      <input
+                        type="date"
+                        value={newAlbumReleaseDate}
+                        onChange={(e) => setNewAlbumReleaseDate(e.target.value)}
+                        className="px-3 py-2 bg-gray-600 text-white rounded"
+                      />
+                    </div>
+                    <button
+                      onClick={handleCreateAlbum}
+                      disabled={creatingAlbum || !newAlbumTitle || !newAlbumArtist}
+                      className="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                    >
+                      {creatingAlbum ? 'Creating...' : 'Create Album'}
+                    </button>
+                  </div>
+                ) : (
+                  <select
+                    value={bulkAlbumId}
+                    onChange={(e) => setBulkAlbumId(e.target.value)}
+                    className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg"
+                    disabled={!selectedArtistId}
+                  >
+                    <option value="">No album - Singles</option>
+                    {albums.map((album) => (
+                      <option key={album.id} value={album.id}>
+                        {album.title}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              {/* Tags */}
+              <div>
+                <label className="block text-gray-300 mb-2 font-medium">Tags (comma-separated)</label>
+                <input
+                  type="text"
+                  value={bulkTags}
+                  onChange={(e) => setBulkTags(e.target.value)}
+                  className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg"
+                  placeholder="e.g., summer, upbeat, dance, party"
+                />
+              </div>
+            </div>
+
+            {/* Right Column */}
+            <div className="space-y-4">
+              {/* Genres */}
+              <div>
+                <label className="block text-gray-300 mb-2 font-medium">Genres</label>
+                <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto bg-gray-700 rounded-lg p-3">
+                  {genres.map((genre) => (
+                    <button
+                      key={genre.id}
+                      type="button"
+                      onClick={() => handleBulkGenreToggle(genre.id)}
+                      className={`px-3 py-2 rounded text-sm font-medium transition-colors ${
+                        bulkGenres.includes(genre.id)
+                          ? 'bg-green-600 text-white'
+                          : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                      }`}
+                    >
+                      {genre.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Cover Art */}
+              <div>
+                <label className="block text-gray-300 mb-2 font-medium">Cover Art (applies to all tracks)</label>
+                <div className="flex gap-4 items-start">
+                  <div className="flex-shrink-0">
+                    <div className="w-32 h-32 bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
+                      {bulkCoverImage ? (
+                        <img src={bulkCoverImage} alt="Bulk Cover" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="text-gray-500 text-4xl">🎵</div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <input
+                      ref={bulkCoverInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleBulkCoverSelect}
+                      className="hidden"
+                      id="bulk-cover-upload"
+                    />
+                    <label
+                      htmlFor="bulk-cover-upload"
+                      className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer"
+                    >
+                      {bulkCoverImage ? 'Replace Image' : 'Upload Image'}
+                    </label>
+                    <p className="text-xs text-gray-400 mt-2">
+                      This image will be used for all uploaded tracks
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Apply Button */}
+          {tracks.length > 0 && pendingCount > 0 && (
+            <div className="mt-6 pt-6 border-t border-gray-700">
+              <button
+                onClick={applyBulkSettings}
+                className="w-full px-6 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Apply Settings to All {pendingCount} Pending Track{pendingCount > 1 ? 's' : ''}
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* File Selection */}
         <div className="bg-gray-800 rounded-lg p-6">
           <h2 className="text-xl font-bold text-white mb-4">Select Audio Files</h2>
-
-          {/* Default Artist Selection */}
-          <div className="mb-4">
-            <label className="block text-gray-300 mb-2">Default Artist (Optional)</label>
-            <select
-              value={selectedArtistId}
-              onChange={(e) => setSelectedArtistId(e.target.value)}
-              className="w-full md:w-1/2 px-4 py-2 bg-gray-700 text-white rounded-lg"
-            >
-              <option value="">No default - use metadata</option>
-              {artists.map((artist) => (
-                <option key={artist.id} value={artist.id}>
-                  {artist.name}
-                </option>
-              ))}
-            </select>
-            <p className="text-xs text-gray-400 mt-1">
-              If selected, all tracks without metadata will use this artist
-            </p>
-          </div>
-
           <div className="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center">
             <input
               ref={audioInputRef}
