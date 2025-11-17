@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { getGenres, getGenrePlaylists } from '@/lib/api/client';
 import Link from 'next/link';
 import { getMediaUrl } from '@/lib/media-utils';
+import { ShareIcon } from '@/components/icons';
 
 interface Genre {
   id: string;
@@ -48,6 +49,28 @@ export default function GenrePage() {
       console.error('Failed to fetch genre data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleShare = async () => {
+    if (!genre) return;
+
+    const shareData = {
+      title: `${genre.name} Music`,
+      text: `Explore ${genre.name} playlists on Qoqnuz Music`,
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback: copy link to clipboard
+        await navigator.clipboard.writeText(window.location.href);
+        alert('Link copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
     }
   };
 
@@ -101,7 +124,16 @@ export default function GenrePage() {
             </div>
             <div className="flex-1">
               <p className="text-sm font-bold uppercase mb-2">Genre</p>
-              <h1 className="text-7xl font-black mb-6">{genre.name}</h1>
+              <div className="flex items-center gap-4 mb-6">
+                <h1 className="text-7xl font-black">{genre.name}</h1>
+                <button
+                  onClick={handleShare}
+                  className="text-white/60 hover:text-white transition-colors mt-4"
+                  title="Share genre"
+                >
+                  <ShareIcon size={32} />
+                </button>
+              </div>
               {genre.description && (
                 <p className="text-lg text-gray-200">{genre.description}</p>
               )}

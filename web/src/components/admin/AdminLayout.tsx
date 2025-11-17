@@ -4,6 +4,7 @@ import { ReactNode, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { useAdminAuth } from '@/lib/hooks/useAdminAuth';
 import {
   DashboardIcon,
   AnalyticsIcon,
@@ -28,7 +29,25 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const pathname = usePathname();
-  const { user, signOut } = useAuth();
+  const { signOut } = useAuth();
+  const { isAdmin, loading, user } = useAdminAuth();
+
+  // Show loading state while checking admin status
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-green-500 mx-auto mb-4"></div>
+          <p className="text-gray-400 text-lg">Verifying admin access...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If not admin, don't render anything (hook will redirect)
+  if (!isAdmin) {
+    return null;
+  }
 
   const navigation = [
     { name: 'Dashboard', href: '/admin', Icon: DashboardIcon },

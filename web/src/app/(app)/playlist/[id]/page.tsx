@@ -4,7 +4,7 @@ import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { TrackRow, TrackListHeader } from '@/components/ui/TrackRow';
-import { PlayIcon, HeartIcon, HeartFilledIcon, MoreIcon, DownloadIcon } from '@/components/icons';
+import { PlayIcon, HeartIcon, HeartFilledIcon, MoreIcon, DownloadIcon, ShareIcon } from '@/components/icons';
 import { useState, useEffect } from 'react';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -98,6 +98,26 @@ export default function PlaylistPage() {
     return `${minutes} min`;
   };
 
+  const handleShare = async () => {
+    const shareData = {
+      title: playlist.name,
+      text: `Check out "${playlist.name}" playlist on Qoqnuz Music`,
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback: copy link to clipboard
+        await navigator.clipboard.writeText(window.location.href);
+        alert('Link copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -177,6 +197,13 @@ export default function PlaylistPage() {
             ) : (
               <HeartIcon size={32} />
             )}
+          </button>
+          <button
+            onClick={handleShare}
+            className="text-white/60 hover:text-white transition-colors"
+            title="Share playlist"
+          >
+            <ShareIcon size={32} />
           </button>
           <button className="text-white/60 hover:text-white transition-colors">
             <DownloadIcon size={28} />

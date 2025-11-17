@@ -21,6 +21,35 @@ export default function HomePage() {
     .sort((a, b) => (b.play_count || 0) - (a.play_count || 0))
     .slice(0, 10);
 
+  // Get popular albums (sorted by release date for now, ideally by play count)
+  const popularAlbums = [...albums]
+    .sort((a, b) => new Date(b.release_date).getTime() - new Date(a.release_date).getTime())
+    .slice(0, 8);
+
+  // Get popular singles (tracks without album)
+  const popularSingles = [...tracks]
+    .filter(t => !t.album_id && t.play_count > 0)
+    .sort((a, b) => (b.play_count || 0) - (a.play_count || 0))
+    .slice(0, 4);
+
+  // Combine popular albums and singles
+  const popularContent = [
+    ...popularAlbums.map((album: any) => ({
+      ...album,
+      type: 'album',
+      subtitle: album.artists?.name || 'Unknown Artist',
+      href: `/album/${album.id}`,
+      image: getMediaUrl(album.cover_art_url),
+    })),
+    ...popularSingles.map((track: any) => ({
+      ...track,
+      type: 'single',
+      subtitle: track.artists?.name || 'Unknown Artist',
+      href: `/track/${track.id}`,
+      image: getMediaUrl(track.albums?.cover_art_url || track.cover_art_url),
+    })),
+  ].slice(0, 12);
+
   const handlePlayAlbum = async (albumId: string) => {
     const album = albums.find(a => a.id === albumId);
     if (!album) return;
@@ -174,24 +203,39 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* Featured Playlists */}
-      {playlists.length > 0 && (
+      {/* Popular Albums and Singles */}
+      {popularContent.length > 0 && (
         <section className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold">Featured Playlists</h2>
-            <a href="/browse/playlists" className="text-sm font-semibold text-white/60 hover:text-white transition-colors">
+            <h2 className="text-2xl font-bold">Popular Albums and Singles</h2>
+            <a href="/browse/albums" className="text-sm font-semibold text-white/60 hover:text-white transition-colors">
               Show all
             </a>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {playlists.map((playlist: any) => (
+            {popularContent.map((item: any) => (
               <Card
-                key={playlist.id}
-                title={playlist.name}
-                subtitle={playlist.description || `${playlist.profiles?.display_name || 'Playlist'}`}
-                href={`/playlist/${playlist.id}`}
-                image={getMediaUrl(playlist.cover_url)}
-                onPlay={() => handlePlayPlaylist(playlist.id)}
+                key={item.id}
+                title={item.title || item.name}
+                subtitle={`${item.type === 'album' ? 'Album' : 'Single'} • ${item.subtitle}`}
+                href={item.href}
+                image={item.image}
+                onPlay={() => {
+                  if (item.type === 'album') {
+                    handlePlayAlbum(item.id);
+                  } else {
+                    playTrack({
+                      id: item.id,
+                      title: item.title,
+                      artist: item.subtitle,
+                      artistId: item.artist_id,
+                      album: 'Single',
+                      albumId: null,
+                      image: item.image,
+                      duration: item.duration_ms || 0,
+                    });
+                  }
+                }}
               />
             ))}
           </div>

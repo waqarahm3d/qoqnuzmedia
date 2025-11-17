@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { TrackRow } from '@/components/ui/TrackRow';
-import { PlayIcon, MoreIcon } from '@/components/icons';
+import { PlayIcon, MoreIcon, ShareIcon } from '@/components/icons';
 import { useState, useEffect } from 'react';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
 import { getMediaUrl } from '@/lib/media-utils';
@@ -61,6 +61,26 @@ export default function ArtistPage() {
       return `${(count / 1000).toFixed(1)}K`;
     }
     return count.toString();
+  };
+
+  const handleShare = async () => {
+    const shareData = {
+      title: artist.name,
+      text: `Check out ${artist.name} on Qoqnuz Music`,
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback: copy link to clipboard
+        await navigator.clipboard.writeText(window.location.href);
+        alert('Link copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
   };
 
   if (loading) {
@@ -133,6 +153,13 @@ export default function ArtistPage() {
           >
             {isFollowing ? 'Following' : 'Follow'}
           </Button>
+          <button
+            onClick={handleShare}
+            className="text-white/60 hover:text-white transition-colors"
+            title="Share artist"
+          >
+            <ShareIcon size={24} />
+          </button>
           <button className="text-white/60 hover:text-white transition-colors">
             <MoreIcon size={24} />
           </button>

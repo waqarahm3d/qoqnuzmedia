@@ -4,7 +4,7 @@ import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { TrackRow, TrackListHeader } from '@/components/ui/TrackRow';
-import { PlayIcon, HeartIcon, HeartFilledIcon, MoreIcon } from '@/components/icons';
+import { PlayIcon, HeartIcon, HeartFilledIcon, MoreIcon, ShareIcon } from '@/components/icons';
 import { useState, useEffect } from 'react';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
 import { getMediaUrl } from '@/lib/media-utils';
@@ -86,6 +86,26 @@ export default function AlbumPage() {
     return new Date(album.release_date).getFullYear();
   };
 
+  const handleShare = async () => {
+    const shareData = {
+      title: album.title,
+      text: `Check out "${album.title}" by ${album.artists?.name || 'Unknown Artist'} on Qoqnuz Music`,
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback: copy link to clipboard
+        await navigator.clipboard.writeText(window.location.href);
+        alert('Link copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -165,6 +185,13 @@ export default function AlbumPage() {
             ) : (
               <HeartIcon size={32} />
             )}
+          </button>
+          <button
+            onClick={handleShare}
+            className="text-white/60 hover:text-white transition-colors"
+            title="Share album"
+          >
+            <ShareIcon size={32} />
           </button>
           <button className="text-white/60 hover:text-white transition-colors">
             <MoreIcon size={32} />
