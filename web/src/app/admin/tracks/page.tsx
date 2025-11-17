@@ -327,6 +327,13 @@ export default function TracksPage() {
                 Create Album ({selectedTracks.size})
               </button>
             )}
+            <a
+              href="/admin/tracks/upload"
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 inline-flex items-center gap-2"
+            >
+              <span>📁</span>
+              Upload Files
+            </a>
             <button
               onClick={() => {
                 resetForm();
@@ -334,7 +341,7 @@ export default function TracksPage() {
               }}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
             >
-              + Upload Track
+              + Add Track URL
             </button>
           </div>
         </div>
@@ -384,12 +391,21 @@ export default function TracksPage() {
                     : 'Get started by uploading your first track'}
                 </p>
                 {!search && (
-                  <button
-                    onClick={() => setShowUploadModal(true)}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                  >
-                    + Upload Track
-                  </button>
+                  <div className="flex gap-2 justify-center">
+                    <a
+                      href="/admin/tracks/upload"
+                      className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 inline-flex items-center gap-2"
+                    >
+                      <span>📁</span>
+                      Upload Audio Files
+                    </a>
+                    <button
+                      onClick={() => setShowUploadModal(true)}
+                      className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    >
+                      + Add Track URL
+                    </button>
+                  </div>
                 )}
               </div>
             ) : (
