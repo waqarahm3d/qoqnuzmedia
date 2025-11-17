@@ -10,10 +10,20 @@ const API_BASE = process.env.NEXT_PUBLIC_APP_URL || '';
 async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const url = endpoint.startsWith('http') ? endpoint : `${API_BASE}${endpoint}`;
 
+  // Get auth session from Supabase
+  const { data: { session } } = await supabase.auth.getSession();
+  const authHeaders: Record<string, string> = {};
+
+  // Include auth token if available
+  if (session?.access_token) {
+    authHeaders['Authorization'] = `Bearer ${session.access_token}`;
+  }
+
   const response = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...authHeaders,
       ...options?.headers,
     },
   });
@@ -334,12 +344,12 @@ export async function getLikedTracks() {
 export async function likeTrack(trackId: string) {
   return fetchAPI('/api/library/liked-tracks', {
     method: 'POST',
-    body: JSON.stringify({ trackId }),
+    body: JSON.stringify({ track_id: trackId }),
   });
 }
 
 export async function unlikeTrack(trackId: string) {
-  return fetchAPI(`/api/library/liked-tracks?trackId=${trackId}`, {
+  return fetchAPI(`/api/library/liked-tracks?track_id=${trackId}`, {
     method: 'DELETE',
   });
 }
