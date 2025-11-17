@@ -6,64 +6,42 @@ import { SearchIcon } from '@/components/icons';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 import { TrackRow } from '@/components/ui/TrackRow';
+import { useSearch, useGenres } from '@/lib/hooks/useMusic';
+import { usePlayer } from '@/lib/contexts/PlayerContext';
 
 function SearchContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const query = searchParams?.get('q') || '';
   const [searchQuery, setSearchQuery] = useState(query);
-  const [results, setResults] = useState<any>({
-    tracks: [],
-    albums: [],
-    artists: [],
-    playlists: [],
-  });
-  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'tracks' | 'albums' | 'artists' | 'playlists'>('all');
 
+  const { results, loading } = useSearch(query, activeTab === 'all' ? undefined : activeTab);
+  const { genres } = useGenres();
+  const { playTrack, setQueue } = usePlayer();
+
   useEffect(() => {
-    if (query) {
-      performSearch(query);
-    }
+    setSearchQuery(query);
   }, [query]);
-
-  const performSearch = async (q: string) => {
-    if (!q.trim()) return;
-
-    setLoading(true);
-    try {
-      // Demo data - replace with actual API call
-      setResults({
-        tracks: [
-          { id: '1', title: 'Midnight Dreams', artist: 'The Dreamers', album: 'Night Sessions', duration: '3:45' },
-          { id: '2', title: 'Summer Vibes', artist: 'Beach Boys Redux', album: 'Coastal Sounds', duration: '4:12' },
-          { id: '3', title: 'City Lights', artist: 'Urban Sound', album: 'Metropolitan', duration: '3:28' },
-        ],
-        albums: [
-          { id: '1', title: 'Midnight Dreams Album', artist: 'The Dreamers' },
-          { id: '2', title: 'Summer Collection', artist: 'Various Artists' },
-        ],
-        artists: [
-          { id: '1', name: 'The Dreamers' },
-          { id: '2', name: 'Beach Boys Redux' },
-        ],
-        playlists: [
-          { id: '1', name: 'Dreamy Nights', description: 'Curated playlist for late nights' },
-          { id: '2', name: 'Summer Hits', description: 'Best summer tracks' },
-        ],
-      });
-    } catch (error) {
-      console.error('Search error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
     }
+  };
+
+  const handlePlayTrack = (track: any) => {
+    playTrack({
+      id: track.id,
+      title: track.title,
+      artist: track.artists?.name || track.artist || 'Unknown Artist',
+      artistId: track.artist_id,
+      album: track.albums?.title || track.album || 'Unknown Album',
+      albumId: track.album_id,
+      image: track.albums?.cover_url || track.image,
+      duration: track.duration || 0,
+    });
   };
 
   const tabs = [
@@ -74,7 +52,12 @@ function SearchContent() {
     { id: 'playlists', label: 'Playlists' },
   ] as const;
 
-  const hasResults = Object.values(results).some((arr: any) => arr.length > 0);
+  const hasResults = results && (
+    (results.tracks && results.tracks.length > 0) ||
+    (results.albums && results.albums.length > 0) ||
+    (results.artists && results.artists.length > 0) ||
+    (results.playlists && results.playlists.length > 0)
+  );
 
   return (
     <div className="px-4 lg:px-8 py-6">
@@ -122,7 +105,7 @@ function SearchContent() {
       {!loading && query && hasResults && (
         <div className="space-y-8">
           {/* Tracks */}
-          {(activeTab === 'all' || activeTab === 'tracks') && results.tracks.length > 0 && (
+          {(activeTab === 'all' || activeTab === 'tracks') && results.tracks && results.tracks.length > 0 && (
             <section>
               <h2 className="text-2xl font-bold mb-4">Songs</h2>
               <div className="space-y-1">
@@ -130,11 +113,12 @@ function SearchContent() {
                   <TrackRow
                     key={track.id}
                     title={track.title}
-                    artist={track.artist}
-                    album={track.album}
-                    duration={track.duration}
+                    artist={track.artists?.name || 'Unknown Artist'}
+                    album={track.albums?.title || 'Unknown Album'}
+                    duration={track.duration ? `${Math.floor(track.duration / 60)}:${String(track.duration % 60).padStart(2, '0')}` : '0:00'}
+                    image={track.albums?.cover_url}
                     showImage={true}
-                    onPlay={() => console.log('Play track:', track.id)}
+                    onPlay={() => handlePlayTrack(track)}
                     onLike={() => console.log('Like track:', track.id)}
                   />
                 ))}
@@ -151,7 +135,7 @@ function SearchContent() {
           )}
 
           {/* Artists */}
-          {(activeTab === 'all' || activeTab === 'artists') && results.artists.length > 0 && (
+          {(activeTab === 'all' || activeTab === 'artists') && results.artists && results.artists.length > 0 && (
             <section>
               <h2 className="text-2xl font-bold mb-4">Artists</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
@@ -161,6 +145,7 @@ function SearchContent() {
                     title={artist.name}
                     subtitle="Artist"
                     href={`/artist/${artist.id}`}
+                    image={artist.image_url}
                     type="circle"
                   />
                 ))}
@@ -169,7 +154,7 @@ function SearchContent() {
           )}
 
           {/* Albums */}
-          {(activeTab === 'all' || activeTab === 'albums') && results.albums.length > 0 && (
+          {(activeTab === 'all' || activeTab === 'albums') && results.albums && results.albums.length > 0 && (
             <section>
               <h2 className="text-2xl font-bold mb-4">Albums</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
@@ -177,9 +162,10 @@ function SearchContent() {
                   <Card
                     key={album.id}
                     title={album.title}
-                    subtitle={album.artist}
+                    subtitle={album.artists?.name || 'Unknown Artist'}
                     href={`/album/${album.id}`}
-                    onPlay={() => console.log('Play album:', album.id)}
+                    image={album.cover_url}
+                    onPlay={() => window.location.href = `/album/${album.id}`}
                   />
                 ))}
               </div>
@@ -187,7 +173,7 @@ function SearchContent() {
           )}
 
           {/* Playlists */}
-          {(activeTab === 'all' || activeTab === 'playlists') && results.playlists.length > 0 && (
+          {(activeTab === 'all' || activeTab === 'playlists') && results.playlists && results.playlists.length > 0 && (
             <section>
               <h2 className="text-2xl font-bold mb-4">Playlists</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
@@ -197,7 +183,8 @@ function SearchContent() {
                     title={playlist.name}
                     subtitle={playlist.description}
                     href={`/playlist/${playlist.id}`}
-                    onPlay={() => console.log('Play playlist:', playlist.id)}
+                    image={playlist.cover_url}
+                    onPlay={() => window.location.href = `/playlist/${playlist.id}`}
                   />
                 ))}
               </div>
@@ -214,29 +201,56 @@ function SearchContent() {
         </div>
       )}
 
-      {/* Browse Categories (when no search) */}
+      {/* Browse Genres (when no search) */}
       {!query && (
         <div>
           <h2 className="text-2xl font-bold mb-4">Browse all</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {[
-              { name: 'Pop', color: 'from-pink-500 to-pink-700' },
-              { name: 'Rock', color: 'from-red-500 to-red-700' },
-              { name: 'Hip-Hop', color: 'from-purple-500 to-purple-700' },
-              { name: 'Electronic', color: 'from-blue-500 to-blue-700' },
-              { name: 'Jazz', color: 'from-yellow-500 to-yellow-700' },
-              { name: 'Classical', color: 'from-green-500 to-green-700' },
-              { name: 'R&B', color: 'from-indigo-500 to-indigo-700' },
-              { name: 'Country', color: 'from-orange-500 to-orange-700' },
-            ].map((genre, index) => (
-              <a
-                key={index}
-                href={`/genre/${genre.name.toLowerCase()}`}
-                className={`relative h-40 rounded-lg overflow-hidden bg-gradient-to-br ${genre.color} p-4 hover:scale-105 transition-transform`}
-              >
-                <h3 className="text-2xl font-bold">{genre.name}</h3>
-              </a>
-            ))}
+            {genres.length > 0 ? (
+              genres.map((genre: any, index: number) => {
+                const colors = [
+                  'from-pink-500 to-pink-700',
+                  'from-red-500 to-red-700',
+                  'from-purple-500 to-purple-700',
+                  'from-blue-500 to-blue-700',
+                  'from-yellow-500 to-yellow-700',
+                  'from-green-500 to-green-700',
+                  'from-indigo-500 to-indigo-700',
+                  'from-orange-500 to-orange-700',
+                ];
+                const color = colors[index % colors.length];
+
+                return (
+                  <a
+                    key={genre.id}
+                    href={`/genre/${genre.slug || genre.name.toLowerCase()}`}
+                    className={`relative h-40 rounded-lg overflow-hidden bg-gradient-to-br ${color} p-4 hover:scale-105 transition-transform`}
+                  >
+                    <h3 className="text-2xl font-bold">{genre.name}</h3>
+                  </a>
+                );
+              })
+            ) : (
+              // Fallback genres if none in database
+              [
+                { name: 'Pop', color: 'from-pink-500 to-pink-700' },
+                { name: 'Rock', color: 'from-red-500 to-red-700' },
+                { name: 'Hip-Hop', color: 'from-purple-500 to-purple-700' },
+                { name: 'Electronic', color: 'from-blue-500 to-blue-700' },
+                { name: 'Jazz', color: 'from-yellow-500 to-yellow-700' },
+                { name: 'Classical', color: 'from-green-500 to-green-700' },
+                { name: 'R&B', color: 'from-indigo-500 to-indigo-700' },
+                { name: 'Country', color: 'from-orange-500 to-orange-700' },
+              ].map((genre, index) => (
+                <a
+                  key={index}
+                  href={`/genre/${genre.name.toLowerCase()}`}
+                  className={`relative h-40 rounded-lg overflow-hidden bg-gradient-to-br ${genre.color} p-4 hover:scale-105 transition-transform`}
+                >
+                  <h3 className="text-2xl font-bold">{genre.name}</h3>
+                </a>
+              ))
+            )}
           </div>
         </div>
       )}
