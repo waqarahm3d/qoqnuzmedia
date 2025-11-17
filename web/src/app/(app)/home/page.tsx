@@ -1,16 +1,18 @@
 'use client';
 
 import { Card } from '@/components/ui/Card';
-import { useAlbums, useArtists, usePlaylists } from '@/lib/hooks/useMusic';
+import { TrackRow } from '@/components/ui/TrackRow';
+import { useAlbums, useArtists, usePlaylists, useTracks } from '@/lib/hooks/useMusic';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
 
 export default function HomePage() {
   const { albums, loading: albumsLoading } = useAlbums(12);
   const { artists, loading: artistsLoading } = useArtists(12);
   const { playlists, loading: playlistsLoading } = usePlaylists(12);
-  const { setQueue } = usePlayer();
+  const { tracks, loading: tracksLoading } = useTracks(10);
+  const { setQueue, playTrack } = usePlayer();
 
-  const loading = albumsLoading || artistsLoading || playlistsLoading;
+  const loading = albumsLoading || artistsLoading || playlistsLoading || tracksLoading;
 
   const handlePlayAlbum = async (albumId: string) => {
     const album = albums.find(a => a.id === albumId);
@@ -30,6 +32,12 @@ export default function HomePage() {
     if (hour < 12) return 'Good morning';
     if (hour < 18) return 'Good afternoon';
     return 'Good evening';
+  };
+
+  const formatDuration = (ms: number) => {
+    const minutes = Math.floor(ms / 60000);
+    const seconds = Math.floor((ms % 60000) / 1000);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
   if (loading) {
@@ -71,6 +79,43 @@ export default function HomePage() {
           </a>
         ))}
       </div>
+
+      {/* Recently Uploaded Tracks */}
+      {tracks.length > 0 && (
+        <section className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold">Recently Uploaded</h2>
+          </div>
+          <div className="bg-black/20 rounded-lg p-4">
+            <div className="space-y-2">
+              {tracks.slice(0, 5).map((track: any, index: number) => (
+                <TrackRow
+                  key={track.id}
+                  number={index + 1}
+                  title={track.title}
+                  artist={track.artists?.name || 'Unknown Artist'}
+                  album={track.albums?.title || 'Single'}
+                  image={track.albums?.cover_art_url || track.cover_art_url}
+                  duration={formatDuration(track.duration_ms || 0)}
+                  onPlay={() => {
+                    playTrack({
+                      id: track.id,
+                      title: track.title,
+                      artist: track.artists?.name || 'Unknown Artist',
+                      artistId: track.artist_id,
+                      album: track.albums?.title || 'Single',
+                      albumId: track.album_id,
+                      image: track.albums?.cover_art_url || track.cover_art_url,
+                      duration: track.duration_ms || 0,
+                    });
+                  }}
+                  onLike={() => {}}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Featured Playlists */}
       {playlists.length > 0 && (
@@ -145,10 +190,10 @@ export default function HomePage() {
       )}
 
       {/* Empty State */}
-      {!loading && albums.length === 0 && artists.length === 0 && playlists.length === 0 && (
+      {!loading && albums.length === 0 && artists.length === 0 && playlists.length === 0 && tracks.length === 0 && (
         <div className="text-center py-12">
           <h3 className="text-xl font-semibold mb-2">No content yet</h3>
-          <p className="text-white/60 mb-4">Add some albums, artists, and playlists from the admin panel to get started!</p>
+          <p className="text-white/60 mb-4">Add some tracks, albums, artists, and playlists from the admin panel to get started!</p>
           <a href="/admin" className="inline-block px-6 py-3 bg-primary text-black rounded-full font-semibold hover:bg-[#1ed760] transition-colors">
             Go to Admin Panel
           </a>

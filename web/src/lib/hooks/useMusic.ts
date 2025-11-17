@@ -170,3 +170,18 @@ export function useGenres() {
 
   return { genres, loading, error };
 }
+
+export function useTracks(limit = 20) {
+  const [tracks, setTracks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    api.getTracks({ limit })
+      .then(setTracks)
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [limit]);
+
+  return { tracks, loading, error };
+}

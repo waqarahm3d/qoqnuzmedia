@@ -29,8 +29,14 @@ export async function GET(
   try {
     const { trackId } = params;
 
+    console.log('[Stream API] Requesting track:', trackId);
+
+    if (!trackId) {
+      console.error('[Stream API] No track ID provided');
+      return NextResponse.json({ error: 'Track ID is required' }, { status: 400 });
+    }
+
     // Use admin client for reading tracks (bypasses RLS)
-    // Tracks should be publicly readable in a music streaming platform
     const adminSupabase = createAdminSupabaseClient();
 
     // Use server client for auth check
@@ -39,30 +45,72 @@ export async function GET(
       data: { user },
     } = await supabase.auth.getUser();
 
-    // For now, we'll allow unauthenticated streaming for demo purposes
-    // In production, you might want to require authentication
-    // if (!user) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    // }
+    console.log('[Stream API] User authenticated:', !!user);
 
     // Fetch track details from database using admin client
-    // Use explicit relationship name to avoid ambiguity
+    console.log('[Stream API] Fetching track from database...');
     const { data: track, error: trackError } = (await adminSupabase
       .from('tracks')
       .select('id, title, audio_url, artist_id, artists!tracks_artist_id_fkey(name)')
       .eq('id', trackId)
       .single()) as { data: TrackWithArtist | null; error: any };
 
-    if (trackError || !track) {
-      console.error('Track fetch error:', trackError);
-      return NextResponse.json({ error: 'Track not found' }, { status: 404 });
+    if (trackError) {
+      console.error('[Stream API] Track fetch error:', {
+        code: trackError.code,
+        message: trackError.message,
+        details: trackError.details,
+        hint: trackError.hint,
+      });
+
+      // PGRST116 means no rows found
+      if (trackError.code === 'PGRST116') {
+        return NextResponse.json({
+          error: 'Track not found in database',
+          details: `No track exists with ID: ${trackId}`,
+          code: 'TRACK_NOT_FOUND'
+        }, { status: 404 });
+      }
+
+      return NextResponse.json({
+        error: 'Database error while fetching track',
+        details: trackError.message,
+        code: trackError.code
+      }, { status: 500 });
     }
 
+    if (!track) {
+      console.error('[Stream API] Track is null');
+      return NextResponse.json({
+        error: 'Track not found',
+        details: `Track with ID ${trackId} does not exist`,
+        code: 'TRACK_NOT_FOUND'
+      }, { status: 404 });
+    }
+
+    if (!track.audio_url) {
+      console.error('[Stream API] Track has no audio_url:', track);
+      return NextResponse.json({
+        error: 'Track has no audio file',
+        details: 'The track exists but has no associated audio file',
+        code: 'NO_AUDIO_FILE'
+      }, { status: 404 });
+    }
+
+    console.log('[Stream API] Track found:', {
+      id: track.id,
+      title: track.title,
+      audio_url: track.audio_url,
+    });
+
     // Generate signed URL for streaming (expires in 1 hour)
+    console.log('[Stream API] Generating R2 signed URL...');
     const streamUrl = await getTrackStreamUrl(track.audio_url, 3600);
+    console.log('[Stream API] Signed URL generated successfully');
 
     // Track play history (if user is authenticated)
     if (user) {
+      console.log('[Stream API] Recording play history for user:', user.id);
       await supabase.from('play_history').insert({
         user_id: user.id,
         track_id: trackId,
@@ -74,17 +122,25 @@ export async function GET(
 
     // Return the signed URL
     return NextResponse.json({
-      streamUrl,
+      url: streamUrl,  // Note: frontend expects "url" not "streamUrl"
+      expiresAt: new Date(Date.now() + 3600 * 1000).toISOString(),
       track: {
         id: track.id,
         title: track.title,
         artist: track.artists?.name || 'Unknown Artist',
       },
     });
-  } catch (error) {
-    console.error('Stream error:', error);
+  } catch (error: any) {
+    console.error('[Stream API] Unexpected error:', {
+      message: error.message,
+      stack: error.stack,
+    });
     return NextResponse.json(
-      { error: 'Failed to generate stream URL' },
+      {
+        error: 'Failed to generate stream URL',
+        details: error.message,
+        code: 'INTERNAL_ERROR'
+      },
       { status: 500 }
     );
   }

@@ -287,6 +287,41 @@ export default function TracksPage() {
     window.location.href = `/admin/albums?create=true&tracks=${trackIds}`;
   };
 
+  const bulkDelete = async () => {
+    if (selectedTracks.size === 0) {
+      alert('Please select tracks to delete');
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to delete ${selectedTracks.size} track(s)? This cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      // Delete each track
+      const deletePromises = Array.from(selectedTracks).map(trackId =>
+        fetch(`/api/admin/tracks/${trackId}`, {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        })
+      );
+
+      await Promise.all(deletePromises);
+
+      // Clear selection and refresh
+      setSelectedTracks(new Set());
+      fetchTracks();
+    } catch (error) {
+      console.error('Bulk delete failed:', error);
+      alert('Failed to delete some tracks. Please try again.');
+    }
+  };
+
   const formatDuration = (ms: number) => {
     const minutes = Math.floor(ms / 60000);
     const seconds = Math.floor((ms % 60000) / 1000);
@@ -320,12 +355,21 @@ export default function TracksPage() {
           </div>
           <div className="flex gap-2">
             {selectedTracks.size > 0 && (
-              <button
-                onClick={createAlbumFromSelected}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              >
-                Create Album ({selectedTracks.size})
-              </button>
+              <>
+                <button
+                  onClick={bulkDelete}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 inline-flex items-center gap-2"
+                >
+                  <span>🗑️</span>
+                  Delete ({selectedTracks.size})
+                </button>
+                <button
+                  onClick={createAlbumFromSelected}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  Create Album ({selectedTracks.size})
+                </button>
+              </>
             )}
             <a
               href="/admin/tracks/upload"
@@ -605,29 +649,29 @@ export default function TracksPage() {
 
                   <div>
                     <label className="block text-gray-300 mb-2">
-                      Audio URL *
+                      Audio Path *
                     </label>
                     <input
-                      type="url"
+                      type="text"
                       required
                       value={formData.audio_url}
                       onChange={(e) =>
                         setFormData({ ...formData, audio_url: e.target.value })
                       }
                       className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg"
-                      placeholder="https://..."
+                      placeholder="tracks/artist-name/song-name.mp3"
                     />
                     <p className="text-xs text-gray-400 mt-1">
-                      Upload audio file to cloud storage first
+                      R2 storage path (e.g., tracks/artist-name/song.mp3)
                     </p>
                   </div>
 
                   <div>
                     <label className="block text-gray-300 mb-2">
-                      Cover Art URL
+                      Cover Art Path
                     </label>
                     <input
-                      type="url"
+                      type="text"
                       value={formData.cover_art_url}
                       onChange={(e) =>
                         setFormData({
@@ -636,8 +680,11 @@ export default function TracksPage() {
                         })
                       }
                       className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg"
-                      placeholder="https://..."
+                      placeholder="covers/artist-name/cover.jpg"
                     />
+                    <p className="text-xs text-gray-400 mt-1">
+                      R2 storage path (optional)
+                    </p>
                   </div>
 
                   <div>
