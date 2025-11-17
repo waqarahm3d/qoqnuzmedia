@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useRef, ReactNode, useEffect } from 'react';
 import * as api from '@/lib/api/client';
+import { getMediaUrl } from '@/lib/media-utils';
 
 interface Track {
   id: string;
@@ -208,7 +209,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
           artistId: t.artist_id,
           album: t.albums?.title || 'Single',
           albumId: t.album_id,
-          image: t.albums?.cover_art_url || t.cover_art_url,
+          image: getMediaUrl(t.albums?.cover_art_url || t.cover_art_url),
           duration: t.duration_ms,
         }));
 

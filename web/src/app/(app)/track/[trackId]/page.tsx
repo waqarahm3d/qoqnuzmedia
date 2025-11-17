@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
 import { supabase } from '@/lib/supabase-client';
+import { getMediaUrl } from '@/lib/media-utils';
 
 interface Track {
   id: string;
@@ -203,7 +204,7 @@ export default function TrackPage({
       artistId: track.artist_id,
       album: track.albums?.title || 'Single',
       albumId: track.album_id || undefined,
-      image: track.albums?.cover_art_url || track.cover_art_url || undefined,
+      image: getMediaUrl(track.albums?.cover_art_url || track.cover_art_url) || undefined,
       duration: track.duration_ms,
     });
   };
@@ -265,7 +266,7 @@ export default function TrackPage({
   }
 
   const isCurrentlyPlaying = currentTrack?.id === track.id && isPlaying;
-  const coverImage = track.albums?.cover_art_url || track.cover_art_url;
+  const coverImage = getMediaUrl(track.albums?.cover_art_url || track.cover_art_url);
 
   return (
     <div className="min-h-screen pb-32">
@@ -307,9 +308,9 @@ export default function TrackPage({
                   href={`/artist/${track.artist_id}`}
                   className="flex items-center gap-2 hover:underline"
                 >
-                  {track.artists.avatar_url && (
+                  {track.artists.avatar_url && getMediaUrl(track.artists.avatar_url) && (
                     <Image
-                      src={track.artists.avatar_url}
+                      src={getMediaUrl(track.artists.avatar_url)!}
                       alt={track.artists.name}
                       width={24}
                       height={24}
@@ -542,9 +543,9 @@ export default function TrackPage({
           </div>
           <Link href={`/artist/${track.artist_id}`}>
             <div className="flex items-center gap-4 p-4 rounded-lg hover:bg-gray-800/50 transition-colors">
-              {track.artists.avatar_url ? (
+              {track.artists.avatar_url && getMediaUrl(track.artists.avatar_url) ? (
                 <Image
-                  src={track.artists.avatar_url}
+                  src={getMediaUrl(track.artists.avatar_url)!}
                   alt={track.artists.name}
                   width={64}
                   height={64}
