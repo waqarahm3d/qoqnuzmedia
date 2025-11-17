@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { supabase } from '@/lib/supabase-client';
+import { getMediaUrl } from '@/lib/media-utils';
 
 interface Artist {
   id: string;
@@ -175,9 +176,9 @@ export default function ArtistsManagement() {
                         <td className="px-6 py-4">
                           <div className="flex items-center space-x-3">
                             <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center text-xl">
-                              {artist.avatar_url ? (
+                              {artist.avatar_url && getMediaUrl(artist.avatar_url) ? (
                                 <img
-                                  src={artist.avatar_url}
+                                  src={getMediaUrl(artist.avatar_url)!}
                                   alt={artist.name}
                                   className="w-10 h-10 rounded-full object-cover"
                                 />

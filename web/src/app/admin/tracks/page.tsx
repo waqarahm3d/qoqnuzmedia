@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { supabase } from '@/lib/supabase-client';
+import { getMediaUrl } from '@/lib/media-utils';
 
 interface Track {
   id: string;
@@ -511,7 +512,7 @@ export default function TracksPage() {
                           <div className="flex items-center">
                             {track.cover_art_url || track.albums?.cover_art_url ? (
                               <img
-                                src={track.cover_art_url || track.albums?.cover_art_url || ''}
+                                src={getMediaUrl(track.cover_art_url || track.albums?.cover_art_url) || ''}
                                 alt={track.title}
                                 className="w-12 h-12 rounded mr-3 object-cover"
                               />

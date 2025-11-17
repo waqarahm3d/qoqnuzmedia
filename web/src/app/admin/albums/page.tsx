@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { supabase } from '@/lib/supabase-client';
+import { getMediaUrl } from '@/lib/media-utils';
 
 // Force dynamic rendering to prevent build-time errors with useSearchParams
 export const dynamic = 'force-dynamic';
@@ -202,9 +203,9 @@ function AlbumsPageContent() {
                   >
                     {/* Album Cover */}
                     <div className="relative mb-3">
-                      {album.cover_art_url ? (
+                      {album.cover_art_url && getMediaUrl(album.cover_art_url) ? (
                         <img
-                          src={album.cover_art_url}
+                          src={getMediaUrl(album.cover_art_url)!}
                           alt={album.title}
                           className="w-full aspect-square object-cover rounded"
                         />

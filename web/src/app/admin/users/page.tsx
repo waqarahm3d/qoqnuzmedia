@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { supabase } from '@/lib/supabase-client';
+import { getMediaUrl } from '@/lib/media-utils';
 
 interface User {
   id: string;
@@ -196,9 +197,9 @@ export default function UsersManagement() {
                           <td className="px-6 py-4">
                             <div className="flex items-center space-x-3">
                               <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center relative">
-                                {user.avatar_url ? (
+                                {user.avatar_url && getMediaUrl(user.avatar_url) ? (
                                   <img
-                                    src={user.avatar_url}
+                                    src={getMediaUrl(user.avatar_url)!}
                                     alt={user.display_name || 'User'}
                                     className="w-10 h-10 rounded-full object-cover"
                                   />

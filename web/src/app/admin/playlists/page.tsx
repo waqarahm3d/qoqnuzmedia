@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { supabase } from '@/lib/supabase-client';
+import { getMediaUrl } from '@/lib/media-utils';
 
 interface Playlist {
   id: string;
@@ -203,9 +204,9 @@ export default function PlaylistsManagement() {
                   <tr key={playlist.id} className="hover:bg-gray-750">
                     <td className="px-6 py-4">
                       <div className="flex items-center">
-                        {playlist.cover_image_url ? (
+                        {playlist.cover_image_url && getMediaUrl(playlist.cover_image_url) ? (
                           <img
-                            src={playlist.cover_image_url}
+                            src={getMediaUrl(playlist.cover_image_url)!}
                             alt={playlist.name}
                             className="w-12 h-12 rounded mr-3 object-cover"
                           />
@@ -228,9 +229,9 @@ export default function PlaylistsManagement() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center">
-                        {playlist.profiles.avatar_url ? (
+                        {playlist.profiles.avatar_url && getMediaUrl(playlist.profiles.avatar_url) ? (
                           <img
-                            src={playlist.profiles.avatar_url}
+                            src={getMediaUrl(playlist.profiles.avatar_url)!}
                             alt=""
                             className="w-8 h-8 rounded-full mr-2"
                           />
