@@ -51,31 +51,8 @@ export const DesktopPlayer = ({ onExpand }: DesktopPlayerProps) => {
     seek(newTime);
   };
 
-  // Empty state
-  if (!currentTrack) {
-    return (
-      <div className="fixed bottom-0 left-0 right-0 bg-black border-t border-white/10 px-4 py-3 z-[60]">
-        <div className="flex items-center justify-center h-20">
-          <div className="text-center text-gray-500">
-            <svg
-              width="40"
-              height="40"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              className="mx-auto mb-2 opacity-50"
-            >
-              <path d="M9 18V5l12-2v13" />
-              <circle cx="6" cy="18" r="3" />
-              <circle cx="18" cy="16" r="3" />
-            </svg>
-            <p className="text-xs">No track playing</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Hide player when no track is playing
+  if (!currentTrack) return null;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-black border-t border-white/10 px-4 py-3 z-[60]">
