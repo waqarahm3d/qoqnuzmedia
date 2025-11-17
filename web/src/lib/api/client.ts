@@ -2,7 +2,7 @@
  * API Client - Centralized API calls for frontend
  */
 
-import { createClient } from '@/lib/supabase-client';
+import { supabase } from '@/lib/supabase-client';
 
 const API_BASE = process.env.NEXT_PUBLIC_APP_URL || '';
 
@@ -31,7 +31,6 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> 
 // ============================================================================
 
 export async function getAlbums(params?: { limit?: number; offset?: number }) {
-  const supabase = createClient();
   const query = supabase
     .from('albums')
     .select(`
@@ -53,7 +52,6 @@ export async function getAlbums(params?: { limit?: number; offset?: number }) {
 }
 
 export async function getAlbum(id: string) {
-  const supabase = createClient();
   const { data, error } = await supabase
     .from('albums')
     .select(`
@@ -83,7 +81,6 @@ export async function getAlbum(id: string) {
 // ============================================================================
 
 export async function getArtists(params?: { limit?: number; offset?: number }) {
-  const supabase = createClient();
   const query = supabase
     .from('artists')
     .select('*')
@@ -98,7 +95,6 @@ export async function getArtists(params?: { limit?: number; offset?: number }) {
 }
 
 export async function getArtist(id: string) {
-  const supabase = createClient();
   const { data, error } = await supabase
     .from('artists')
     .select(`
@@ -118,7 +114,6 @@ export async function getArtist(id: string) {
 }
 
 export async function getArtistTracks(artistId: string, limit = 10) {
-  const supabase = createClient();
   const { data, error } = await supabase
     .from('tracks')
     .select(`
@@ -154,7 +149,6 @@ export async function unfollowArtist(artistId: string) {
 }
 
 export async function isFollowingArtist(artistId: string) {
-  const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return false;
 
@@ -173,7 +167,6 @@ export async function isFollowingArtist(artistId: string) {
 // ============================================================================
 
 export async function getTracks(params?: { limit?: number; offset?: number }) {
-  const supabase = createClient();
   const query = supabase
     .from('tracks')
     .select(`
@@ -207,7 +200,6 @@ export async function getStreamUrl(trackId: string) {
 // ============================================================================
 
 export async function getPlaylists(params?: { limit?: number; offset?: number }) {
-  const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   const query = supabase
@@ -232,7 +224,6 @@ export async function getPlaylists(params?: { limit?: number; offset?: number })
 }
 
 export async function getUserPlaylists() {
-  const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
 
@@ -247,8 +238,7 @@ export async function getUserPlaylists() {
 }
 
 export async function getPlaylist(id: string) {
-  const supabase = createClient();
-  const { data, error } = await supabase
+  const { data, error} = await supabase
     .from('playlists')
     .select(`
       *,
@@ -312,7 +302,6 @@ export async function search(query: string, type?: 'all' | 'tracks' | 'albums' |
 // ============================================================================
 
 export async function getLikedTracks() {
-  const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
 
@@ -356,7 +345,6 @@ export async function unlikeTrack(trackId: string) {
 }
 
 export async function isTrackLiked(trackId: string) {
-  const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return false;
 
@@ -371,7 +359,6 @@ export async function isTrackLiked(trackId: string) {
 }
 
 export async function getUserLibrary() {
-  const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { playlists: [], artists: [], albums: [] };
 
@@ -429,7 +416,6 @@ export async function getPlayHistory(limit = 50) {
 }
 
 export async function trackPlay(trackId: string) {
-  const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
 
@@ -446,7 +432,6 @@ export async function trackPlay(trackId: string) {
 // ============================================================================
 
 export async function getGenres() {
-  const supabase = createClient();
   const { data, error } = await supabase
     .from('genres')
     .select('*')
@@ -457,7 +442,6 @@ export async function getGenres() {
 }
 
 export async function getGenrePlaylists(genreId: string) {
-  const supabase = createClient();
   const { data, error } = await supabase
     .from('playlists')
     .select('*')
@@ -474,7 +458,6 @@ export async function getGenrePlaylists(genreId: string) {
 // ============================================================================
 
 export async function getUserProfile() {
-  const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
