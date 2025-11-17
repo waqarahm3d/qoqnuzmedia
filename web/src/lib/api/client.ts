@@ -154,7 +154,7 @@ export async function isFollowingArtist(artistId: string) {
 
   const { data, error } = await supabase
     .from('artist_follows')
-    .select('id')
+    .select('created_at')
     .eq('user_id', user.id)
     .eq('artist_id', artistId)
     .single();
@@ -350,7 +350,7 @@ export async function isTrackLiked(trackId: string) {
 
   const { data, error } = await supabase
     .from('liked_tracks')
-    .select('id')
+    .select('created_at')
     .eq('user_id', user.id)
     .eq('track_id', trackId)
     .single();
