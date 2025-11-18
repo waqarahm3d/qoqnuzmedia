@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { checkAdminAccess, createClient } from '@/lib/auth-utils';
+import { requireAdmin } from '@/lib/auth/admin-middleware';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,14 +9,9 @@ export const dynamic = 'force-dynamic';
  */
 export async function POST(request: NextRequest) {
   try {
-    // Check if user has admin access (database only)
-    const authCheck = await checkAdminAccess(request);
-
-    if (authCheck.error) {
-      return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
-    }
-
-    const supabase = createClient(request);
+    // Check if user has admin access
+    const { user, adminUser, response, supabase } = await requireAdmin(request);
+    if (response) return response;
 
     const body = await request.json();
     const { task } = body; // 'all', 'smart_playlists', 'trending', 'listening_stats'
@@ -110,14 +105,9 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    // Check if user has admin access (database only)
-    const authCheck = await checkAdminAccess(request);
-
-    if (authCheck.error) {
-      return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
-    }
-
-    const supabase = createClient(request);
+    // Check if user has admin access
+    const { user, adminUser, response, supabase } = await requireAdmin(request);
+    if (response) return response;
 
     // Get cron job status
     const { data: cronJobs, error: cronError } = await supabase.rpc('get_cron_job_status');

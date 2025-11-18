@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { checkAdminAccess, createClient } from '@/lib/auth-utils';
+import { requireAdmin } from '@/lib/auth/admin-middleware';
+import { createClient } from '@/lib/auth-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -85,14 +86,9 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Check if user has admin access (checks both database and ADMIN_EMAILS env var)
-    const authCheck = await checkAdminAccess(request);
-
-    if (authCheck.error) {
-      return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
-    }
-
-    const supabase = createClient(request);
+    // Check if user has admin access
+    const { user, adminUser, response, supabase } = await requireAdmin(request);
+    if (response) return response;
 
     // Trigger trending calculation
     const { error } = await supabase.rpc('calculate_trending_tracks');
