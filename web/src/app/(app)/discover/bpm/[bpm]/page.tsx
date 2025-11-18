@@ -57,7 +57,7 @@ export default function BPMBrowsePage() {
     if (bpm && bpm >= 40 && bpm <= 220) {
       fetchTracks();
     }
-  }, [bpm, range, isAuthenticated]);
+  }, [bpm, range, user]);
 
   const getActivitySuggestion = (bpm: number) => {
     if (bpm < 80) return 'Perfect for yoga and meditation';
@@ -68,15 +68,7 @@ export default function BPMBrowsePage() {
     return 'Ideal for sprinting and HIIT workouts';
   };
 
-  if (isAuthenticated === null) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (loading) {
+  if (loading || !user) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
