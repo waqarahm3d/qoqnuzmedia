@@ -2,7 +2,7 @@
 
 import { Card } from '@/components/ui/Card';
 import { TrackRow } from '@/components/ui/TrackRow';
-import { useAlbums, useArtists, usePlaylists, useTracks } from '@/lib/hooks/useMusic';
+import { useAlbums, useArtists, usePlaylists, useTracks, useGenres } from '@/lib/hooks/useMusic';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
 import { getMediaUrl } from '@/lib/media-utils';
 
@@ -11,9 +11,10 @@ export default function HomePage() {
   const { artists, loading: artistsLoading } = useArtists(12);
   const { playlists, loading: playlistsLoading } = usePlaylists(12);
   const { tracks, loading: tracksLoading } = useTracks(20);
+  const { genres, loading: genresLoading } = useGenres();
   const { setQueue, playTrack } = usePlayer();
 
-  const loading = albumsLoading || artistsLoading || playlistsLoading || tracksLoading;
+  const loading = albumsLoading || artistsLoading || playlistsLoading || tracksLoading || genresLoading;
 
   // Sort tracks by play_count for trending (client-side for now)
   const trendingTracks = [...tracks]
@@ -160,11 +161,11 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* New to Qoqnuz */}
+      {/* Recently Added Tracks */}
       {tracks.length > 0 && (
         <section className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold">New to Qoqnuz</h2>
+            <h2 className="text-2xl font-bold">Recently Added Tracks</h2>
             <a href="/browse/new" className="text-sm font-semibold text-white/60 hover:text-white transition-colors">
               Show all
             </a>
@@ -199,6 +200,29 @@ export default function HomePage() {
                 />
               ))}
             </div>
+          </div>
+        </section>
+      )}
+
+      {/* Featured Playlists */}
+      {playlists.length > 0 && (
+        <section className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold">Featured Playlists</h2>
+            <a href="/browse/playlists" className="text-sm font-semibold text-white/60 hover:text-white transition-colors">
+              Show all
+            </a>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {playlists.slice(0, 6).map((playlist: any) => (
+              <Card
+                key={playlist.id}
+                title={playlist.name}
+                subtitle={`By ${playlist.profiles?.display_name || 'Unknown'}`}
+                href={`/playlist/${playlist.id}`}
+                image={getMediaUrl(playlist.cover_image_url)}
+              />
+            ))}
           </div>
         </section>
       )}
@@ -285,6 +309,49 @@ export default function HomePage() {
                 image={getMediaUrl(artist.avatar_url)}
                 type="circle"
               />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Browse Genres */}
+      {genres.length > 0 && (
+        <section className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold">Browse Genres</h2>
+            <a href="/browse/genres" className="text-sm font-semibold text-white/60 hover:text-white transition-colors">
+              Show all
+            </a>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {genres.slice(0, 10).map((genre: any) => (
+              <a
+                key={genre.id}
+                href={`/genre/${genre.id}`}
+                className="group relative bg-surface/40 hover:bg-surface rounded-lg overflow-hidden transition-all duration-300 hover:shadow-xl"
+                style={{ backgroundColor: genre.color ? `${genre.color}40` : undefined }}
+              >
+                <div className="aspect-square relative">
+                  {genre.image_url ? (
+                    <img
+                      src={getMediaUrl(genre.image_url)}
+                      alt={genre.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div
+                      className="w-full h-full flex items-center justify-center text-4xl"
+                      style={{ backgroundColor: genre.color || '#333' }}
+                    >
+                      ♪
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <h3 className="font-bold text-lg text-white truncate">{genre.name}</h3>
+                  </div>
+                </div>
+              </a>
             ))}
           </div>
         </section>
