@@ -286,7 +286,7 @@ export async function generateForgottenFavorites(userId: string, limit: number =
   const forgotten = likedTracks
     .filter(({ track_id }) => !recentlyPlayedIds.has(track_id))
     .map(({ tracks }) => tracks)
-    .filter(Boolean) as Track[];
+    .filter((track): track is Track => track !== null && track !== undefined);
 
   // Shuffle
   const shuffled = forgotten.sort(() => Math.random() - 0.5).slice(0, limit);
