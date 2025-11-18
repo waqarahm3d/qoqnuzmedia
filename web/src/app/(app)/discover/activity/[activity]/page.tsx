@@ -3,6 +3,13 @@
 import { useEffect, useState } from 'react';
 import { TrackRow } from '@/components/ui/TrackRow';
 import { useParams, useRouter } from 'next/navigation';
+import { getMediaUrl } from '@/lib/media-utils';
+
+const formatDuration = (ms: number) => {
+  const minutes = Math.floor(ms / 60000);
+  const seconds = Math.floor((ms % 60000) / 1000);
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+};
 
 const activityInfo: Record<string, { emoji: string; title: string; description: string }> = {
   workout: { emoji: '💪', title: 'Workout', description: 'High-energy tracks for your gym session' },
@@ -87,10 +94,17 @@ export default function ActivityBrowsePage() {
             {tracks.map((track: any, index: number) => (
               <TrackRow
                 key={track.id}
-                track={track}
-                index={index}
-                tracks={tracks}
-                showAlbum
+                number={index + 1}
+                title={track.title}
+                artist={track.artists?.name || track.artist || 'Unknown Artist'}
+                album={track.albums?.title || track.album || 'Unknown Album'}
+                duration={formatDuration(track.duration_ms || 0)}
+                image={getMediaUrl(track.albums?.cover_art_url || track.cover_art_url)}
+                showImage={true}
+                showAlbum={true}
+                trackId={track.id}
+                artistId={track.artists?.id || track.artist_id}
+                albumId={track.albums?.id || track.album_id}
               />
             ))}
           </div>
