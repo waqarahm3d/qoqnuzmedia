@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { supabase } from '@/lib/supabase-client';
 
 interface CronJob {
   jobid: number;
@@ -10,13 +9,6 @@ interface CronJob {
   schedule: string;
   active: boolean;
   database: string;
-}
-
-interface CronExecution {
-  jobname: string;
-  status: string;
-  start_time: string;
-  return_message: string;
 }
 
 interface AutomationStatus {
@@ -39,7 +31,6 @@ interface AutomationStatus {
 
 export default function AutomationDashboard() {
   const [status, setStatus] = useState<AutomationStatus | null>(null);
-  const [cronExecutions, setCronExecutions] = useState<CronExecution[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [triggering, setTriggering] = useState(false);
@@ -49,7 +40,6 @@ export default function AutomationDashboard() {
 
   useEffect(() => {
     fetchStatus();
-    fetchCronExecutions();
   }, []);
 
   // Auto-refresh every 30 seconds
@@ -58,7 +48,6 @@ export default function AutomationDashboard() {
 
     const interval = setInterval(() => {
       fetchStatus();
-      fetchCronExecutions();
     }, 30000);
 
     return () => clearInterval(interval);
@@ -88,12 +77,6 @@ export default function AutomationDashboard() {
     }
   };
 
-  const fetchCronExecutions = async () => {
-    // Note: Direct access to cron.job_run_details is not available via Supabase client
-    // Execution history would need to be tracked in a custom table or via server-side API
-    // For now, we rely on the cron job status from the main API endpoint
-  };
-
   const triggerAutomation = async (task: string) => {
     try {
       setTriggering(true);
@@ -109,18 +92,17 @@ export default function AutomationDashboard() {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        setSuccessMessage(`✅ Successfully triggered: ${task}`);
+        setSuccessMessage(`Successfully triggered: ${task.replace(/_/g, ' ')}`);
         setTimeout(() => {
           fetchStatus();
-          fetchCronExecutions();
+          setSuccessMessage('');
         }, 2000);
       } else {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to trigger automation');
+        setError(errorData.error || 'Failed to trigger automation');
       }
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Failed to trigger automation');
     } finally {
       setTriggering(false);
     }
@@ -142,45 +124,52 @@ export default function AutomationDashboard() {
     }
   };
 
-  const healthStatus = getHealthStatus();
+  const getCronDescription = (schedule: string): string => {
+    const patterns: Record<string, string> = {
+      '0 2 * * *': 'Daily at 2:00 AM',
+      '0 3 * * *': 'Daily at 3:00 AM',
+      '0 */6 * * *': 'Every 6 hours',
+      '0 4 * * 0': 'Sundays at 4:00 AM',
+      '0 5 * * *': 'Daily at 5:00 AM',
+    };
+    return patterns[schedule] || schedule;
+  };
 
   if (loading && !status) {
     return (
       <AdminLayout>
-        <div style={{ textAlign: 'center', padding: '60px 0' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚙️</div>
-          <div style={{ color: '#b3b3b3' }}>Loading automation status...</div>
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#ff4a14] mx-auto mb-4"></div>
+            <p className="text-gray-400">Loading automation status...</p>
+          </div>
         </div>
       </AdminLayout>
     );
   }
 
+  const healthStatus = getHealthStatus();
+
   return (
     <AdminLayout>
-      <div style={{ padding: '0' }}>
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div style={{ marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="flex items-center justify-between">
           <div>
-            <h1 style={{ fontSize: '32px', fontWeight: 'bold', color: '#ffffff', marginBottom: '8px' }}>
-              Automation Dashboard
-            </h1>
-            <p style={{ color: '#b3b3b3' }}>
-              Monitor and control automated background processes
-            </p>
+            <h1 className="text-3xl font-bold text-white">Automation Dashboard</h1>
+            <p className="text-gray-400 mt-1">Monitor and manage automated tasks</p>
           </div>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ marginBottom: '8px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#b3b3b3', fontSize: '14px' }}>
-                <input
-                  type="checkbox"
-                  checked={autoRefresh}
-                  onChange={(e) => setAutoRefresh(e.target.checked)}
-                  style={{ cursor: 'pointer' }}
-                />
-                Auto-refresh (30s)
-              </label>
-            </div>
-            <div style={{ fontSize: '12px', color: '#666' }}>
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={autoRefresh}
+                onChange={(e) => setAutoRefresh(e.target.checked)}
+                className="w-4 h-4 rounded border-gray-600 text-[#ff4a14] focus:ring-[#ff4a14]"
+              />
+              Auto-refresh (30s)
+            </label>
+            <div className="text-xs text-gray-500">
               Last updated: {lastRefresh.toLocaleTimeString()}
             </div>
           </div>
@@ -188,60 +177,44 @@ export default function AutomationDashboard() {
 
         {/* Success Message */}
         {successMessage && (
-          <div style={{
-            background: 'rgba(34, 197, 94, 0.1)',
-            border: '1px solid #22c55e',
-            color: '#4ade80',
-            padding: '16px',
-            borderRadius: '8px',
-            marginBottom: '24px',
-          }}>
+          <div className="bg-green-500/10 border border-green-500 text-green-400 px-4 py-3 rounded-lg flex items-center gap-2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
             {successMessage}
           </div>
         )}
 
         {/* Error Message */}
         {error && (
-          <div style={{
-            background: 'rgba(239, 68, 68, 0.1)',
-            border: '1px solid #ef4444',
-            color: '#fca5a5',
-            padding: '16px',
-            borderRadius: '8px',
-            marginBottom: '24px',
-          }}>
-            <p style={{ fontWeight: 'bold', marginBottom: '8px' }}>Error</p>
-            <p>{error}</p>
+          <div className="bg-red-500/10 border border-red-500 text-red-400 px-4 py-3 rounded-lg">
+            <p className="font-bold flex items-center gap-2">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              Error
+            </p>
+            <p className="mt-1">{error}</p>
           </div>
         )}
 
         {/* System Health */}
-        <div style={{ background: '#181818', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#ffffff', marginBottom: '16px' }}>
-            System Health
-          </h2>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{
-              width: '80px',
-              height: '80px',
-              borderRadius: '50%',
-              background: healthStatus === 'healthy' ? 'rgba(34, 197, 94, 0.2)' :
-                          healthStatus === 'warning' ? 'rgba(251, 191, 36, 0.2)' :
-                          'rgba(239, 68, 68, 0.2)',
-              border: `3px solid ${healthStatus === 'healthy' ? '#22c55e' :
-                                   healthStatus === 'warning' ? '#fbbf24' :
-                                   '#ef4444'}`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '32px',
-            }}>
+        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+          <h2 className="text-xl font-bold text-white mb-4">System Health</h2>
+          <div className="flex items-center gap-4">
+            <div className={`w-20 h-20 rounded-full flex items-center justify-center ${
+              healthStatus === 'healthy' ? 'bg-green-500/20 border-2 border-green-500' :
+              healthStatus === 'warning' ? 'bg-yellow-500/20 border-2 border-yellow-500' :
+              'bg-red-500/20 border-2 border-red-500'
+            }`}>
               {healthStatus === 'healthy' ? (
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
               ) : healthStatus === 'warning' ? (
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#eab308" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
                   <line x1="12" y1="9" x2="12" y2="13"></line>
                   <line x1="12" y1="17" x2="12.01" y2="17"></line>
@@ -253,352 +226,178 @@ export default function AutomationDashboard() {
                 </svg>
               )}
             </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#ffffff', marginBottom: '4px' }}>
+            <div>
+              <h3 className="text-2xl font-bold text-white mb-1">
                 {healthStatus === 'healthy' ? 'System Healthy' :
                  healthStatus === 'warning' ? 'Minor Issues Detected' :
                  'System Errors'}
-              </div>
-              <div style={{ color: '#b3b3b3', fontSize: '14px' }}>
+              </h3>
+              <p className="text-gray-400">
                 {healthStatus === 'healthy' && 'All automation systems running normally'}
                 {healthStatus === 'warning' && 'Some automations may need attention'}
                 {healthStatus === 'error' && 'Critical: Automation systems offline'}
-              </div>
+              </p>
             </div>
           </div>
         </div>
 
         {/* Manual Triggers */}
-        <div style={{ background: '#181818', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#ffffff', marginBottom: '16px' }}>
-            Manual Triggers
-          </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
+        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+          <h2 className="text-xl font-bold text-white mb-4">Manual Triggers</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <button
               onClick={() => triggerAutomation('all')}
               disabled={triggering}
-              style={{
-                padding: '16px',
-                background: triggering ? '#282828' : 'linear-gradient(135deg, #ff4a14 0%, #ff5c2e 100%)',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '14px',
-                fontWeight: 600,
-                cursor: triggering ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s',
-                boxShadow: '0 4px 12px rgba(255, 74, 20, 0.3)',
-              }}
+              className="p-4 bg-gradient-to-br from-[#ff4a14] to-[#ff5c2e] text-white rounded-lg font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              🚀 Trigger All Automations
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2v4" />
+                <path d="m16.2 7.8 2.9-2.9" />
+                <path d="M18 12h4" />
+                <path d="m16.2 16.2 2.9 2.9" />
+                <path d="M12 18v4" />
+                <path d="m4.9 19.1 2.9-2.9" />
+                <path d="M2 12h4" />
+                <path d="m4.9 4.9 2.9 2.9" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              Trigger All
             </button>
             <button
               onClick={() => triggerAutomation('smart_playlists')}
               disabled={triggering}
-              style={{
-                padding: '16px',
-                background: triggering ? '#282828' : '#4a90e2',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '14px',
-                fontWeight: 600,
-                cursor: triggering ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s',
-              }}
+              className="p-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              🎵 Generate Smart Playlists
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15V6" />
+                <path d="M18.5 18a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+                <path d="M12 12H3" />
+                <path d="M16 6H3" />
+                <path d="M12 18H3" />
+              </svg>
+              Smart Playlists
             </button>
             <button
               onClick={() => triggerAutomation('trending')}
               disabled={triggering}
-              style={{
-                padding: '16px',
-                background: triggering ? '#282828' : '#e24a90',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '14px',
-                fontWeight: 600,
-                cursor: triggering ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s',
-              }}
+              className="p-4 bg-pink-600 text-white rounded-lg font-semibold hover:bg-pink-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              📈 Calculate Trending
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
+              Trending
             </button>
             <button
               onClick={() => triggerAutomation('listening_stats')}
               disabled={triggering}
-              style={{
-                padding: '16px',
-                background: triggering ? '#282828' : '#90e24a',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '14px',
-                fontWeight: 600,
-                cursor: triggering ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s',
-              }}
+              className="p-4 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              📊 Aggregate Listening Stats
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="20" x2="12" y2="10" />
+                <line x1="18" y1="20" x2="18" y2="4" />
+                <line x1="6" y1="20" x2="6" y2="16" />
+              </svg>
+              Listening Stats
             </button>
           </div>
         </div>
 
+        {/* Cron Jobs */}
+        {status && status.cron_jobs && status.cron_jobs.length > 0 && (
+          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+            <h2 className="text-xl font-bold text-white mb-4">Scheduled Jobs</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-700">
+                    <th className="text-left py-3 px-4 text-gray-400 font-medium">Job Name</th>
+                    <th className="text-left py-3 px-4 text-gray-400 font-medium">Schedule</th>
+                    <th className="text-left py-3 px-4 text-gray-400 font-medium">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {status.cron_jobs.map((job) => (
+                    <tr key={job.jobid} className="border-b border-gray-700/50">
+                      <td className="py-3 px-4 text-white">{job.jobname}</td>
+                      <td className="py-3 px-4 text-gray-400">{getCronDescription(job.schedule)}</td>
+                      <td className="py-3 px-4">
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          job.active ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'
+                        }`}>
+                          {job.active ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Metrics Grid */}
         {status && (
-          <>
-            {/* Cron Jobs Status */}
-            <div style={{ background: '#181818', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#ffffff', marginBottom: '16px' }}>
-                Scheduled Cron Jobs
-              </h2>
-              {status.cron_jobs && status.cron_jobs.length > 0 ? (
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                      <tr style={{ borderBottom: '1px solid #282828' }}>
-                        <th style={{ padding: '12px', textAlign: 'left', color: '#b3b3b3', fontSize: '14px' }}>Job Name</th>
-                        <th style={{ padding: '12px', textAlign: 'left', color: '#b3b3b3', fontSize: '14px' }}>Schedule (Cron)</th>
-                        <th style={{ padding: '12px', textAlign: 'left', color: '#b3b3b3', fontSize: '14px' }}>Status</th>
-                        <th style={{ padding: '12px', textAlign: 'left', color: '#b3b3b3', fontSize: '14px' }}>Next Run</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {status.cron_jobs.map((job: CronJob, index: number) => {
-                        const scheduleDesc = getCronDescription(job.schedule);
-                        return (
-                          <tr key={index} style={{ borderBottom: '1px solid #282828' }}>
-                            <td style={{ padding: '12px', color: '#ffffff', fontWeight: 500 }}>{job.jobname}</td>
-                            <td style={{ padding: '12px', color: '#b3b3b3', fontFamily: 'monospace', fontSize: '13px' }}>
-                              <div>{job.schedule}</div>
-                              <div style={{ fontSize: '11px', color: '#666', marginTop: '2px' }}>{scheduleDesc}</div>
-                            </td>
-                            <td style={{ padding: '12px' }}>
-                              <span style={{
-                                padding: '4px 12px',
-                                borderRadius: '12px',
-                                fontSize: '12px',
-                                fontWeight: 600,
-                                background: job.active ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-                                color: job.active ? '#4ade80' : '#fca5a5',
-                              }}>
-                                {job.active ? 'ACTIVE' : 'INACTIVE'}
-                              </span>
-                            </td>
-                            <td style={{ padding: '12px', color: '#b3b3b3', fontSize: '13px' }}>
-                              {getNextRunTime(job.schedule)}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div style={{ padding: '40px', textAlign: 'center', color: '#b3b3b3' }}>
-                  ⚠️ No cron jobs found. Please run the automation migration.
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Smart Playlists */}
+            <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+              <h3 className="text-lg font-bold text-white mb-4">Smart Playlists</h3>
+              <div className="text-4xl font-bold text-[#ff4a14] mb-2">
+                {status.smart_playlists.total}
+              </div>
+              <p className="text-sm text-gray-400">
+                Last generated: {status.smart_playlists.latest_generation
+                  ? new Date(status.smart_playlists.latest_generation).toLocaleString()
+                  : 'Never'}
+              </p>
+              {status.smart_playlists.by_type && Object.keys(status.smart_playlists.by_type).length > 0 && (
+                <div className="mt-4 space-y-2">
+                  {Object.entries(status.smart_playlists.by_type).map(([type, count]) => (
+                    <div key={type} className="flex justify-between text-sm">
+                      <span className="text-gray-400 capitalize">{type.replace(/_/g, ' ')}</span>
+                      <span className="text-white font-semibold">{count as number}</span>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
 
-            {/* Execution History */}
-            {cronExecutions.length > 0 && (
-              <div style={{ background: '#181818', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
-                <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#ffffff', marginBottom: '16px' }}>
-                  Recent Executions
-                </h2>
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                      <tr style={{ borderBottom: '1px solid #282828' }}>
-                        <th style={{ padding: '12px', textAlign: 'left', color: '#b3b3b3', fontSize: '14px' }}>Job</th>
-                        <th style={{ padding: '12px', textAlign: 'left', color: '#b3b3b3', fontSize: '14px' }}>Status</th>
-                        <th style={{ padding: '12px', textAlign: 'left', color: '#b3b3b3', fontSize: '14px' }}>Started</th>
-                        <th style={{ padding: '12px', textAlign: 'left', color: '#b3b3b3', fontSize: '14px' }}>Message</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {cronExecutions.slice(0, 10).map((exec: any, index: number) => (
-                        <tr key={index} style={{ borderBottom: '1px solid #282828' }}>
-                          <td style={{ padding: '12px', color: '#ffffff' }}>{exec.jobname}</td>
-                          <td style={{ padding: '12px' }}>
-                            <span style={{
-                              padding: '4px 12px',
-                              borderRadius: '12px',
-                              fontSize: '12px',
-                              fontWeight: 600,
-                              background: exec.status === 'succeeded' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-                              color: exec.status === 'succeeded' ? '#4ade80' : '#fca5a5',
-                            }}>
-                              {exec.status.toUpperCase()}
-                            </span>
-                          </td>
-                          <td style={{ padding: '12px', color: '#b3b3b3', fontSize: '13px' }}>
-                            {new Date(exec.start_time).toLocaleString()}
-                          </td>
-                          <td style={{ padding: '12px', color: '#b3b3b3', fontSize: '13px', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {exec.return_message || '—'}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+            {/* Background Tasks */}
+            <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+              <h3 className="text-lg font-bold text-white mb-4">Background Tasks</h3>
+              <div className="text-4xl font-bold text-blue-400 mb-2">
+                {status.background_tasks.total}
               </div>
-            )}
-
-            {/* Smart Playlists Status */}
-            <div style={{ background: '#181818', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#ffffff', marginBottom: '16px' }}>
-                Smart Playlists
-              </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '20px' }}>
-                <div style={{ padding: '16px', background: '#121212', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#ff4a14', marginBottom: '8px' }}>
-                    {status.smart_playlists.total}
-                  </div>
-                  <div style={{ color: '#b3b3b3', fontSize: '14px' }}>Total Playlists</div>
-                </div>
-                {Object.entries(status.smart_playlists.by_type || {}).map(([type, count]) => (
-                  <div key={type} style={{ padding: '16px', background: '#121212', borderRadius: '8px' }}>
-                    <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#ffffff', marginBottom: '8px' }}>
-                      {count as number}
+              <p className="text-sm text-gray-400 mb-4">Total tasks</p>
+              {status.background_tasks.by_status && Object.keys(status.background_tasks.by_status).length > 0 && (
+                <div className="space-y-2">
+                  {Object.entries(status.background_tasks.by_status).map(([statusKey, count]) => (
+                    <div key={statusKey} className="flex justify-between text-sm">
+                      <span className="text-gray-400 capitalize">{statusKey}</span>
+                      <span className={`font-semibold ${
+                        statusKey === 'completed' ? 'text-green-400' :
+                        statusKey === 'failed' ? 'text-red-400' :
+                        statusKey === 'pending' ? 'text-yellow-400' :
+                        'text-white'
+                      }`}>{count as number}</span>
                     </div>
-                    <div style={{ color: '#b3b3b3', fontSize: '12px', textTransform: 'capitalize' }}>
-                      {type.replace(/_/g, ' ')}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div style={{ color: '#b3b3b3', fontSize: '14px' }}>
-                Last generated: {status.smart_playlists.latest_generation
-                  ? new Date(status.smart_playlists.latest_generation).toLocaleString()
-                  : 'Never'}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Background Tasks Status */}
-            <div style={{ background: '#181818', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#ffffff', marginBottom: '16px' }}>
-                Background Tasks Queue
-              </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '16px' }}>
-                <div style={{ padding: '16px', background: '#121212', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#ff4a14', marginBottom: '8px' }}>
-                    {status.background_tasks.total}
-                  </div>
-                  <div style={{ color: '#b3b3b3', fontSize: '14px' }}>Total Tasks</div>
-                </div>
-                {Object.entries(status.background_tasks.by_status || {}).map(([statusName, count]) => (
-                  <div key={statusName} style={{ padding: '16px', background: '#121212', borderRadius: '8px' }}>
-                    <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#ffffff', marginBottom: '8px' }}>
-                      {count as number}
-                    </div>
-                    <div style={{ color: '#b3b3b3', fontSize: '12px', textTransform: 'capitalize' }}>
-                      {statusName}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Trending Tracks Status */}
-            <div style={{ background: '#181818', borderRadius: '12px', padding: '24px' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#ffffff', marginBottom: '16px' }}>
-                Trending Tracks
-              </h2>
-              <div style={{ color: '#b3b3b3', fontSize: '14px' }}>
-                Last calculated: {status.trending_tracks.last_calculated
+            {/* Trending Tracks */}
+            <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+              <h3 className="text-lg font-bold text-white mb-4">Trending Tracks</h3>
+              <div className="text-sm text-gray-400 mb-2">Last calculated</div>
+              <p className="text-white">
+                {status.trending_tracks.last_calculated
                   ? new Date(status.trending_tracks.last_calculated).toLocaleString()
                   : 'Never'}
-              </div>
+              </p>
             </div>
-          </>
+          </div>
         )}
-
-        {/* Refresh Button */}
-        <div style={{ marginTop: '24px', textAlign: 'center' }}>
-          <button
-            onClick={() => {
-              fetchStatus();
-              fetchCronExecutions();
-            }}
-            disabled={loading}
-            style={{
-              padding: '12px 32px',
-              background: loading ? '#282828' : '#333333',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: 600,
-              cursor: loading ? 'not-allowed' : 'pointer',
-              transition: 'all 0.2s',
-            }}
-            onMouseOver={(e) => {
-              if (!loading) e.currentTarget.style.background = '#444444';
-            }}
-            onMouseOut={(e) => {
-              if (!loading) e.currentTarget.style.background = '#333333';
-            }}
-          >
-            {loading ? 'Refreshing...' : '🔄 Refresh Status'}
-          </button>
-        </div>
       </div>
     </AdminLayout>
   );
-}
-
-// Helper function to describe cron schedule
-function getCronDescription(schedule: string): string {
-  const patterns: Record<string, string> = {
-    '0 2 * * *': 'Daily at 2:00 AM',
-    '0 3 * * *': 'Daily at 3:00 AM',
-    '0 */6 * * *': 'Every 6 hours',
-    '0 4 * * 0': 'Sundays at 4:00 AM',
-    '0 5 * * *': 'Daily at 5:00 AM',
-  };
-
-  return patterns[schedule] || 'Custom schedule';
-}
-
-// Helper function to calculate next run time (simplified)
-function getNextRunTime(schedule: string): string {
-  // This is a simplified version - in production, use a proper cron parser
-  const now = new Date();
-  const patterns: Record<string, string> = {
-    '0 2 * * *': getNextTime(2, 0),
-    '0 3 * * *': getNextTime(3, 0),
-    '0 */6 * * *': 'Every 6 hours',
-    '0 4 * * 0': getNextSunday(4, 0),
-    '0 5 * * *': getNextTime(5, 0),
-  };
-
-  return patterns[schedule] || 'See schedule';
-}
-
-function getNextTime(hour: number, minute: number): string {
-  const now = new Date();
-  const next = new Date();
-  next.setHours(hour, minute, 0, 0);
-
-  if (next <= now) {
-    next.setDate(next.getDate() + 1);
-  }
-
-  return next.toLocaleString();
-}
-
-function getNextSunday(hour: number, minute: number): string {
-  const now = new Date();
-  const next = new Date();
-  next.setHours(hour, minute, 0, 0);
-
-  // Get next Sunday
-  const daysUntilSunday = (7 - now.getDay()) % 7 || 7;
-  next.setDate(now.getDate() + daysUntilSunday);
-
-  return next.toLocaleString();
 }
