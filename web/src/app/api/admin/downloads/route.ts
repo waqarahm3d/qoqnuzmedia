@@ -81,17 +81,49 @@ export async function POST(request: NextRequest) {
     // Check whitelist if enabled
     const whitelistEnabled = process.env.DOWNLOAD_WHITELIST_ENABLED === 'true';
     if (whitelistEnabled) {
-      // Extract identifier from URL (simplified - you may need more robust parsing)
+      // Extract identifier from URL
+      let identifier: string | null = null;
+
+      if (source_type === 'youtube') {
+        // Extract channel ID from YouTube URL
+        // Supports: /channel/UC..., /@username, /c/channelname
+        const channelMatch = url.match(/\/channel\/(UC[\w-]+)/);
+        const handleMatch = url.match(/\/@([\w-]+)/);
+        const customMatch = url.match(/\/c\/([\w-]+)/);
+
+        identifier = channelMatch?.[1] || handleMatch?.[1] || customMatch?.[1] || null;
+      } else if (source_type === 'soundcloud') {
+        // Extract username from SoundCloud URL
+        // Supports: soundcloud.com/username
+        const userMatch = url.match(/soundcloud\.com\/([\w-]+)/);
+        identifier = userMatch?.[1] || null;
+      }
+
+      if (!identifier) {
+        return apiValidationError('Unable to extract channel/user identifier from URL for whitelist check');
+      }
+
+      // Check if identifier is in whitelist
       const { data: whitelistEntries } = await supabase
         .from('download_whitelist')
         .select('*')
         .eq('source_type', source_type === 'youtube' ? 'youtube_channel' : 'soundcloud_user')
         .eq('enabled', true);
 
-      // TODO: Implement proper whitelist checking based on URL
-      // For now, just log a warning
-      if (whitelistEntries && whitelistEntries.length === 0) {
-        console.warn('Whitelist is enabled but no entries found');
+      if (!whitelistEntries || whitelistEntries.length === 0) {
+        return apiError('Whitelist is enabled but no entries found. Please add approved channels/users first.', 403);
+      }
+
+      // Check if extracted identifier matches any whitelist entry
+      const isWhitelisted = whitelistEntries.some(
+        entry => entry.identifier === identifier || url.includes(entry.identifier)
+      );
+
+      if (!isWhitelisted) {
+        return apiError(
+          `This ${source_type === 'youtube' ? 'channel' : 'user'} is not whitelisted. Only approved channels/users can be downloaded.`,
+          403
+        );
       }
     }
 
