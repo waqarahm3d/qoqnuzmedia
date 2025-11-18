@@ -267,9 +267,9 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- COMMENTS
 -- ================================================================
 
-COMMENT ON FUNCTION get_user_favorite_genres IS 'Returns user's most listened genres from play history';
-COMMENT ON FUNCTION get_user_favorite_artists IS 'Returns user's most listened artists from play history';
+COMMENT ON FUNCTION get_user_favorite_genres IS 'Returns user''s most listened genres from play history';
+COMMENT ON FUNCTION get_user_favorite_artists IS 'Returns user''s most listened artists from play history';
 COMMENT ON FUNCTION get_unplayed_tracks IS 'Returns tracks the user has not played recently';
-COMMENT ON FUNCTION calculate_user_taste_profile IS 'Calculates and caches user's music preferences';
+COMMENT ON FUNCTION calculate_user_taste_profile IS 'Calculates and caches user''s music preferences';
 COMMENT ON FUNCTION find_similar_tracks IS 'Finds similar tracks using multi-factor similarity algorithm';
 COMMENT ON FUNCTION compute_track_similarities_batch IS 'Batch processes track similarities for performance';
