@@ -5,9 +5,11 @@ import { useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
+import { useAuth } from '@/lib/auth/AuthContext';
 import { supabase } from '@/lib/supabase-client';
 import { getMediaUrl } from '@/lib/media-utils';
 import { EmbedModal } from '@/components/ui/EmbedModal';
+import { TrackContextMenu } from '@/components/player/TrackContextMenu';
 
 interface Track {
   id: string;
@@ -39,6 +41,7 @@ export default function TrackPage() {
   const trackId = params?.trackId as string;
   const router = useRouter();
   const { playTrack, currentTrack, isPlaying } = usePlayer();
+  const { user } = useAuth();
   const [track, setTrack] = useState<Track | null>(null);
   const [loading, setLoading] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
@@ -47,6 +50,7 @@ export default function TrackPage() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [userReactions, setUserReactions] = useState<string[]>([]);
   const [showEmbedModal, setShowEmbedModal] = useState(false);
+  const [showContextMenu, setShowContextMenu] = useState(false);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -117,6 +121,12 @@ export default function TrackPage() {
   };
 
   const handleLike = async () => {
+    // Check authentication first
+    if (!user) {
+      router.push('/auth/signin');
+      return;
+    }
+
     try {
       if (isLiked) {
         // Unlike
@@ -139,7 +149,7 @@ export default function TrackPage() {
           setLikeCount(prev => prev + 1);
         } else if (response.status === 401) {
           // Not authenticated
-          alert('Please sign in to like tracks');
+          router.push('/auth/signin');
         }
       }
     } catch (error) {
@@ -148,6 +158,12 @@ export default function TrackPage() {
   };
 
   const handleReaction = async (emoji: string) => {
+    // Check authentication first
+    if (!user) {
+      router.push('/auth/signin');
+      return;
+    }
+
     try {
       const hasReacted = userReactions.includes(emoji);
 
@@ -185,7 +201,7 @@ export default function TrackPage() {
             }
           });
         } else if (response.status === 401) {
-          alert('Please sign in to react to tracks');
+          router.push('/auth/signin');
         }
       }
     } catch (error) {
@@ -299,7 +315,7 @@ export default function TrackPage() {
             {/* Track Info */}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold uppercase mb-2">Song</p>
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 break-words">
+              <h1 className="responsive-heading-xl font-bold mb-4 break-words">
                 {track.title}
               </h1>
               <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -451,6 +467,7 @@ export default function TrackPage() {
 
             {/* More Options */}
             <button
+              onClick={() => setShowContextMenu(true)}
               className="text-gray-400 hover:text-white transition-colors"
               title="More options"
             >
@@ -601,6 +618,17 @@ export default function TrackPage() {
           type="track"
           id={track.id}
           title={`${track.title} - ${track.artists.name}`}
+        />
+      )}
+
+      {/* Track Context Menu */}
+      {track && showContextMenu && (
+        <TrackContextMenu
+          trackId={track.id}
+          trackTitle={track.title}
+          artistId={track.artist_id}
+          albumId={track.album_id || undefined}
+          onClose={() => setShowContextMenu(false)}
         />
       )}
     </div>

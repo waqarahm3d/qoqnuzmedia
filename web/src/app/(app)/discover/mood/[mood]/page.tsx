@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { TrackRow } from '@/components/ui/TrackRow';
 import { useParams, useRouter } from 'next/navigation';
 import { getMediaUrl } from '@/lib/media-utils';
+import { SparklesIcon, HeartIcon, HeartFilledIcon, MusicIcon } from '@/components/icons';
+import { createBrowserSupabaseClient } from '@/lib/supabase';
 
 const formatDuration = (ms: number) => {
   const minutes = Math.floor(ms / 60000);
@@ -11,15 +13,15 @@ const formatDuration = (ms: number) => {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 };
 
-const moodInfo: Record<string, { emoji: string; title: string; description: string }> = {
-  happy: { emoji: '😊', title: 'Happy & Upbeat', description: 'Joyful tracks to lift your spirits' },
-  sad: { emoji: '😢', title: 'Sad & Melancholic', description: 'Emotional music for reflection' },
-  energetic: { emoji: '⚡', title: 'Energetic & Powerful', description: 'High-energy tracks to pump you up' },
-  chill: { emoji: '😌', title: 'Chill & Relaxed', description: 'Laid-back vibes for relaxation' },
-  focused: { emoji: '🎯', title: 'Focused & Productive', description: 'Music to help you concentrate' },
-  romantic: { emoji: '❤️', title: 'Romantic & Intimate', description: 'Love songs and intimate moments' },
-  angry: { emoji: '😠', title: 'Angry & Aggressive', description: 'Intense tracks to channel emotions' },
-  peaceful: { emoji: '☮️', title: 'Peaceful & Calm', description: 'Tranquil music for inner peace' },
+const moodInfo: Record<string, { icon: React.ComponentType<any>; title: string; description: string }> = {
+  happy: { icon: SparklesIcon, title: 'Happy & Upbeat', description: 'Joyful tracks to lift your spirits' },
+  sad: { icon: HeartIcon, title: 'Sad & Melancholic', description: 'Emotional music for reflection' },
+  energetic: { icon: SparklesIcon, title: 'Energetic & Powerful', description: 'High-energy tracks to pump you up' },
+  chill: { icon: MusicIcon, title: 'Chill & Relaxed', description: 'Laid-back vibes for relaxation' },
+  focused: { icon: MusicIcon, title: 'Focused & Productive', description: 'Music to help you concentrate' },
+  romantic: { icon: HeartFilledIcon, title: 'Romantic & Intimate', description: 'Love songs and intimate moments' },
+  angry: { icon: SparklesIcon, title: 'Angry & Aggressive', description: 'Intense tracks to channel emotions' },
+  peaceful: { icon: MusicIcon, title: 'Peaceful & Calm', description: 'Tranquil music for inner peace' },
 };
 
 export default function MoodBrowsePage() {
@@ -29,10 +31,30 @@ export default function MoodBrowsePage() {
   const [tracks, setTracks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
-  const info = moodInfo[mood] || { emoji: '🎵', title: mood, description: 'Browse tracks by mood' };
+  const info = moodInfo[mood] || { icon: MusicIcon, title: mood, description: 'Browse tracks by mood' };
+  const IconComponent = info.icon;
 
   useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createBrowserSupabaseClient();
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        router.push('/auth/signin');
+        return;
+      }
+
+      setIsAuthenticated(true);
+    };
+
+    checkAuth();
+  }, [router]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
     const fetchTracks = async () => {
       setLoading(true);
       setError(null);
@@ -45,7 +67,8 @@ export default function MoodBrowsePage() {
         }
 
         const data = await response.json();
-        setTracks(data.data.tracks || []);
+        // API returns data directly via apiSuccess(), not wrapped in data.data
+        setTracks(data.tracks || []);
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -54,7 +77,15 @@ export default function MoodBrowsePage() {
     };
 
     fetchTracks();
-  }, [mood]);
+  }, [mood, isAuthenticated]);
+
+  if (isAuthenticated === null) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -78,7 +109,9 @@ export default function MoodBrowsePage() {
       </button>
 
       <div className="mb-8">
-        <div className="text-6xl mb-4">{info.emoji}</div>
+        <div className="mb-4">
+          <IconComponent className="text-primary" size={64} />
+        </div>
         <h1 className="text-4xl font-bold mb-2 capitalize">{info.title}</h1>
         <p className="text-white/60">{info.description}</p>
       </div>

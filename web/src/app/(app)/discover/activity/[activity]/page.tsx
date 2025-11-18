@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { TrackRow } from '@/components/ui/TrackRow';
 import { useParams, useRouter } from 'next/navigation';
 import { getMediaUrl } from '@/lib/media-utils';
+import { SparklesIcon, MusicIcon } from '@/components/icons';
+import { createBrowserSupabaseClient } from '@/lib/supabase';
 
 const formatDuration = (ms: number) => {
   const minutes = Math.floor(ms / 60000);
@@ -11,15 +13,15 @@ const formatDuration = (ms: number) => {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 };
 
-const activityInfo: Record<string, { emoji: string; title: string; description: string }> = {
-  workout: { emoji: '💪', title: 'Workout', description: 'High-energy tracks for your gym session' },
-  running: { emoji: '🏃', title: 'Running', description: 'Perfect cadence for your run' },
-  study: { emoji: '📚', title: 'Study & Focus', description: 'Concentration-friendly music' },
-  sleep: { emoji: '😴', title: 'Sleep & Rest', description: 'Calm tracks for peaceful sleep' },
-  party: { emoji: '🎉', title: 'Party', description: 'Dance and celebration music' },
-  driving: { emoji: '🚗', title: 'Driving', description: 'Road trip soundtrack' },
-  cooking: { emoji: '👨‍🍳', title: 'Cooking', description: 'Kitchen background music' },
-  meditation: { emoji: '🧘', title: 'Meditation', description: 'Mindful and peaceful tracks' },
+const activityInfo: Record<string, { icon: React.ComponentType<any>; title: string; description: string }> = {
+  workout: { icon: SparklesIcon, title: 'Workout', description: 'High-energy tracks for your gym session' },
+  running: { icon: SparklesIcon, title: 'Running', description: 'Perfect cadence for your run' },
+  study: { icon: MusicIcon, title: 'Study & Focus', description: 'Concentration-friendly music' },
+  sleep: { icon: MusicIcon, title: 'Sleep & Rest', description: 'Calm tracks for peaceful sleep' },
+  party: { icon: SparklesIcon, title: 'Party', description: 'Dance and celebration music' },
+  driving: { icon: MusicIcon, title: 'Driving', description: 'Road trip soundtrack' },
+  cooking: { icon: MusicIcon, title: 'Cooking', description: 'Kitchen background music' },
+  meditation: { icon: MusicIcon, title: 'Meditation', description: 'Mindful and peaceful tracks' },
 };
 
 export default function ActivityBrowsePage() {
@@ -29,10 +31,30 @@ export default function ActivityBrowsePage() {
   const [tracks, setTracks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
-  const info = activityInfo[activity] || { emoji: '🎵', title: activity, description: 'Browse tracks by activity' };
+  const info = activityInfo[activity] || { icon: MusicIcon, title: activity, description: 'Browse tracks by activity' };
+  const IconComponent = info.icon;
 
   useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createBrowserSupabaseClient();
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        router.push('/auth/signin');
+        return;
+      }
+
+      setIsAuthenticated(true);
+    };
+
+    checkAuth();
+  }, [router]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
     const fetchTracks = async () => {
       setLoading(true);
       setError(null);
@@ -45,7 +67,8 @@ export default function ActivityBrowsePage() {
         }
 
         const data = await response.json();
-        setTracks(data.data.tracks || []);
+        // API returns data directly via apiSuccess(), not wrapped in data.data
+        setTracks(data.tracks || []);
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -54,7 +77,15 @@ export default function ActivityBrowsePage() {
     };
 
     fetchTracks();
-  }, [activity]);
+  }, [activity, isAuthenticated]);
+
+  if (isAuthenticated === null) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -78,7 +109,9 @@ export default function ActivityBrowsePage() {
       </button>
 
       <div className="mb-8">
-        <div className="text-6xl mb-4">{info.emoji}</div>
+        <div className="mb-4">
+          <IconComponent className="text-primary" size={64} />
+        </div>
         <h1 className="text-4xl font-bold mb-2 capitalize">{info.title}</h1>
         <p className="text-white/60">{info.description}</p>
       </div>

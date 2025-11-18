@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SmartPlaylistCard } from '@/components/playlists/SmartPlaylistCard';
 import { TrackRow } from '@/components/ui/TrackRow';
 import { useRouter } from 'next/navigation';
 import { getMediaUrl } from '@/lib/media-utils';
+import { MusicIcon, SparklesIcon, HeartFilledIcon, DiscoverIcon } from '@/components/icons';
 
 const formatDuration = (ms: number) => {
   const minutes = Math.floor(ms / 60000);
@@ -23,10 +24,12 @@ interface SmartPlaylistResult {
 }
 
 export default function SmartPlaylistsPage() {
+  const [playlists, setPlaylists] = useState<Record<string, SmartPlaylistResult>>({});
   const [activePlaylist, setActivePlaylist] = useState<{
     type: string;
     data: SmartPlaylistResult | null;
   } | null>(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   const smartPlaylists = [
@@ -34,45 +37,61 @@ export default function SmartPlaylistsPage() {
       type: 'daily_mix',
       title: 'Daily Mix',
       description: 'Your personalized mix based on recent listening',
-      icon: '🎧',
+      icon: MusicIcon,
     },
     {
       type: 'new_for_you',
       title: 'New for You',
       description: 'Recent uploads in your favorite genres',
-      icon: '✨',
+      icon: SparklesIcon,
     },
     {
       type: 'forgotten_favorites',
       title: 'Forgotten Favorites',
       description: 'Liked tracks you haven\'t played in a while',
-      icon: '💎',
+      icon: HeartFilledIcon,
     },
     {
       type: 'discovery',
       title: 'Discovery Weekly',
       description: 'Similar tracks to your favorites, but unheard',
-      icon: '🔍',
+      icon: DiscoverIcon,
     },
   ];
 
-  const generatePlaylist = async (type: string) => {
-    try {
-      const response = await fetch(`/api/playlists/smart?type=${type}&limit=50`);
+  // Auto-generate all playlists on mount
+  useEffect(() => {
+    const generateAllPlaylists = async () => {
+      setLoading(true);
+      const results: Record<string, SmartPlaylistResult> = {};
 
-      if (!response.ok) {
-        throw new Error('Failed to generate playlist');
+      for (const playlist of smartPlaylists) {
+        try {
+          const response = await fetch(`/api/playlists/smart?type=${playlist.type}&limit=50`);
+
+          if (response.ok) {
+            const data = await response.json();
+            results[playlist.type] = data.data.playlist || data.data;
+          }
+        } catch (error) {
+          console.error(`Error generating ${playlist.type}:`, error);
+        }
       }
 
-      const data = await response.json();
+      setPlaylists(results);
+      setLoading(false);
+    };
 
+    generateAllPlaylists();
+  }, []);
+
+  const viewPlaylist = (type: string) => {
+    const playlistData = playlists[type];
+    if (playlistData) {
       setActivePlaylist({
         type,
-        data: data.data.playlist || data.data,
+        data: playlistData,
       });
-    } catch (error) {
-      console.error('Error generating playlist:', error);
-      alert('Failed to generate playlist. Please try again.');
     }
   };
 
@@ -83,38 +102,68 @@ export default function SmartPlaylistsPage() {
   return (
     <div className="px-4 lg:px-8 py-6">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Smart Playlists</h1>
-        <p className="text-white/60">Auto-generated playlists based on your listening habits</p>
+        <h1 className="responsive-heading-lg font-bold mb-2">Smart Playlists</h1>
+        <p className="text-white/60 responsive-text">Auto-generated playlists based on your listening habits</p>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      )}
+
       {/* Smart Playlist Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        {smartPlaylists.map((playlist) => (
-          <SmartPlaylistCard
-            key={playlist.type}
-            title={playlist.title}
-            description={playlist.description}
-            icon={playlist.icon}
-            type={playlist.type}
-            trackCount={
-              activePlaylist?.type === playlist.type
-                ? activePlaylist.data?.tracks.length
-                : undefined
-            }
-            onGenerate={() => generatePlaylist(playlist.type)}
-          />
-        ))}
-      </div>
+      {!loading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          {smartPlaylists.map((playlist) => {
+            const Icon = playlist.icon;
+            const playlistData = playlists[playlist.type];
+
+            return (
+              <div
+                key={playlist.type}
+                onClick={() => viewPlaylist(playlist.type)}
+                className="group relative bg-surface/40 hover:bg-surface rounded-lg p-6 transition-all duration-300 hover:shadow-xl cursor-pointer"
+              >
+                <div className="flex items-start gap-4">
+                  {/* Icon */}
+                  <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Icon size={32} className="text-primary" />
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-lg text-white mb-1">{playlist.title}</h3>
+                    <p className="text-sm text-white/60 mb-3">{playlist.description}</p>
+
+                    {playlistData && (
+                      <p className="text-xs text-white/40">{playlistData.tracks.length} tracks</p>
+                    )}
+                  </div>
+
+                  {/* Play Button */}
+                  <button
+                    className="px-4 py-2 bg-primary hover:bg-[#ff5c2e] text-black font-semibold rounded-full transition-all duration-200 hover:scale-105 flex items-center gap-2"
+                  >
+                    <span>View</span>
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Generated Playlist */}
       {activePlaylist && activePlaylist.data && (
         <div className="mt-8">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-2xl font-bold">
+              <h2 className="responsive-heading-md font-bold">
                 {getPlaylistInfo(activePlaylist.type)?.title}
               </h2>
-              <p className="text-white/60 text-sm">
+              <p className="text-white/60 responsive-text">
                 {activePlaylist.data.tracks.length} tracks • Generated just now
               </p>
             </div>
@@ -172,10 +221,10 @@ export default function SmartPlaylistsPage() {
       )}
 
       {/* Empty State */}
-      {!activePlaylist && (
+      {!loading && !activePlaylist && Object.keys(playlists).length === 0 && (
         <div className="text-center py-12 text-white/40">
-          <div className="text-6xl mb-4">🎵</div>
-          <p>Click "Generate" on any playlist to get started</p>
+          <MusicIcon size={64} className="mx-auto mb-4 text-white/20" />
+          <p>Listen to more music to get personalized playlists</p>
         </div>
       )}
     </div>

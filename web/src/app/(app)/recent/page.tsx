@@ -65,12 +65,16 @@ export default function RecentPage() {
             return (
               <TrackRow
                 key={`${track.id}-${index}`}
+                number={index + 1}
                 title={track.title}
                 artist={track.artists?.name || track.artist || 'Unknown Artist'}
                 album={track.albums?.title || track.album || 'Unknown Album'}
                 duration={track.duration_ms ? `${Math.floor(track.duration_ms / 60000)}:${String(Math.floor((track.duration_ms % 60000) / 1000)).padStart(2, '0')}` : '0:00'}
                 image={getMediaUrl(track.albums?.cover_art_url || track.image)}
                 showImage={true}
+                trackId={track.id}
+                artistId={track.artist_id || track.artists?.id}
+                albumId={track.album_id || track.albums?.id}
                 onPlay={() => handlePlayTrack(track)}
                 onLike={() => {}}
               />

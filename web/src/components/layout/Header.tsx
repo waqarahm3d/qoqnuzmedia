@@ -73,93 +73,102 @@ export const Header = () => {
           </button>
         </div>
 
-        {/* User Menu */}
-        <div className="relative" ref={dropdownRef}>
-          <button
-            onClick={() => setShowDropdown(!showDropdown)}
-            className="flex items-center gap-2 bg-black/40 hover:bg-black/60 rounded-full px-1 pr-3 py-1 transition-colors"
-          >
-            <div className="w-7 h-7 rounded-full bg-surface flex items-center justify-center">
-              <UserIcon size={16} />
-            </div>
-            <span className="text-sm font-semibold hidden sm:inline">
-              {user?.email?.split('@')[0] || 'User'}
-            </span>
-          </button>
-
-          {/* Dropdown Menu */}
-          {showDropdown && (
-            <div className="absolute right-0 mt-2 w-56 bg-surface rounded-md shadow-xl border border-white/10 py-1 z-50">
-              <Link
-                href="/profile"
-                className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/5 transition-colors"
-                onClick={() => setShowDropdown(false)}
-              >
+        {/* User Menu or Sign In */}
+        {user ? (
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setShowDropdown(!showDropdown)}
+              className="flex items-center gap-2 bg-black/40 hover:bg-black/60 rounded-full px-1 pr-3 py-1 transition-colors"
+            >
+              <div className="w-7 h-7 rounded-full bg-surface flex items-center justify-center">
                 <UserIcon size={16} />
-                Profile
-              </Link>
-              <div className="border-t border-white/10 my-1" />
-              <Link
-                href="/playlists/smart"
-                className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/5 transition-colors"
-                onClick={() => setShowDropdown(false)}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z" />
-                  <path d="M19 12l.75 2.25L22 15l-2.25.75L19 18l-.75-2.25L16 15l2.25-.75L19 12z" />
-                </svg>
-                Smart Playlists
-              </Link>
-              <Link
-                href="/discover"
-                className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/5 transition-colors lg:hidden"
-                onClick={() => setShowDropdown(false)}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                </svg>
-                Discover
-              </Link>
-              <div className="border-t border-white/10 my-1" />
-              <Link
-                href="/settings"
-                className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/5 transition-colors"
-                onClick={() => setShowDropdown(false)}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="3" />
-                  <path d="M12 1v6m0 6v6m6-9h-6m0 0H6m6 0V7" />
-                </svg>
-                Settings
-              </Link>
-              {isAdmin && (
-                <>
-                  <div className="border-t border-white/10 my-1" />
-                  <Link
-                    href="/admin"
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/5 transition-colors text-[#ff5c2e]"
-                    onClick={() => setShowDropdown(false)}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                      <path d="M2 17l10 5 10-5" />
-                      <path d="M2 12l10 5 10-5" />
-                    </svg>
-                    Admin Panel
-                  </Link>
-                </>
-              )}
-              <div className="border-t border-white/10 my-1" />
-              <button
-                onClick={handleSignOut}
-                className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/5 transition-colors w-full text-left"
-              >
-                <LogoutIcon size={16} />
-                Log out
-              </button>
-            </div>
-          )}
-        </div>
+              </div>
+              <span className="text-sm font-semibold hidden sm:inline">
+                {user?.email?.split('@')[0] || 'User'}
+              </span>
+            </button>
+
+            {/* Dropdown Menu */}
+            {showDropdown && (
+              <div className="absolute right-0 mt-2 w-56 bg-surface rounded-md shadow-xl border border-white/10 py-1 z-50">
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/5 transition-colors"
+                  onClick={() => setShowDropdown(false)}
+                >
+                  <UserIcon size={16} />
+                  Profile
+                </Link>
+                <div className="border-t border-white/10 my-1" />
+                <Link
+                  href="/playlists/smart"
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/5 transition-colors"
+                  onClick={() => setShowDropdown(false)}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z" />
+                    <path d="M19 12l.75 2.25L22 15l-2.25.75L19 18l-.75-2.25L16 15l2.25-.75L19 12z" />
+                  </svg>
+                  Smart Playlists
+                </Link>
+                <Link
+                  href="/discover"
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/5 transition-colors lg:hidden"
+                  onClick={() => setShowDropdown(false)}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                  </svg>
+                  Discover
+                </Link>
+                <div className="border-t border-white/10 my-1" />
+                <Link
+                  href="/settings"
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/5 transition-colors"
+                  onClick={() => setShowDropdown(false)}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M12 1v6m0 6v6m6-9h-6m0 0H6m6 0V7" />
+                  </svg>
+                  Settings
+                </Link>
+                {isAdmin && (
+                  <>
+                    <div className="border-t border-white/10 my-1" />
+                    <Link
+                      href="/admin"
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/5 transition-colors text-[#ff5c2e]"
+                      onClick={() => setShowDropdown(false)}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                        <path d="M2 17l10 5 10-5" />
+                        <path d="M2 12l10 5 10-5" />
+                      </svg>
+                      Admin Panel
+                    </Link>
+                  </>
+                )}
+                <div className="border-t border-white/10 my-1" />
+                <button
+                  onClick={handleSignOut}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/5 transition-colors w-full text-left"
+                >
+                  <LogoutIcon size={16} />
+                  Log out
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <Link
+            href="/auth/signin"
+            className="flex items-center gap-2 bg-white text-black hover:bg-white/90 rounded-full px-6 py-2 font-semibold transition-colors"
+          >
+            Sign In
+          </Link>
+        )}
       </div>
     </header>
   );

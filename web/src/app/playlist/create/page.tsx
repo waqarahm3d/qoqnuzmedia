@@ -33,11 +33,13 @@ export default function CreatePlaylistPage() {
 
     try {
       const result = await createPlaylist(name, description || undefined);
-      // Redirect to the new playlist
+      // The API returns { playlist: { id, name, ... } }
       if (result && (result as any).playlist?.id) {
         router.push(`/playlist/${(result as any).playlist.id}`);
       } else {
-        router.push('/');
+        // Fallback: redirect to library
+        setError('Playlist created but could not navigate to it');
+        setTimeout(() => router.push('/library'), 2000);
       }
     } catch (err: any) {
       setError(err.message || 'Failed to create playlist');

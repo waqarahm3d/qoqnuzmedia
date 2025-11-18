@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { SearchIcon } from '@/components/icons';
+import { SearchIcon, MusicIcon, MicrophoneIcon, AlbumIcon, PlaylistIcon } from '@/components/icons';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 import { TrackRow } from '@/components/ui/TrackRow';
@@ -108,20 +108,27 @@ function SearchContent() {
           {/* Tracks */}
           {(activeTab === 'all' || activeTab === 'tracks') && results.tracks && results.tracks.length > 0 && (
             <section>
-              <h2 className="text-2xl font-bold mb-4">Songs</h2>
+              <div className="flex items-center gap-2 mb-4">
+                <MusicIcon size={24} className="text-primary" />
+                <h2 className="responsive-heading-md font-bold">Songs</h2>
+              </div>
               <div className="space-y-1">
                 {results.tracks.slice(0, activeTab === 'all' ? 4 : undefined).map((track: any) => (
-                  <TrackRow
-                    key={track.id}
-                    title={track.title}
-                    artist={track.artists?.name || 'Unknown Artist'}
-                    album={track.albums?.title || 'Unknown Album'}
-                    duration={track.duration_ms ? `${Math.floor(track.duration_ms / 60000)}:${String(Math.floor((track.duration_ms % 60000) / 1000)).padStart(2, '0')}` : '0:00'}
-                    image={getMediaUrl(track.albums?.cover_art_url)}
-                    showImage={true}
-                    onPlay={() => handlePlayTrack(track)}
-                    onLike={() => console.log('Like track:', track.id)}
-                  />
+                  <div key={track.id} className="group relative">
+                    <TrackRow
+                      title={track.title}
+                      artist={track.artists?.name || 'Unknown Artist'}
+                      album={track.albums?.title || 'Unknown Album'}
+                      duration={track.duration_ms ? `${Math.floor(track.duration_ms / 60000)}:${String(Math.floor((track.duration_ms % 60000) / 1000)).padStart(2, '0')}` : '0:00'}
+                      image={getMediaUrl(track.albums?.cover_art_url)}
+                      showImage={true}
+                      onPlay={() => handlePlayTrack(track)}
+                      onLike={() => console.log('Like track:', track.id)}
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-white/40 bg-white/5 px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                      Track
+                    </span>
+                  </div>
                 ))}
               </div>
               {activeTab === 'all' && results.tracks.length > 4 && (
@@ -138,17 +145,24 @@ function SearchContent() {
           {/* Artists */}
           {(activeTab === 'all' || activeTab === 'artists') && results.artists && results.artists.length > 0 && (
             <section>
-              <h2 className="text-2xl font-bold mb-4">Artists</h2>
+              <div className="flex items-center gap-2 mb-4">
+                <MicrophoneIcon size={24} className="text-primary" />
+                <h2 className="responsive-heading-md font-bold">Artists</h2>
+              </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                 {results.artists.slice(0, activeTab === 'all' ? 6 : undefined).map((artist: any) => (
-                  <Card
-                    key={artist.id}
-                    title={artist.name}
-                    subtitle="Artist"
-                    href={`/artist/${artist.id}`}
-                    image={getMediaUrl(artist.avatar_url)}
-                    type="circle"
-                  />
+                  <div key={artist.id} className="relative group">
+                    <Card
+                      title={artist.name}
+                      subtitle="Artist"
+                      href={`/artist/${artist.id}`}
+                      image={getMediaUrl(artist.avatar_url)}
+                      type="circle"
+                    />
+                    <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-full text-xs text-white/80 opacity-0 group-hover:opacity-100 transition-opacity">
+                      Artist
+                    </div>
+                  </div>
                 ))}
               </div>
             </section>
@@ -157,17 +171,24 @@ function SearchContent() {
           {/* Albums */}
           {(activeTab === 'all' || activeTab === 'albums') && results.albums && results.albums.length > 0 && (
             <section>
-              <h2 className="text-2xl font-bold mb-4">Albums</h2>
+              <div className="flex items-center gap-2 mb-4">
+                <AlbumIcon size={24} className="text-primary" />
+                <h2 className="responsive-heading-md font-bold">Albums</h2>
+              </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                 {results.albums.slice(0, activeTab === 'all' ? 6 : undefined).map((album: any) => (
-                  <Card
-                    key={album.id}
-                    title={album.title}
-                    subtitle={album.artists?.name || 'Unknown Artist'}
-                    href={`/album/${album.id}`}
-                    image={getMediaUrl(album.cover_art_url)}
-                    onPlay={() => window.location.href = `/album/${album.id}`}
-                  />
+                  <div key={album.id} className="relative group">
+                    <Card
+                      title={album.title}
+                      subtitle={album.artists?.name || 'Unknown Artist'}
+                      href={`/album/${album.id}`}
+                      image={getMediaUrl(album.cover_art_url)}
+                      onPlay={() => window.location.href = `/album/${album.id}`}
+                    />
+                    <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-full text-xs text-white/80 opacity-0 group-hover:opacity-100 transition-opacity">
+                      Album
+                    </div>
+                  </div>
                 ))}
               </div>
             </section>
@@ -176,17 +197,24 @@ function SearchContent() {
           {/* Playlists */}
           {(activeTab === 'all' || activeTab === 'playlists') && results.playlists && results.playlists.length > 0 && (
             <section>
-              <h2 className="text-2xl font-bold mb-4">Playlists</h2>
+              <div className="flex items-center gap-2 mb-4">
+                <PlaylistIcon size={24} className="text-primary" />
+                <h2 className="responsive-heading-md font-bold">Playlists</h2>
+              </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                 {results.playlists.slice(0, activeTab === 'all' ? 6 : undefined).map((playlist: any) => (
-                  <Card
-                    key={playlist.id}
-                    title={playlist.name}
-                    subtitle={playlist.description}
-                    href={`/playlist/${playlist.id}`}
-                    image={getMediaUrl(playlist.cover_url)}
-                    onPlay={() => window.location.href = `/playlist/${playlist.id}`}
-                  />
+                  <div key={playlist.id} className="relative group">
+                    <Card
+                      title={playlist.name}
+                      subtitle={playlist.description}
+                      href={`/playlist/${playlist.id}`}
+                      image={getMediaUrl(playlist.cover_url)}
+                      onPlay={() => window.location.href = `/playlist/${playlist.id}`}
+                    />
+                    <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-full text-xs text-white/80 opacity-0 group-hover:opacity-100 transition-opacity">
+                      Playlist
+                    </div>
+                  </div>
                 ))}
               </div>
             </section>
@@ -205,7 +233,7 @@ function SearchContent() {
       {/* Browse Genres (when no search) */}
       {!query && (
         <div>
-          <h2 className="text-2xl font-bold mb-4">Browse all</h2>
+          <h2 className="responsive-heading-md font-bold mb-4">Browse all</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {genres.length > 0 ? (
               genres.map((genre: any, index: number) => {

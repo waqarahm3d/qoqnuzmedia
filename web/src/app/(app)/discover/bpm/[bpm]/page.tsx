@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { TrackRow } from '@/components/ui/TrackRow';
 import { useParams, useRouter } from 'next/navigation';
 import { getMediaUrl } from '@/lib/media-utils';
+import { MusicIcon } from '@/components/icons';
+import { createBrowserSupabaseClient } from '@/lib/supabase';
 
 const formatDuration = (ms: number) => {
   const minutes = Math.floor(ms / 60000);
@@ -19,8 +21,27 @@ export default function BPMBrowsePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [range, setRange] = useState(10);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createBrowserSupabaseClient();
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        router.push('/auth/signin');
+        return;
+      }
+
+      setIsAuthenticated(true);
+    };
+
+    checkAuth();
+  }, [router]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
     const fetchTracks = async () => {
       setLoading(true);
       setError(null);
@@ -33,7 +54,8 @@ export default function BPMBrowsePage() {
         }
 
         const data = await response.json();
-        setTracks(data.data.tracks || []);
+        // API returns data directly via apiSuccess(), not wrapped in data.data
+        setTracks(data.tracks || []);
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -44,7 +66,7 @@ export default function BPMBrowsePage() {
     if (bpm && bpm >= 40 && bpm <= 220) {
       fetchTracks();
     }
-  }, [bpm, range]);
+  }, [bpm, range, isAuthenticated]);
 
   const getActivitySuggestion = (bpm: number) => {
     if (bpm < 80) return 'Perfect for yoga and meditation';
@@ -54,6 +76,14 @@ export default function BPMBrowsePage() {
     if (bpm < 180) return 'Great for running and high-intensity training';
     return 'Ideal for sprinting and HIIT workouts';
   };
+
+  if (isAuthenticated === null) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -77,7 +107,9 @@ export default function BPMBrowsePage() {
       </button>
 
       <div className="mb-8">
-        <div className="text-6xl mb-4">🎵</div>
+        <div className="mb-4">
+          <MusicIcon className="text-primary" size={64} />
+        </div>
         <h1 className="text-4xl font-bold mb-2">{bpm} BPM</h1>
         <p className="text-white/60">{getActivitySuggestion(bpm)}</p>
       </div>
