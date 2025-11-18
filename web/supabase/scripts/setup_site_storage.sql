@@ -16,12 +16,14 @@ ON CONFLICT (id) DO UPDATE SET
   allowed_mime_types = ARRAY['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
 
 -- Policy: Anyone can view site assets (public bucket)
-CREATE POLICY IF NOT EXISTS "Public Site Assets Access"
+DROP POLICY IF EXISTS "Public Site Assets Access" ON storage.objects;
+CREATE POLICY "Public Site Assets Access"
 ON storage.objects FOR SELECT
 USING (bucket_id = 'site-assets');
 
 -- Policy: Admins can upload site assets
-CREATE POLICY IF NOT EXISTS "Admins can upload site assets"
+DROP POLICY IF EXISTS "Admins can upload site assets" ON storage.objects;
+CREATE POLICY "Admins can upload site assets"
 ON storage.objects FOR INSERT
 WITH CHECK (
   bucket_id = 'site-assets'
@@ -31,7 +33,8 @@ WITH CHECK (
 );
 
 -- Policy: Admins can update site assets
-CREATE POLICY IF NOT EXISTS "Admins can update site assets"
+DROP POLICY IF EXISTS "Admins can update site assets" ON storage.objects;
+CREATE POLICY "Admins can update site assets"
 ON storage.objects FOR UPDATE
 USING (
   bucket_id = 'site-assets'
@@ -41,7 +44,8 @@ USING (
 );
 
 -- Policy: Admins can delete site assets
-CREATE POLICY IF NOT EXISTS "Admins can delete site assets"
+DROP POLICY IF EXISTS "Admins can delete site assets" ON storage.objects;
+CREATE POLICY "Admins can delete site assets"
 ON storage.objects FOR DELETE
 USING (
   bucket_id = 'site-assets'
@@ -62,25 +66,29 @@ VALUES (
 ON CONFLICT (id) DO NOTHING;
 
 -- Policies for avatars bucket
-CREATE POLICY IF NOT EXISTS "Public Avatar Access"
+DROP POLICY IF EXISTS "Public Avatar Access" ON storage.objects;
+CREATE POLICY "Public Avatar Access"
 ON storage.objects FOR SELECT
 USING (bucket_id = 'avatars');
 
-CREATE POLICY IF NOT EXISTS "Authenticated users can upload avatars"
+DROP POLICY IF EXISTS "Authenticated users can upload avatars" ON storage.objects;
+CREATE POLICY "Authenticated users can upload avatars"
 ON storage.objects FOR INSERT
 WITH CHECK (
   bucket_id = 'avatars'
   AND auth.role() = 'authenticated'
 );
 
-CREATE POLICY IF NOT EXISTS "Users can update avatars"
+DROP POLICY IF EXISTS "Users can update avatars" ON storage.objects;
+CREATE POLICY "Users can update avatars"
 ON storage.objects FOR UPDATE
 USING (
   bucket_id = 'avatars'
   AND auth.role() = 'authenticated'
 );
 
-CREATE POLICY IF NOT EXISTS "Users can delete avatars"
+DROP POLICY IF EXISTS "Users can delete avatars" ON storage.objects;
+CREATE POLICY "Users can delete avatars"
 ON storage.objects FOR DELETE
 USING (
   bucket_id = 'avatars'
