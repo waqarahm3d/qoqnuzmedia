@@ -9,23 +9,8 @@ import { usePlayer } from '@/lib/contexts/PlayerContext';
 import { TrackRow } from '@/components/ui/TrackRow';
 import { HeartFilledIcon } from '@/components/icons';
 
-interface Track {
-  id: string;
-  title: string;
-  duration_ms: number;
-  artist_id: string;
-  album_id?: string;
-  artists: { id: string; name: string };
-  albums?: { id: string; title: string; cover_art_url: string };
-}
-
-interface LikedTrack {
-  created_at: string;
-  tracks: Track;
-}
-
 export default function LikedSongsPage() {
-  const [tracks, setTracks] = useState<LikedTrack[]>([]);
+  const [tracks, setTracks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const router = useRouter();
@@ -42,7 +27,7 @@ export default function LikedSongsPage() {
   const fetchLikedTracks = async () => {
     try {
       const data = await getLikedTracks();
-      setTracks(data);
+      setTracks(data || []);
     } catch (error) {
       console.error('Failed to fetch liked tracks:', error);
     } finally {
@@ -95,7 +80,8 @@ export default function LikedSongsPage() {
         <div className="bg-black/20 rounded-lg p-4">
           <div className="space-y-2">
             {tracks.map((item, index) => {
-              const track = item.tracks;
+              // Handle both array and object returns from Supabase
+              const track = (item.tracks as any);
               if (!track) return null;
               return (
                 <TrackRow
