@@ -84,6 +84,7 @@ export default function AdminUsersPage() {
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [deleting, setDeleting] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [stats, setStats] = useState({ total: 0, verified: 0, banned: 0, admins: 0 });
 
   // Fetch users
   const fetchUsers = async () => {
@@ -97,6 +98,9 @@ export default function AdminUsersPage() {
         setUsers(data.users);
         setTotalPages(data.pagination.totalPages);
         setTotal(data.pagination.total);
+        if (data.stats) {
+          setStats(data.stats);
+        }
       }
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -503,24 +507,24 @@ export default function AdminUsersPage() {
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-surface/50 rounded-lg p-4">
-            <div className="text-2xl font-bold">{total}</div>
+            <div className="text-2xl font-bold">{stats.total}</div>
             <div className="text-white/60 text-sm">Total Users</div>
           </div>
           <div className="bg-surface/50 rounded-lg p-4">
             <div className="text-2xl font-bold text-green-400">
-              {users.filter(u => u.is_verified).length}
+              {stats.verified}
             </div>
             <div className="text-white/60 text-sm">Verified</div>
           </div>
           <div className="bg-surface/50 rounded-lg p-4">
             <div className="text-2xl font-bold text-red-400">
-              {users.filter(u => u.is_banned).length}
+              {stats.banned}
             </div>
             <div className="text-white/60 text-sm">Banned</div>
           </div>
           <div className="bg-surface/50 rounded-lg p-4">
             <div className="text-2xl font-bold text-primary">
-              {users.filter(u => u.admin_users && u.admin_users.length > 0).length}
+              {stats.admins}
             </div>
             <div className="text-white/60 text-sm">Admins</div>
           </div>

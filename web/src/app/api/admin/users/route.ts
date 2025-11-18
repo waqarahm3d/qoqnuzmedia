@@ -49,6 +49,21 @@ export async function GET(request: NextRequest) {
       })
     );
 
+    // Fetch stats for all users (not just current page)
+    const { count: verifiedCount } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_verified', true);
+
+    const { count: bannedCount } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_banned', true);
+
+    const { count: adminCount } = await supabase
+      .from('admin_users')
+      .select('*', { count: 'exact', head: true });
+
     return NextResponse.json({
       users: usersWithEmail,
       pagination: {
@@ -56,6 +71,12 @@ export async function GET(request: NextRequest) {
         limit,
         total: count || 0,
         totalPages: Math.ceil((count || 0) / limit),
+      },
+      stats: {
+        total: count || 0,
+        verified: verifiedCount || 0,
+        banned: bannedCount || 0,
+        admins: adminCount || 0,
       },
     });
   } catch (error: any) {
