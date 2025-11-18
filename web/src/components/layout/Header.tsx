@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronLeftIcon, ChevronRightIcon, UserIcon, LogoutIcon } from '../icons';
+import { UserIcon, LogoutIcon } from '../icons';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase-client';
@@ -55,23 +55,13 @@ export const Header = () => {
   return (
     <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm">
       <div className="flex items-center justify-between px-4 lg:px-8 py-4">
-        {/* Navigation Buttons */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => router.back()}
-            className="w-8 h-8 rounded-full bg-black/40 flex items-center justify-center hover:bg-black/60 transition-colors"
-            aria-label="Go back"
-          >
-            <ChevronLeftIcon size={20} />
-          </button>
-          <button
-            onClick={() => router.forward()}
-            className="w-8 h-8 rounded-full bg-black/40 flex items-center justify-center hover:bg-black/60 transition-colors"
-            aria-label="Go forward"
-          >
-            <ChevronRightIcon size={20} />
-          </button>
-        </div>
+        {/* Logo - Can be customized from admin settings */}
+        <Link
+          href="/home"
+          className="text-2xl font-bold text-[#ff4a14] hover:text-[#ff5c2e] transition-colors"
+        >
+          Qoqnuz
+        </Link>
 
         {/* User Menu or Sign In */}
         {user ? (

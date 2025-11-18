@@ -22,7 +22,8 @@ export default function LikedSongsPage() {
       return;
     }
     fetchLikedTracks();
-  }, [user, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const fetchLikedTracks = async () => {
     try {

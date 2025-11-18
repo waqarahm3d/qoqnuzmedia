@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/Card';
 import { TrackRow } from '@/components/ui/TrackRow';
 import { useAlbums, useArtists, usePlaylists, useTracks, useGenres } from '@/lib/hooks/useMusic';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
+import { useAuth } from '@/lib/auth/AuthContext';
 import { getMediaUrl } from '@/lib/media-utils';
 import {
   HeartIcon,
@@ -15,6 +16,7 @@ import {
 } from '@/components/icons';
 
 export default function HomePage() {
+  const { user } = useAuth();
   const { albums, loading: albumsLoading } = useAlbums(12);
   const { artists, loading: artistsLoading } = useArtists(12);
   const { playlists, loading: playlistsLoading } = usePlaylists(12);
@@ -101,28 +103,30 @@ export default function HomePage() {
       {/* Quick Access Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {[
-          { name: 'Liked Songs', href: '/liked', color: 'from-purple-700 to-purple-900', Icon: HeartIcon },
-          { name: 'Smart Playlists', href: '/playlists/smart', color: 'from-primary/80 to-primary', Icon: SparklesIcon },
-          { name: 'Recently Played', href: '/recent', color: 'from-[#d43e11] to-[#8a2a00]', Icon: RecentIcon },
-          { name: 'Discover', href: '/discover', color: 'from-blue-600 to-blue-800', Icon: DiscoverIcon },
-          { name: 'Your Episodes', href: '/episodes', color: 'from-green-600 to-green-800', Icon: PodcastIcon },
-          { name: 'New Releases', href: '/releases', color: 'from-pink-600 to-pink-800', Icon: NewReleasesIcon },
-        ].map((item, index) => (
-          <a
-            key={index}
-            href={item.href}
-            className="group relative bg-surface/40 hover:bg-surface rounded overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.02]"
-          >
-            <div className="flex items-center h-20">
-              <div className={`w-20 h-20 bg-gradient-to-br ${item.color} flex items-center justify-center flex-shrink-0 shadow-lg`}>
-                <item.Icon size={36} className="text-white" />
+          { name: 'Liked Songs', href: '/liked', color: 'from-purple-700 to-purple-900', Icon: HeartIcon, requireAuth: true },
+          { name: 'Smart Playlists', href: '/playlists/smart', color: 'from-primary/80 to-primary', Icon: SparklesIcon, requireAuth: true },
+          { name: 'Recently Played', href: '/recent', color: 'from-[#d43e11] to-[#8a2a00]', Icon: RecentIcon, requireAuth: false },
+          { name: 'Discover', href: '/discover', color: 'from-blue-600 to-blue-800', Icon: DiscoverIcon, requireAuth: false },
+          { name: 'Your Episodes', href: '/episodes', color: 'from-green-600 to-green-800', Icon: PodcastIcon, requireAuth: false },
+          { name: 'New Releases', href: '/releases', color: 'from-pink-600 to-pink-800', Icon: NewReleasesIcon, requireAuth: false },
+        ]
+          .filter(item => !item.requireAuth || user) // Only show auth-required items if user is logged in
+          .map((item, index) => (
+            <a
+              key={index}
+              href={item.href}
+              className="group relative bg-surface/40 hover:bg-surface rounded overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.02]"
+            >
+              <div className="flex items-center h-20">
+                <div className={`w-20 h-20 bg-gradient-to-br ${item.color} flex items-center justify-center flex-shrink-0 shadow-lg`}>
+                  <item.Icon size={36} className="text-white" />
+                </div>
+                <div className="px-4 flex-1 min-w-0">
+                  <h3 className="font-semibold text-white truncate group-hover:text-primary transition-colors">{item.name}</h3>
+                </div>
               </div>
-              <div className="px-4 flex-1 min-w-0">
-                <h3 className="font-semibold text-white truncate group-hover:text-primary transition-colors">{item.name}</h3>
-              </div>
-            </div>
-          </a>
-        ))}
+            </a>
+          ))}
       </div>
 
       {/* Trending Songs */}
@@ -130,9 +134,6 @@ export default function HomePage() {
         <section className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold">Trending Songs</h2>
-            <a href="/browse/trending" className="text-sm font-semibold text-white/60 hover:text-white transition-colors">
-              Show all
-            </a>
           </div>
           <div className="bg-black/20 rounded-lg p-4">
             <div className="space-y-2">
@@ -174,9 +175,6 @@ export default function HomePage() {
         <section className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold">Recently Added Tracks</h2>
-            <a href="/browse/new" className="text-sm font-semibold text-white/60 hover:text-white transition-colors">
-              Show all
-            </a>
           </div>
           <div className="bg-black/20 rounded-lg p-4">
             <div className="space-y-2">
@@ -217,9 +215,6 @@ export default function HomePage() {
         <section className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold">Featured Playlists</h2>
-            <a href="/browse/playlists" className="text-sm font-semibold text-white/60 hover:text-white transition-colors">
-              Show all
-            </a>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {playlists.slice(0, 6).map((playlist: any) => (
@@ -240,9 +235,6 @@ export default function HomePage() {
         <section className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold">Popular Albums and Singles</h2>
-            <a href="/browse/albums" className="text-sm font-semibold text-white/60 hover:text-white transition-colors">
-              Show all
-            </a>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {popularContent.map((item: any) => (
@@ -279,9 +271,6 @@ export default function HomePage() {
         <section className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold">New Releases</h2>
-            <a href="/browse/albums" className="text-sm font-semibold text-white/60 hover:text-white transition-colors">
-              Show all
-            </a>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {albums.map((album: any) => (
@@ -303,9 +292,6 @@ export default function HomePage() {
         <section className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold">Popular Artists</h2>
-            <a href="/browse/artists" className="text-sm font-semibold text-white/60 hover:text-white transition-colors">
-              Show all
-            </a>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {artists.map((artist: any) => (
@@ -327,9 +313,6 @@ export default function HomePage() {
         <section className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold">Browse Genres</h2>
-            <a href="/browse/genres" className="text-sm font-semibold text-white/60 hover:text-white transition-colors">
-              Show all
-            </a>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {genres.slice(0, 10).map((genre: any) => (

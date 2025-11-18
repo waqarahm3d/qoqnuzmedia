@@ -36,7 +36,7 @@ export default function SignInPage() {
       setLoading(false);
     } else {
       // No MFA, proceed to home
-      router.push('/');
+      router.push('/home');
     }
   };
 
@@ -56,7 +56,7 @@ export default function SignInPage() {
       setError(verifyError.message || 'Invalid code. Please try again.');
       setLoading(false);
     } else {
-      router.push('/');
+      router.push('/home');
     }
   };
 
@@ -492,6 +492,23 @@ export default function SignInPage() {
             }}
           >
             Sign up for Qoqnuz
+          </Link>
+        </div>
+
+        {/* Go to Home Link */}
+        <div style={{ marginTop: '24px', textAlign: 'center' }}>
+          <Link
+            href="/home"
+            style={{
+              color: '#b3b3b3',
+              fontSize: '14px',
+              textDecoration: 'underline',
+              transition: 'color 0.2s',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = '#ffffff')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = '#b3b3b3')}
+          >
+            Go to Home
           </Link>
         </div>
       </div>

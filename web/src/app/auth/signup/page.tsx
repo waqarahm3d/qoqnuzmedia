@@ -221,6 +221,10 @@ export default function SignupPage() {
             Already have an account?{' '}
             <Link href="/auth/signin">Log in here</Link>
           </p>
+
+          <p className="footer-text" style={{ marginTop: '16px' }}>
+            <Link href="/home">Go to Home</Link>
+          </p>
         </div>
       </div>
 
