@@ -407,7 +407,7 @@ export default function TrackUploadPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'success': return 'text-green-400';
+      case 'success': return 'text-[#ff5c2e]';
       case 'error': return 'text-red-400';
       case 'uploading': return 'text-blue-400';
       default: return 'text-gray-400';
@@ -458,7 +458,7 @@ export default function TrackUploadPage() {
                 </div>
                 <div>
                   <span className="text-gray-400">Success: </span>
-                  <span className="text-green-400 font-bold">{successCount}</span>
+                  <span className="text-[#ff5c2e] font-bold">{successCount}</span>
                 </div>
                 {errorCount > 0 && (
                   <div>
@@ -508,7 +508,7 @@ export default function TrackUploadPage() {
                   <label className="block text-gray-300 font-medium">Album</label>
                   <button
                     onClick={() => setShowCreateAlbum(!showCreateAlbum)}
-                    className="text-sm text-green-400 hover:text-green-300"
+                    className="text-sm text-[#ff5c2e] hover:text-[#ff7043]"
                   >
                     {showCreateAlbum ? '− Cancel' : '+ Create New Album'}
                   </button>
@@ -555,7 +555,7 @@ export default function TrackUploadPage() {
                     <button
                       onClick={handleCreateAlbum}
                       disabled={creatingAlbum || !newAlbumTitle || !newAlbumArtist}
-                      className="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                      className="w-full px-4 py-2 bg-[#ff4a14] text-white rounded hover:bg-[#d43e11] disabled:opacity-50"
                     >
                       {creatingAlbum ? 'Creating...' : 'Create Album'}
                     </button>
@@ -603,7 +603,7 @@ export default function TrackUploadPage() {
                       onClick={() => handleBulkGenreToggle(genre.id)}
                       className={`px-3 py-2 rounded text-sm font-medium transition-colors ${
                         bulkGenres.includes(genre.id)
-                          ? 'bg-green-600 text-white'
+                          ? 'bg-[#ff4a14] text-white'
                           : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
                       }`}
                     >
@@ -684,7 +684,7 @@ export default function TrackUploadPage() {
               <p className="text-gray-400 mb-4">
                 MP3, WAV, FLAC, M4A supported • Select multiple files
               </p>
-              <span className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700">
+              <span className="px-6 py-3 bg-[#ff4a14] text-white rounded-lg hover:bg-[#d43e11]">
                 Select Files
               </span>
             </label>
@@ -731,7 +731,7 @@ export default function TrackUploadPage() {
                       <div className="mb-4">
                         <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
                           <div
-                            className="bg-green-600 h-full transition-all duration-300"
+                            className="bg-[#ff4a14] h-full transition-all duration-300"
                             style={{ width: `${track.progress}%` }}
                           />
                         </div>
@@ -808,7 +808,7 @@ export default function TrackUploadPage() {
             <button
               onClick={handleUploadAll}
               disabled={uploading || pendingCount === 0}
-              className="flex-1 px-8 py-4 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-8 py-4 bg-[#ff4a14] text-white font-bold rounded-lg hover:bg-[#d43e11] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {uploading ? `Uploading ${pendingCount} track${pendingCount > 1 ? 's' : ''}...` : `Upload ${pendingCount} Track${pendingCount > 1 ? 's' : ''}`}
             </button>

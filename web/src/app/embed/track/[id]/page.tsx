@@ -82,7 +82,7 @@ export default function TrackEmbedPage() {
               href={`${window.location.origin}/track/${track.id}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-green-500 hover:text-green-400"
+              className="text-xs text-[#ff5c2e] hover:text-[#ff5c2e]"
             >
               Listen on Qoqnuz
             </a>
@@ -94,7 +94,7 @@ export default function TrackEmbedPage() {
           href={`${window.location.origin}/track/${track.id}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="w-12 h-12 rounded-full bg-green-600 hover:bg-green-500 flex items-center justify-center flex-shrink-0 transition-colors"
+          className="w-12 h-12 rounded-full bg-[#ff4a14] hover:bg-[#ff5c2e] flex items-center justify-center flex-shrink-0 transition-colors"
         >
           <PlayIcon size={20} className="ml-0.5" />
         </a>

@@ -189,7 +189,7 @@ export default function TestPage() {
                 outline: 'none',
                 transition: 'border-color 0.2s',
               }}
-              onFocus={(e) => (e.target.style.borderColor = '#1DB954')}
+              onFocus={(e) => (e.target.style.borderColor = '#ff4a14')}
               onBlur={(e) => (e.target.style.borderColor = '#3a3a5a')}
             />
           </div>
@@ -224,7 +224,7 @@ export default function TestPage() {
                 outline: 'none',
                 transition: 'border-color 0.2s',
               }}
-              onFocus={(e) => (e.target.style.borderColor = '#1DB954')}
+              onFocus={(e) => (e.target.style.borderColor = '#ff4a14')}
               onBlur={(e) => (e.target.style.borderColor = '#3a3a5a')}
             />
           </div>
@@ -264,7 +264,7 @@ export default function TestPage() {
                 style={{
                   marginTop: '8px',
                   fontSize: '13px',
-                  color: '#1DB954',
+                  color: '#ff4a14',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
@@ -288,7 +288,7 @@ export default function TestPage() {
               background:
                 uploadLoading || !selectedFile || !artistName || !trackTitle
                   ? '#4a4a6a'
-                  : 'linear-gradient(135deg, #1DB954 0%, #1ed760 100%)',
+                  : 'linear-gradient(135deg, #ff4a14 0%, #ff5c2e 100%)',
               color: '#ffffff',
               border: 'none',
               borderRadius: '8px',
@@ -340,7 +340,7 @@ export default function TestPage() {
                   fontSize: '16px',
                   fontWeight: '600',
                   marginBottom: '12px',
-                  color: '#1ed760',
+                  color: '#ff5c2e',
                 }}
               >
                 ✅ Upload Successful!
@@ -353,7 +353,7 @@ export default function TestPage() {
                       background: '#1a1a2e',
                       padding: '2px 8px',
                       borderRadius: '4px',
-                      color: '#1ed760',
+                      color: '#ff5c2e',
                       fontSize: '13px',
                     }}
                   >
@@ -377,7 +377,7 @@ export default function TestPage() {
                 style={{
                   marginTop: '12px',
                   fontSize: '13px',
-                  color: '#1ed760',
+                  color: '#ff5c2e',
                   background: 'rgba(29, 185, 84, 0.1)',
                   padding: '8px 12px',
                   borderRadius: '6px',
@@ -451,7 +451,7 @@ export default function TestPage() {
                 outline: 'none',
                 transition: 'border-color 0.2s',
               }}
-              onFocus={(e) => (e.target.style.borderColor = '#1DB954')}
+              onFocus={(e) => (e.target.style.borderColor = '#ff4a14')}
               onBlur={(e) => (e.target.style.borderColor = '#3a3a5a')}
             />
           </div>
@@ -467,7 +467,7 @@ export default function TestPage() {
               background:
                 loading || !trackId
                   ? '#4a4a6a'
-                  : 'linear-gradient(135deg, #1DB954 0%, #1ed760 100%)',
+                  : 'linear-gradient(135deg, #ff4a14 0%, #ff5c2e 100%)',
               color: '#ffffff',
               border: 'none',
               borderRadius: '8px',
@@ -514,7 +514,7 @@ export default function TestPage() {
                   fontSize: '16px',
                   fontWeight: '600',
                   marginBottom: '12px',
-                  color: '#1ed760',
+                  color: '#ff5c2e',
                 }}
               >
                 ℹ️ Track Information
@@ -533,7 +533,7 @@ export default function TestPage() {
                       background: '#1a1a2e',
                       padding: '2px 8px',
                       borderRadius: '4px',
-                      color: '#1ed760',
+                      color: '#ff5c2e',
                       fontSize: '13px',
                     }}
                   >
@@ -552,7 +552,7 @@ export default function TestPage() {
                   fontSize: '16px',
                   fontWeight: '600',
                   marginBottom: '12px',
-                  color: '#1ed760',
+                  color: '#ff5c2e',
                 }}
               >
                 ✅ Stream URL Generated!
@@ -656,7 +656,7 @@ export default function TestPage() {
             >
               <code
                 style={{
-                  color: '#1ed760',
+                  color: '#ff5c2e',
                   fontSize: '13px',
                   fontFamily: 'monospace',
                 }}
@@ -678,7 +678,7 @@ export default function TestPage() {
             >
               <code
                 style={{
-                  color: '#1ed760',
+                  color: '#ff5c2e',
                   fontSize: '13px',
                   fontFamily: 'monospace',
                 }}
@@ -700,7 +700,7 @@ export default function TestPage() {
             >
               <code
                 style={{
-                  color: '#1ed760',
+                  color: '#ff5c2e',
                   fontSize: '13px',
                   fontFamily: 'monospace',
                 }}

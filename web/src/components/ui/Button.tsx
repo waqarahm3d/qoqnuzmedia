@@ -18,7 +18,7 @@ export const Button = ({
   const baseStyles = 'rounded-full font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2';
 
   const variants = {
-    primary: 'bg-primary hover:bg-[#1ed760] text-black hover:scale-105',
+    primary: 'bg-primary hover:bg-[#ff5c2e] text-black hover:scale-105',
     secondary: 'bg-white/10 hover:bg-white/20 text-white',
     ghost: 'bg-transparent hover:bg-white/10 text-white',
     icon: 'bg-transparent hover:bg-white/10 text-white rounded-full p-2',

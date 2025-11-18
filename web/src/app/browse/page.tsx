@@ -31,7 +31,7 @@ export default function BrowsePage() {
   };
 
   const genreColors = [
-    '#1DB954', '#E13300', '#8D67AB', '#E8115B',
+    '#ff4a14', '#E13300', '#8D67AB', '#E8115B',
     '#148A08', '#DC148C', '#1E3264', '#E91429',
     '#509BF5', '#AF2896', '#BA5D07', '#477D95',
     '#8C1932', '#509BF5', '#D84000', '#27856A',

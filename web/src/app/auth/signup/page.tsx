@@ -251,7 +251,7 @@ export default function SignupPage() {
         .logo {
           font-size: 48px;
           font-weight: bold;
-          color: #1DB954;
+          color: #ff4a14;
           margin: 0 0 8px 0;
         }
 
@@ -296,7 +296,7 @@ export default function SignupPage() {
         }
 
         .form-input:focus {
-          border-color: #1DB954;
+          border-color: #ff4a14;
         }
 
         .form-hint {
@@ -308,7 +308,7 @@ export default function SignupPage() {
         .btn-primary {
           width: 100%;
           padding: 16px;
-          background: #1DB954;
+          background: #ff4a14;
           color: #000000;
           border: none;
           border-radius: 500px;
@@ -319,7 +319,7 @@ export default function SignupPage() {
         }
 
         .btn-primary:hover {
-          background: #1ed760;
+          background: #ff5c2e;
         }
 
         .btn-primary:disabled {

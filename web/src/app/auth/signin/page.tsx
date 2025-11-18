@@ -123,7 +123,7 @@ export default function SignInPage() {
                 outline: 'none',
                 transition: 'border-color 0.2s',
               }}
-              onFocus={(e) => (e.target.style.borderColor = '#1DB954')}
+              onFocus={(e) => (e.target.style.borderColor = '#ff4a14')}
               onBlur={(e) => (e.target.style.borderColor = '#727272')}
             />
           </div>
@@ -161,7 +161,7 @@ export default function SignInPage() {
                 outline: 'none',
                 transition: 'border-color 0.2s',
               }}
-              onFocus={(e) => (e.target.style.borderColor = '#1DB954')}
+              onFocus={(e) => (e.target.style.borderColor = '#ff4a14')}
               onBlur={(e) => (e.target.style.borderColor = '#727272')}
             />
           </div>
@@ -190,7 +190,7 @@ export default function SignInPage() {
             style={{
               width: '100%',
               padding: '16px',
-              background: loading ? '#535353' : '#1DB954',
+              background: loading ? '#535353' : '#ff4a14',
               color: '#ffffff',
               border: 'none',
               borderRadius: '500px',
@@ -205,13 +205,13 @@ export default function SignInPage() {
             onMouseEnter={(e) => {
               if (!loading) {
                 e.currentTarget.style.transform = 'scale(1.04)';
-                e.currentTarget.style.background = '#1ed760';
+                e.currentTarget.style.background = '#ff5c2e';
               }
             }}
             onMouseLeave={(e) => {
               if (!loading) {
                 e.currentTarget.style.transform = 'scale(1)';
-                e.currentTarget.style.background = '#1DB954';
+                e.currentTarget.style.background = '#ff4a14';
               }
             }}
           >

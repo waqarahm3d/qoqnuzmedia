@@ -144,7 +144,7 @@ export default function DiagnosticPage() {
         <div className="space-y-4">
           {Object.entries(results).map(([key, value]) => (
             <div key={key} className="bg-gray-800 rounded-lg p-4">
-              <h3 className="font-bold text-lg mb-2 text-green-400">{key}</h3>
+              <h3 className="font-bold text-lg mb-2 text-[#ff5c2e]">{key}</h3>
               {typeof value === 'string' ? (
                 <p className="text-gray-300 font-mono text-sm">{value}</p>
               ) : (
@@ -169,7 +169,7 @@ export default function DiagnosticPage() {
         <div className="mt-4 flex gap-4">
           <button
             onClick={runDiagnostics}
-            className="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg"
+            className="px-6 py-3 bg-[#ff4a14] hover:bg-[#d43e11] rounded-lg"
           >
             Re-run Diagnostics
           </button>

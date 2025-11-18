@@ -19,7 +19,7 @@ interface ThemeSettings {
 export default function ThemeCustomization() {
   const [settings, setSettings] = useState<ThemeSettings>({
     site_name: 'Qoqnuz Music',
-    primary_color: '#1DB954',
+    primary_color: '#ff4a14',
     secondary_color: '#191414',
     background_color: '#121212',
     surface_color: '#181818',
@@ -70,7 +70,7 @@ export default function ThemeCustomization() {
       // Merge with defaults
       setSettings({
         site_name: settingsObj.site_name || 'Qoqnuz Music',
-        primary_color: settingsObj.primary_color || '#1DB954',
+        primary_color: settingsObj.primary_color || '#ff4a14',
         secondary_color: settingsObj.secondary_color || '#191414',
         background_color: settingsObj.background_color || '#121212',
         surface_color: settingsObj.surface_color || '#181818',
@@ -130,7 +130,7 @@ export default function ThemeCustomization() {
 
     setSettings({
       site_name: 'Qoqnuz Music',
-      primary_color: '#1DB954',
+      primary_color: '#ff4a14',
       secondary_color: '#191414',
       background_color: '#121212',
       surface_color: '#181818',
@@ -175,7 +175,7 @@ export default function ThemeCustomization() {
           </div>
         )}
         {success && (
-          <div className="bg-green-900/20 border border-green-500 text-green-200 px-4 py-3 rounded">
+          <div className="bg-[#ff4a14]/20 border border-[#ff5c2e] text-[#ff7043] px-4 py-3 rounded">
             {success}
           </div>
         )}
@@ -194,7 +194,7 @@ export default function ThemeCustomization() {
               onChange={(e) =>
                 setSettings({ ...settings, site_name: e.target.value })
               }
-              className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
+              className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff4a14]"
             />
           </div>
 
@@ -209,7 +209,7 @@ export default function ThemeCustomization() {
                 setSettings({ ...settings, logo_url: e.target.value })
               }
               placeholder="https://example.com/logo.png"
-              className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
+              className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff4a14]"
             />
             <p className="text-xs text-gray-400 mt-1">
               Recommended: PNG or SVG, transparent background
@@ -227,7 +227,7 @@ export default function ThemeCustomization() {
                 setSettings({ ...settings, favicon_url: e.target.value })
               }
               placeholder="https://example.com/favicon.ico"
-              className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
+              className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff4a14]"
             />
             <p className="text-xs text-gray-400 mt-1">
               Recommended: 32x32 or 64x64 pixels
@@ -332,7 +332,7 @@ export default function ThemeCustomization() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white px-8 py-3 rounded-lg font-medium"
+            className="bg-[#ff4a14] hover:bg-[#d43e11] disabled:opacity-50 text-white px-8 py-3 rounded-lg font-medium"
           >
             {saving ? 'Saving...' : 'Save Changes'}
           </button>
@@ -367,7 +367,7 @@ function ColorPicker({ label, description, value, onChange }: ColorPickerProps) 
             type="text"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
+            className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff4a14]"
           />
           <p className="text-xs text-gray-400 mt-1">{description}</p>
         </div>

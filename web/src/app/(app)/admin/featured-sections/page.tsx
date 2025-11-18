@@ -155,7 +155,7 @@ export default function FeaturedSectionsPage() {
                     <span
                       className={`px-2 py-1 rounded text-xs font-semibold ${
                         section.is_active
-                          ? 'bg-green-500/20 text-green-500'
+                          ? 'bg-[#ff5c2e]/20 text-[#ff5c2e]'
                           : 'bg-gray-500/20 text-gray-500'
                       }`}
                     >

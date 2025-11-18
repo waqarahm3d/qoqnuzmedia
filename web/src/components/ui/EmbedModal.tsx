@@ -72,7 +72,7 @@ export function EmbedModal({ isOpen, onClose, type, id, title }: EmbedModalProps
                   onClick={() => setSize(sizeOption)}
                   className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                     size === sizeOption
-                      ? 'bg-green-600 text-white'
+                      ? 'bg-[#ff4a14] text-white'
                       : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                   }`}
                 >
@@ -115,7 +115,7 @@ export function EmbedModal({ isOpen, onClose, type, id, title }: EmbedModalProps
                 onClick={handleCopy}
                 className={`absolute top-2 right-2 px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                   copied
-                    ? 'bg-green-600 text-white'
+                    ? 'bg-[#ff4a14] text-white'
                     : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                 }`}
               >

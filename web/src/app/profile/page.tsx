@@ -72,7 +72,7 @@ export default function ProfilePage() {
       <div className="bg-gradient-to-b from-gray-800 to-gray-900 p-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-end gap-6">
-            <div className="w-52 h-52 bg-gradient-to-br from-green-400 to-blue-500 rounded-full shadow-2xl flex items-center justify-center text-8xl font-black">
+            <div className="w-52 h-52 bg-gradient-to-br from-[#ff5c2e] to-blue-500 rounded-full shadow-2xl flex items-center justify-center text-8xl font-black">
               {profile?.display_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
             </div>
             <div className="flex-1">
@@ -124,7 +124,7 @@ export default function ProfilePage() {
               <p className="text-gray-400 mb-4">No public playlists yet</p>
               <Link
                 href="/playlist/create"
-                className="inline-block px-6 py-3 bg-green-600 text-white font-semibold rounded-full hover:bg-green-700 transition-colors"
+                className="inline-block px-6 py-3 bg-[#ff4a14] text-white font-semibold rounded-full hover:bg-[#d43e11] transition-colors"
               >
                 Create Playlist
               </Link>

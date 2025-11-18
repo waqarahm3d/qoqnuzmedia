@@ -87,7 +87,7 @@ export default function CreatePlaylistPage() {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="My Awesome Playlist"
                 maxLength={100}
-                className="w-full px-4 py-3 bg-gray-900 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full px-4 py-3 bg-gray-900 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff5c2e]"
                 autoFocus
               />
               <p className="text-xs text-gray-500 mt-1">
@@ -106,7 +106,7 @@ export default function CreatePlaylistPage() {
                 placeholder="Add an optional description"
                 rows={4}
                 maxLength={300}
-                className="w-full px-4 py-3 bg-gray-900 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
+                className="w-full px-4 py-3 bg-gray-900 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff5c2e] resize-none"
               />
               <p className="text-xs text-gray-500 mt-1">
                 {description.length}/300 characters
@@ -125,7 +125,7 @@ export default function CreatePlaylistPage() {
               <button
                 type="submit"
                 disabled={creating || !name.trim()}
-                className="flex-1 px-8 py-4 bg-green-600 text-white font-bold rounded-full hover:bg-green-700 transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="flex-1 px-8 py-4 bg-[#ff4a14] text-white font-bold rounded-full hover:bg-[#d43e11] transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 {creating ? 'Creating...' : 'Create Playlist'}
               </button>

@@ -26,7 +26,7 @@ export default function GenresManagement() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    color: '#1DB954',
+    color: '#ff4a14',
     display_order: 0,
   });
 
@@ -90,7 +90,7 @@ export default function GenresManagement() {
         setFormData({
           name: '',
           description: '',
-          color: '#1DB954',
+          color: '#ff4a14',
           display_order: 0,
         });
         fetchGenres();
@@ -181,12 +181,12 @@ export default function GenresManagement() {
               setFormData({
                 name: '',
                 description: '',
-                color: '#1DB954',
+                color: '#ff4a14',
                 display_order: 0,
               });
               setShowCreateModal(true);
             }}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            className="px-4 py-2 bg-[#ff4a14] text-white rounded-lg hover:bg-[#d43e11]"
           >
             + Add Genre
           </button>
@@ -235,7 +235,7 @@ export default function GenresManagement() {
                   <span
                     className={`px-2 py-1 text-xs rounded ${
                       genre.is_active
-                        ? 'bg-green-600 text-white'
+                        ? 'bg-[#ff4a14] text-white'
                         : 'bg-gray-600 text-gray-300'
                     }`}
                   >
@@ -325,7 +325,7 @@ export default function GenresManagement() {
                     type="file"
                     accept="image/jpeg,image/jpg,image/png,image/webp"
                     onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                    className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-600 file:text-white hover:file:bg-green-700"
+                    className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#ff4a14] file:text-white hover:file:bg-[#d43e11]"
                   />
                   {editingGenre?.image_url && (
                     <p className="text-xs text-gray-400 mt-1">
@@ -373,7 +373,7 @@ export default function GenresManagement() {
                 <div className="flex gap-2 pt-4">
                   <button
                     type="submit"
-                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    className="flex-1 px-4 py-2 bg-[#ff4a14] text-white rounded-lg hover:bg-[#d43e11]"
                   >
                     {editingGenre ? 'Update' : 'Create'}
                   </button>

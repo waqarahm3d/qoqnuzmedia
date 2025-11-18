@@ -256,7 +256,7 @@ export default function TrackPage() {
         <h1 className="text-2xl font-bold">Track not found</h1>
         <button
           onClick={() => router.push('/home')}
-          className="px-6 py-3 bg-primary text-black rounded-full font-semibold hover:bg-[#1ed760]"
+          className="px-6 py-3 bg-primary text-black rounded-full font-semibold hover:bg-[#ff5c2e]"
         >
           Go to Home
         </button>
@@ -366,7 +366,7 @@ export default function TrackPage() {
             {/* Play Button */}
             <button
               onClick={handlePlay}
-              className="w-14 h-14 rounded-full bg-primary hover:bg-[#1ed760] flex items-center justify-center hover:scale-105 transition-transform"
+              className="w-14 h-14 rounded-full bg-primary hover:bg-[#ff5c2e] flex items-center justify-center hover:scale-105 transition-transform"
             >
               {isCurrentlyPlaying ? (
                 <svg
@@ -397,8 +397,8 @@ export default function TrackPage() {
               >
                 <svg
                   className="w-8 h-8"
-                  fill={isLiked ? '#1DB954' : 'none'}
-                  stroke={isLiked ? '#1DB954' : 'currentColor'}
+                  fill={isLiked ? '#ff4a14' : 'none'}
+                  stroke={isLiked ? '#ff4a14' : 'currentColor'}
                   strokeWidth="2"
                   viewBox="0 0 24 24"
                 >

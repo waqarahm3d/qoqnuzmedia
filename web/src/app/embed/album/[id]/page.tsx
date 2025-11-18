@@ -76,7 +76,7 @@ export default function AlbumEmbedPage() {
               href={`${window.location.origin}/album/${album.id}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-green-500 hover:text-green-400"
+              className="text-xs text-[#ff5c2e] hover:text-[#ff5c2e]"
             >
               Open in Qoqnuz
             </a>

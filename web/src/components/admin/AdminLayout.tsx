@@ -61,7 +61,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between h-16 px-6 bg-gray-900">
-            <Link href="/admin" className="text-xl font-bold text-green-500">
+            <Link href="/admin" className="text-xl font-bold text-[#ff5c2e]">
               Qoqnuz Admin
             </Link>
             <button
@@ -82,7 +82,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   href={item.href}
                   className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
                     isActive(item.href)
-                      ? 'bg-green-600 text-white'
+                      ? 'bg-[#ff4a14] text-white'
                       : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                   }`}
                 >
@@ -97,7 +97,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           <div className="p-4 border-t border-gray-700">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white font-bold">
+                <div className="w-8 h-8 bg-[#ff4a14] rounded-full flex items-center justify-center text-white font-bold">
                   {user?.email?.[0].toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">

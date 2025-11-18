@@ -94,7 +94,7 @@ export default function HomePage() {
         {[
           { name: 'Liked Songs', href: '/liked', color: 'from-purple-700 to-purple-900' },
           { name: 'Your Top Songs 2024', href: '/playlist/top-2024', color: 'from-blue-700 to-blue-900' },
-          { name: 'Recently Played', href: '/recent', color: 'from-green-700 to-green-900' },
+          { name: 'Recently Played', href: '/recent', color: 'from-[#d43e11] to-[#8a2a00]' },
           { name: 'Your Episodes', href: '/episodes', color: 'from-red-700 to-red-900' },
           { name: 'Discover Weekly', href: '/discover', color: 'from-pink-700 to-pink-900' },
           { name: 'Release Radar', href: '/releases', color: 'from-yellow-700 to-yellow-900' },

@@ -11,7 +11,7 @@ export default function Home() {
       <div className="max-w-6xl mx-auto px-4 py-20">
         {/* Header */}
         <div className="text-center mb-20">
-          <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">
+          <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-[#ff5c2e] to-blue-500 bg-clip-text text-transparent">
             Qoqnuz Music
           </h1>
           <p className="text-2xl text-gray-300">
@@ -27,7 +27,7 @@ export default function Home() {
           <div className="flex gap-4 justify-center flex-wrap">
             <Link
               href="/home"
-              className="px-8 py-3 bg-green-500 hover:bg-green-600 text-white rounded-full font-semibold transition"
+              className="px-8 py-3 bg-[#ff5c2e] hover:bg-[#ff4a14] text-white rounded-full font-semibold transition"
             >
               Open App
             </Link>
@@ -48,7 +48,7 @@ export default function Home() {
 
         {/* Milestone Status */}
         <div className="bg-gray-800 rounded-lg p-8 mb-12">
-          <h2 className="text-2xl font-bold mb-6 text-green-400">
+          <h2 className="text-2xl font-bold mb-6 text-[#ff5c2e]">
             ✅ Milestone A: Infrastructure & Foundation
           </h2>
           <div className="grid md:grid-cols-2 gap-6">
@@ -56,23 +56,23 @@ export default function Home() {
               <h3 className="font-semibold mb-3 text-lg">Completed:</h3>
               <ul className="space-y-2 text-gray-300">
                 <li className="flex items-start gap-2">
-                  <span className="text-green-400 mt-1">✓</span>
+                  <span className="text-[#ff5c2e] mt-1">✓</span>
                   <span>Supabase database schema (50+ tables)</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-green-400 mt-1">✓</span>
+                  <span className="text-[#ff5c2e] mt-1">✓</span>
                   <span>Cloudflare R2 storage setup</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-green-400 mt-1">✓</span>
+                  <span className="text-[#ff5c2e] mt-1">✓</span>
                   <span>Next.js app with TypeScript</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-green-400 mt-1">✓</span>
+                  <span className="text-[#ff5c2e] mt-1">✓</span>
                   <span>Music streaming API with signed URLs</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-green-400 mt-1">✓</span>
+                  <span className="text-[#ff5c2e] mt-1">✓</span>
                   <span>Seed data for testing</span>
                 </li>
               </ul>
@@ -135,22 +135,22 @@ export default function Home() {
           <h2 className="text-2xl font-bold mb-6">Technology Stack</h2>
           <div className="grid md:grid-cols-2 gap-4 text-gray-300">
             <div>
-              <strong className="text-green-400">Frontend:</strong> Next.js 14, React, TypeScript, Tailwind CSS
+              <strong className="text-[#ff5c2e]">Frontend:</strong> Next.js 14, React, TypeScript, Tailwind CSS
             </div>
             <div>
-              <strong className="text-green-400">Mobile:</strong> Flutter (iOS & Android)
+              <strong className="text-[#ff5c2e]">Mobile:</strong> Flutter (iOS & Android)
             </div>
             <div>
-              <strong className="text-green-400">Backend:</strong> Supabase (Auth, Database, Realtime)
+              <strong className="text-[#ff5c2e]">Backend:</strong> Supabase (Auth, Database, Realtime)
             </div>
             <div>
-              <strong className="text-green-400">Storage:</strong> Cloudflare R2
+              <strong className="text-[#ff5c2e]">Storage:</strong> Cloudflare R2
             </div>
             <div>
-              <strong className="text-green-400">Database:</strong> PostgreSQL with Row-Level Security
+              <strong className="text-[#ff5c2e]">Database:</strong> PostgreSQL with Row-Level Security
             </div>
             <div>
-              <strong className="text-green-400">Deployment:</strong> Vercel / Ubuntu VPS
+              <strong className="text-[#ff5c2e]">Deployment:</strong> Vercel / Ubuntu VPS
             </div>
           </div>
         </div>

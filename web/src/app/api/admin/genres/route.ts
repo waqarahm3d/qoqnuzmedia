@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
         slug,
         description: description || null,
         image_url,
-        color: color || '#1DB954',
+        color: color || '#ff4a14',
         display_order: display_order ? parseInt(display_order) : 0,
       })
       .select()

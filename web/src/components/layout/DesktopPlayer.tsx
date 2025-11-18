@@ -124,8 +124,8 @@ export const DesktopPlayer = ({ onExpand }: DesktopPlayerProps) => {
               width="16"
               height="16"
               viewBox="0 0 24 24"
-              fill={isLiked ? '#1DB954' : 'none'}
-              stroke={isLiked ? '#1DB954' : 'currentColor'}
+              fill={isLiked ? '#ff4a14' : 'none'}
+              stroke={isLiked ? '#ff4a14' : 'currentColor'}
               strokeWidth="2"
             >
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -141,7 +141,7 @@ export const DesktopPlayer = ({ onExpand }: DesktopPlayerProps) => {
             <button
               onClick={toggleShuffle}
               className={`hidden sm:block transition-colors ${
-                shuffle ? 'text-green-500' : 'text-gray-400 hover:text-white'
+                shuffle ? 'text-[#ff5c2e]' : 'text-gray-400 hover:text-white'
               }`}
               title="Shuffle"
             >
@@ -190,7 +190,7 @@ export const DesktopPlayer = ({ onExpand }: DesktopPlayerProps) => {
             <button
               onClick={toggleRepeat}
               className={`hidden sm:block transition-colors relative ${
-                repeat !== 'off' ? 'text-green-500' : 'text-gray-400 hover:text-white'
+                repeat !== 'off' ? 'text-[#ff5c2e]' : 'text-gray-400 hover:text-white'
               }`}
               title={`Repeat: ${repeat}`}
             >
@@ -234,7 +234,7 @@ export const DesktopPlayer = ({ onExpand }: DesktopPlayerProps) => {
                   [&::-moz-range-thumb]:opacity-0
                   group-hover:[&::-moz-range-thumb]:opacity-100"
                 style={{
-                  background: `linear-gradient(to right, #1DB954 ${((currentTime || 0) / (duration || 1)) * 100}%, #4B5563 ${((currentTime || 0) / (duration || 1)) * 100}%)`,
+                  background: `linear-gradient(to right, #ff4a14 ${((currentTime || 0) / (duration || 1)) * 100}%, #4B5563 ${((currentTime || 0) / (duration || 1)) * 100}%)`,
                 }}
               />
             </div>

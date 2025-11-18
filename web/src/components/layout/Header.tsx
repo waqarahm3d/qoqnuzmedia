@@ -114,7 +114,7 @@ export const Header = () => {
                   <div className="border-t border-white/10 my-1" />
                   <Link
                     href="/admin"
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/5 transition-colors text-green-400"
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/5 transition-colors text-[#ff5c2e]"
                     onClick={() => setShowDropdown(false)}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

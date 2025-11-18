@@ -171,7 +171,7 @@ export default function AdminDashboard() {
                       </p>
                     </div>
                   </div>
-                  <span className="text-green-500 font-bold">
+                  <span className="text-[#ff5c2e] font-bold">
                     {track.total_plays?.toLocaleString()} plays
                   </span>
                 </div>
@@ -200,7 +200,7 @@ export default function AdminDashboard() {
                       </p>
                     </div>
                   </div>
-                  <span className="text-green-500 font-bold">
+                  <span className="text-[#ff5c2e] font-bold">
                     {artist.total_plays?.toLocaleString()} plays
                   </span>
                 </div>
@@ -224,7 +224,7 @@ export default function AdminDashboard() {
               return (
                 <div
                   key={day.date}
-                  className="flex-1 bg-green-600 hover:bg-green-500 rounded-t transition-colors"
+                  className="flex-1 bg-[#ff4a14] hover:bg-[#ff5c2e] rounded-t transition-colors"
                   style={{ height: `${height}%` }}
                   title={`${day.date}: ${day.plays} plays`}
                 />
@@ -251,7 +251,7 @@ interface StatCardProps {
 function StatCard({ title, value, change, icon, color }: StatCardProps) {
   const colorClasses: Record<string, string> = {
     blue: 'bg-blue-900/20 text-blue-400',
-    green: 'bg-green-900/20 text-green-400',
+    green: 'bg-[#ff4a14]/20 text-[#ff5c2e]',
     purple: 'bg-purple-900/20 text-purple-400',
     red: 'bg-red-900/20 text-red-400',
     yellow: 'bg-yellow-900/20 text-yellow-400',
@@ -268,7 +268,7 @@ function StatCard({ title, value, change, icon, color }: StatCardProps) {
             {value.toLocaleString()}
           </p>
           {change && (
-            <p className="text-sm text-green-500 mt-1">{change}</p>
+            <p className="text-sm text-[#ff5c2e] mt-1">{change}</p>
           )}
         </div>
         <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-2xl ${colorClasses[color]}`}>

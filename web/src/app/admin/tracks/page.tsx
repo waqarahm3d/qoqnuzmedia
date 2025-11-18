@@ -391,7 +391,7 @@ export default function TracksPage() {
                 resetForm();
                 setShowUploadModal(true);
               }}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              className="px-4 py-2 bg-[#ff4a14] text-white rounded-lg hover:bg-[#d43e11]"
             >
               + Add Track URL
             </button>
@@ -453,7 +453,7 @@ export default function TracksPage() {
                     </a>
                     <button
                       onClick={() => setShowUploadModal(true)}
-                      className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                      className="px-6 py-3 bg-[#ff4a14] text-white rounded-lg hover:bg-[#d43e11]"
                     >
                       + Add Track URL
                     </button>
@@ -547,7 +547,7 @@ export default function TracksPage() {
                         <td className="px-6 py-4 text-gray-400">
                           {formatDuration(track.duration_ms)}
                         </td>
-                        <td className="px-6 py-4 text-green-500 font-semibold">
+                        <td className="px-6 py-4 text-[#ff5c2e] font-semibold">
                           {track.play_count?.toLocaleString() || 0}
                         </td>
                         <td className="px-6 py-4 text-right">
@@ -740,7 +740,7 @@ export default function TracksPage() {
                           onClick={() => toggleGenre(genre.id)}
                           className={`px-3 py-1.5 rounded-full text-sm ${
                             formData.genres.includes(genre.id)
-                              ? 'bg-green-600 text-white'
+                              ? 'bg-[#ff4a14] text-white'
                               : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                           }`}
                         >
@@ -784,7 +784,7 @@ export default function TracksPage() {
                 <div className="flex gap-2 pt-4">
                   <button
                     type="submit"
-                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    className="flex-1 px-4 py-2 bg-[#ff4a14] text-white rounded-lg hover:bg-[#d43e11]"
                   >
                     {editingTrack ? 'Update Track' : 'Upload Track'}
                   </button>

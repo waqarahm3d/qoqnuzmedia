@@ -52,7 +52,7 @@ export const Card = ({
               e.preventDefault();
               onPlay();
             }}
-            className="absolute bottom-2 right-2 w-12 h-12 bg-primary rounded-full flex items-center justify-center shadow-xl opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 hover:scale-110 hover:bg-[#1ed760]"
+            className="absolute bottom-2 right-2 w-12 h-12 bg-primary rounded-full flex items-center justify-center shadow-xl opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 hover:scale-110 hover:bg-[#ff5c2e]"
           >
             <PlayIcon size={20} className="text-black ml-0.5" />
           </button>

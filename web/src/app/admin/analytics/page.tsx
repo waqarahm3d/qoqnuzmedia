@@ -109,7 +109,7 @@ export default function AnalyticsPage() {
               onClick={() => setTimeRange(range)}
               style={{
                 padding: '10px 20px',
-                background: timeRange === range ? '#1DB954' : '#282828',
+                background: timeRange === range ? '#ff4a14' : '#282828',
                 color: '#ffffff',
                 border: 'none',
                 borderRadius: '500px',
@@ -147,7 +147,7 @@ export default function AnalyticsPage() {
             title="Total Tracks"
             value={analytics?.overview.totalTracks || 0}
             icon="🎵"
-            color="#1DB954"
+            color="#ff4a14"
           />
           <StatCard
             title="Total Plays"
@@ -202,7 +202,7 @@ export default function AnalyticsPage() {
                       </p>
                     </div>
                   </div>
-                  <span style={{ color: '#1DB954', fontWeight: 'bold' }}>
+                  <span style={{ color: '#ff4a14', fontWeight: 'bold' }}>
                     {track.total_plays?.toLocaleString()} plays
                   </span>
                 </div>
@@ -236,7 +236,7 @@ export default function AnalyticsPage() {
                       {artist.artists?.name || 'Unknown'}
                     </p>
                   </div>
-                  <span style={{ color: '#1DB954', fontWeight: 'bold' }}>
+                  <span style={{ color: '#ff4a14', fontWeight: 'bold' }}>
                     {artist.total_plays?.toLocaleString()} plays
                   </span>
                 </div>
@@ -260,7 +260,7 @@ export default function AnalyticsPage() {
                   key={day.date}
                   style={{
                     flex: 1,
-                    background: '#1DB954',
+                    background: '#ff4a14',
                     borderRadius: '4px 4px 0 0',
                     height: `${height}%`,
                     minHeight: '4px',
@@ -268,8 +268,8 @@ export default function AnalyticsPage() {
                     transition: 'all 0.2s',
                   }}
                   title={`${day.date}: ${day.plays} plays`}
-                  onMouseOver={(e) => e.currentTarget.style.background = '#1ed760'}
-                  onMouseOut={(e) => e.currentTarget.style.background = '#1DB954'}
+                  onMouseOver={(e) => e.currentTarget.style.background = '#ff5c2e'}
+                  onMouseOut={(e) => e.currentTarget.style.background = '#ff4a14'}
                 />
               );
             })}
@@ -303,7 +303,7 @@ function StatCard({ title, value, subtitle, icon, color }: StatCardProps) {
             {value.toLocaleString()}
           </p>
           {subtitle && (
-            <p style={{ fontSize: '14px', color: '#1DB954' }}>{subtitle}</p>
+            <p style={{ fontSize: '14px', color: '#ff4a14' }}>{subtitle}</p>
           )}
         </div>
         <div style={{

@@ -215,7 +215,7 @@ function SearchContent() {
                   'from-purple-500 to-purple-700',
                   'from-blue-500 to-blue-700',
                   'from-yellow-500 to-yellow-700',
-                  'from-green-500 to-green-700',
+                  'from-[#ff5c2e] to-[#d43e11]',
                   'from-indigo-500 to-indigo-700',
                   'from-orange-500 to-orange-700',
                 ];
@@ -239,7 +239,7 @@ function SearchContent() {
                 { name: 'Hip-Hop', color: 'from-purple-500 to-purple-700' },
                 { name: 'Electronic', color: 'from-blue-500 to-blue-700' },
                 { name: 'Jazz', color: 'from-yellow-500 to-yellow-700' },
-                { name: 'Classical', color: 'from-green-500 to-green-700' },
+                { name: 'Classical', color: 'from-[#ff5c2e] to-[#d43e11]' },
                 { name: 'R&B', color: 'from-indigo-500 to-indigo-700' },
                 { name: 'Country', color: 'from-orange-500 to-orange-700' },
               ].map((genre, index) => (

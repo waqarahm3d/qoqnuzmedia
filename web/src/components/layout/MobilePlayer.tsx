@@ -124,8 +124,8 @@ export const MobilePlayer = ({ isExpanded, onExpand, onCollapse }: MobilePlayerP
             >
               <svg
                 className="w-5 h-5"
-                fill={isLiked ? '#1DB954' : 'none'}
-                stroke={isLiked ? '#1DB954' : 'currentColor'}
+                fill={isLiked ? '#ff4a14' : 'none'}
+                stroke={isLiked ? '#ff4a14' : 'currentColor'}
                 strokeWidth="2"
                 viewBox="0 0 24 24"
               >
@@ -235,8 +235,8 @@ export const MobilePlayer = ({ isExpanded, onExpand, onCollapse }: MobilePlayerP
           >
             <svg
               className="w-7 h-7"
-              fill={isLiked ? '#1DB954' : 'none'}
-              stroke={isLiked ? '#1DB954' : 'currentColor'}
+              fill={isLiked ? '#ff4a14' : 'none'}
+              stroke={isLiked ? '#ff4a14' : 'currentColor'}
               strokeWidth="2"
               viewBox="0 0 24 24"
             >
@@ -266,7 +266,7 @@ export const MobilePlayer = ({ isExpanded, onExpand, onCollapse }: MobilePlayerP
             [&::-moz-range-thumb]:bg-white
             [&::-moz-range-thumb]:border-0"
           style={{
-            background: `linear-gradient(to right, #1DB954 ${((currentTime || 0) / (duration || 1)) * 100}%, #4B5563 ${((currentTime || 0) / (duration || 1)) * 100}%)`,
+            background: `linear-gradient(to right, #ff4a14 ${((currentTime || 0) / (duration || 1)) * 100}%, #4B5563 ${((currentTime || 0) / (duration || 1)) * 100}%)`,
           }}
         />
         <div className="flex justify-between text-xs text-gray-400 mt-1">

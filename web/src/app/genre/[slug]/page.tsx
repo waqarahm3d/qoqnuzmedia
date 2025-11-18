@@ -94,7 +94,7 @@ export default function GenrePage() {
           </p>
           <Link
             href="/search"
-            className="inline-block px-6 py-3 bg-green-600 text-white font-semibold rounded-full hover:bg-green-700 transition-colors"
+            className="inline-block px-6 py-3 bg-[#ff4a14] text-white font-semibold rounded-full hover:bg-[#d43e11] transition-colors"
           >
             Browse All Genres
           </Link>
@@ -103,7 +103,7 @@ export default function GenrePage() {
     );
   }
 
-  const bgColor = genre.color || '#1DB954';
+  const bgColor = genre.color || '#ff4a14';
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">

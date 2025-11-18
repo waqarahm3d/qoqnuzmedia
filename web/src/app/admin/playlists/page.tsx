@@ -250,7 +250,7 @@ export default function PlaylistsManagement() {
                         <span
                           className={`px-2 py-1 text-xs rounded inline-block ${
                             playlist.is_public
-                              ? 'bg-green-600 text-white'
+                              ? 'bg-[#ff4a14] text-white'
                               : 'bg-gray-600 text-gray-300'
                           }`}
                         >
@@ -395,7 +395,7 @@ export default function PlaylistsManagement() {
                 <div className="flex gap-2 pt-4">
                   <button
                     type="submit"
-                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    className="flex-1 px-4 py-2 bg-[#ff4a14] text-white rounded-lg hover:bg-[#d43e11]"
                   >
                     Update
                   </button>

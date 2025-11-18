@@ -175,11 +175,11 @@ export default function APITestPage() {
             {user && (
               <span style={{
                 padding: '4px 12px',
-                background: 'rgba(29, 185, 84, 0.2)',
-                border: '1px solid #1DB954',
+                background: 'rgba(255, 74, 20, 0.2)',
+                border: '1px solid #ff4a14',
                 borderRadius: '12px',
                 fontSize: '12px',
-                color: '#1ed760',
+                color: '#ff5c2e',
                 fontWeight: '600',
               }}>
                 ✓ Authenticated
@@ -200,10 +200,10 @@ export default function APITestPage() {
                 }}
                 style={{
                   padding: '12px 20px',
-                  background: activeTab === tab.id ? 'rgba(29, 185, 84, 0.1)' : 'transparent',
-                  color: activeTab === tab.id ? '#1DB954' : '#b3b3b3',
+                  background: activeTab === tab.id ? 'rgba(255, 74, 20, 0.1)' : 'transparent',
+                  color: activeTab === tab.id ? '#ff4a14' : '#b3b3b3',
                   border: 'none',
-                  borderBottom: activeTab === tab.id ? '2px solid #1DB954' : '2px solid transparent',
+                  borderBottom: activeTab === tab.id ? '2px solid #ff4a14' : '2px solid transparent',
                   cursor: 'pointer',
                   fontSize: '14px',
                   fontWeight: '600',
@@ -318,7 +318,7 @@ export default function APITestPage() {
                   style={{
                     width: '100%',
                     padding: '14px',
-                    background: loading || !customEndpoint ? '#535353' : '#1DB954',
+                    background: loading || !customEndpoint ? '#535353' : '#ff4a14',
                     color: '#ffffff',
                     border: 'none',
                     borderRadius: '8px',
@@ -625,12 +625,12 @@ export default function APITestPage() {
                     <span
                       style={{
                         padding: '6px 16px',
-                        background: results.ok ? 'rgba(29, 185, 84, 0.2)' : 'rgba(230, 77, 77, 0.2)',
-                        border: `1px solid ${results.ok ? '#1DB954' : '#e64d4d'}`,
+                        background: results.ok ? 'rgba(255, 74, 20, 0.2)' : 'rgba(230, 77, 77, 0.2)',
+                        border: `1px solid ${results.ok ? '#ff4a14' : '#e64d4d'}`,
                         borderRadius: '6px',
                         fontSize: '14px',
                         fontWeight: '600',
-                        color: results.ok ? '#1ed760' : '#ff6b6b',
+                        color: results.ok ? '#ff5c2e' : '#ff6b6b',
                       }}
                     >
                       {results.status} {results.statusText}
@@ -716,7 +716,7 @@ export default function APITestPage() {
                         <span
                           style={{
                             padding: '2px 6px',
-                            background: item.method === 'GET' ? '#1DB954' : item.method === 'POST' ? '#3b82f6' : item.method === 'DELETE' ? '#ef4444' : '#f59e0b',
+                            background: item.method === 'GET' ? '#ff4a14' : item.method === 'POST' ? '#3b82f6' : item.method === 'DELETE' ? '#ef4444' : '#f59e0b',
                             borderRadius: '4px',
                             fontSize: '10px',
                             fontWeight: '700',
@@ -726,7 +726,7 @@ export default function APITestPage() {
                           {item.method}
                         </span>
                         {item.status && (
-                          <span style={{ color: item.status < 400 ? '#1ed760' : '#ff6b6b', fontSize: '11px', fontWeight: '600' }}>
+                          <span style={{ color: item.status < 400 ? '#ff5c2e' : '#ff6b6b', fontSize: '11px', fontWeight: '600' }}>
                             {item.status}
                           </span>
                         )}
@@ -759,7 +759,7 @@ interface ApiButtonProps {
 
 function ApiButton({ method, endpoint, description, onClick }: ApiButtonProps) {
   const methodColors: Record<string, { bg: string; text: string }> = {
-    GET: { bg: '#1DB954', text: '#ffffff' },
+    GET: { bg: '#ff4a14', text: '#ffffff' },
     POST: { bg: '#3b82f6', text: '#ffffff' },
     PUT: { bg: '#f59e0b', text: '#ffffff' },
     DELETE: { bg: '#ef4444', text: '#ffffff' },

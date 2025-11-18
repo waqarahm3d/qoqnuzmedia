@@ -106,7 +106,7 @@ export default function SettingsPage() {
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 placeholder="Enter your display name"
-                className="w-full px-4 py-3 bg-gray-900 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full px-4 py-3 bg-gray-900 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff5c2e]"
               />
             </div>
 
@@ -118,7 +118,7 @@ export default function SettingsPage() {
                 onChange={(e) => setBio(e.target.value)}
                 placeholder="Tell us about yourself"
                 rows={4}
-                className="w-full px-4 py-3 bg-gray-900 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
+                className="w-full px-4 py-3 bg-gray-900 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff5c2e] resize-none"
               />
               <p className="text-xs text-gray-500 mt-1">
                 {bio.length}/500 characters
@@ -129,7 +129,7 @@ export default function SettingsPage() {
             {message && (
               <div className={`p-4 rounded-lg ${
                 message.includes('success')
-                  ? 'bg-green-900/30 text-green-400 border border-green-600'
+                  ? 'bg-[#ff4a14]/30 text-[#ff5c2e] border border-[#ff4a14]'
                   : 'bg-red-900/30 text-red-400 border border-red-600'
               }`}>
                 {message}
@@ -141,7 +141,7 @@ export default function SettingsPage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="px-8 py-3 bg-green-600 text-white font-semibold rounded-full hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-8 py-3 bg-[#ff4a14] text-white font-semibold rounded-full hover:bg-[#d43e11] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving ? 'Saving...' : 'Save Changes'}
               </button>
@@ -188,7 +188,7 @@ export default function SettingsPage() {
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" className="sr-only peer" defaultChecked />
-                <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#ff4a14]"></div>
               </label>
             </div>
           </div>

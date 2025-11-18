@@ -135,7 +135,7 @@ function AlbumsPageContent() {
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            className="px-4 py-2 bg-[#ff4a14] text-white rounded-lg hover:bg-[#d43e11]"
           >
             + Create Album
           </button>
@@ -188,7 +188,7 @@ function AlbumsPageContent() {
                 {!search && (
                   <button
                     onClick={() => setShowCreateModal(true)}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    className="px-4 py-2 bg-[#ff4a14] text-white rounded-lg hover:bg-[#d43e11]"
                   >
                     + Create Album
                   </button>
@@ -515,7 +515,7 @@ function AlbumModal({
                 type="file"
                 accept="image/jpeg,image/jpg,image/png,image/webp"
                 onChange={(e) => setCoverFile(e.target.files?.[0] || null)}
-                className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-600 file:text-white hover:file:bg-green-700"
+                className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#ff4a14] file:text-white hover:file:bg-[#d43e11]"
               />
               {album?.cover_art_url && (
                 <p className="text-xs text-gray-400 mt-1">
@@ -546,7 +546,7 @@ function AlbumModal({
                     onClick={() => toggleGenre(genre.id)}
                     className={`px-3 py-1.5 rounded-full text-sm ${
                       formData.genres.includes(genre.id)
-                        ? 'bg-green-600 text-white'
+                        ? 'bg-[#ff4a14] text-white'
                         : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
                     }`}
                   >
@@ -593,7 +593,7 @@ function AlbumModal({
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+              className="flex-1 px-4 py-2 bg-[#ff4a14] text-white rounded-lg hover:bg-[#d43e11] disabled:opacity-50"
             >
               {loading ? 'Saving...' : album ? 'Update Album' : 'Create Album'}
             </button>

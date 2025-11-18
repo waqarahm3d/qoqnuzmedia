@@ -97,7 +97,7 @@ export default function ForgotPasswordPage() {
               border: '1px solid rgba(29, 185, 84, 0.5)',
               borderRadius: '4px',
               marginBottom: '24px',
-              color: '#1DB954',
+              color: '#ff4a14',
               fontSize: '14px',
               lineHeight: '1.5',
             }}
@@ -143,7 +143,7 @@ export default function ForgotPasswordPage() {
                     outline: 'none',
                     transition: 'border-color 0.2s',
                   }}
-                  onFocus={(e) => (e.target.style.borderColor = '#1DB954')}
+                  onFocus={(e) => (e.target.style.borderColor = '#ff4a14')}
                   onBlur={(e) => (e.target.style.borderColor = '#727272')}
                 />
               </div>
@@ -155,7 +155,7 @@ export default function ForgotPasswordPage() {
                 style={{
                   width: '100%',
                   padding: '16px',
-                  background: loading ? '#535353' : '#1DB954',
+                  background: loading ? '#535353' : '#ff4a14',
                   color: '#ffffff',
                   border: 'none',
                   borderRadius: '500px',
@@ -170,13 +170,13 @@ export default function ForgotPasswordPage() {
                 onMouseEnter={(e) => {
                   if (!loading) {
                     e.currentTarget.style.transform = 'scale(1.04)';
-                    e.currentTarget.style.background = '#1ed760';
+                    e.currentTarget.style.background = '#ff5c2e';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!loading) {
                     e.currentTarget.style.transform = 'scale(1)';
-                    e.currentTarget.style.background = '#1DB954';
+                    e.currentTarget.style.background = '#ff4a14';
                   }
                 }}
               >
@@ -191,7 +191,7 @@ export default function ForgotPasswordPage() {
               display: 'block',
               width: '100%',
               padding: '16px',
-              background: '#1DB954',
+              background: '#ff4a14',
               color: '#ffffff',
               border: 'none',
               borderRadius: '500px',
@@ -207,11 +207,11 @@ export default function ForgotPasswordPage() {
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.04)';
-              e.currentTarget.style.background = '#1ed760';
+              e.currentTarget.style.background = '#ff5c2e';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.background = '#1DB954';
+              e.currentTarget.style.background = '#ff4a14';
             }}
           >
             Back to Sign In

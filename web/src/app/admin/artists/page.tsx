@@ -103,7 +103,7 @@ export default function ArtistsManagement() {
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+            className="bg-[#ff4a14] hover:bg-[#d43e11] text-white px-6 py-2 rounded-lg font-medium transition-colors"
           >
             + Add Artist
           </button>
@@ -119,7 +119,7 @@ export default function ArtistsManagement() {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
+            className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff4a14]"
           />
         </div>
 
@@ -142,7 +142,7 @@ export default function ArtistsManagement() {
                 {!search && (
                   <button
                     onClick={() => setShowCreateModal(true)}
-                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                    className="bg-[#ff4a14] hover:bg-[#d43e11] text-white px-6 py-2 rounded-lg font-medium transition-colors"
                   >
                     + Add Artist
                   </button>
@@ -217,7 +217,7 @@ export default function ArtistsManagement() {
                         </td>
                         <td className="px-6 py-4">
                           {artist.verified ? (
-                            <span className="text-green-500">✓ Verified</span>
+                            <span className="text-[#ff5c2e]">✓ Verified</span>
                           ) : (
                             <span className="text-gray-500">-</span>
                           )}
@@ -406,7 +406,7 @@ function ArtistModal({ artist, onClose, onSuccess }: ArtistModalProps) {
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
+              className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff4a14]"
             />
           </div>
           <div>
@@ -419,7 +419,7 @@ function ArtistModal({ artist, onClose, onSuccess }: ArtistModalProps) {
                 setFormData({ ...formData, bio: e.target.value })
               }
               rows={3}
-              className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
+              className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff4a14]"
             />
           </div>
           <div>
@@ -430,7 +430,7 @@ function ArtistModal({ artist, onClose, onSuccess }: ArtistModalProps) {
               type="file"
               accept="image/jpeg,image/jpg,image/png,image/webp"
               onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
-              className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-600 file:text-white hover:file:bg-green-700"
+              className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff4a14] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#ff4a14] file:text-white hover:file:bg-[#d43e11]"
             />
             {artist?.avatar_url && (
               <p className="text-xs text-gray-400 mt-1">
@@ -446,7 +446,7 @@ function ArtistModal({ artist, onClose, onSuccess }: ArtistModalProps) {
               type="file"
               accept="image/jpeg,image/jpg,image/png,image/webp"
               onChange={(e) => setCoverFile(e.target.files?.[0] || null)}
-              className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-600 file:text-white hover:file:bg-green-700"
+              className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff4a14] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#ff4a14] file:text-white hover:file:bg-[#d43e11]"
             />
             {artist?.cover_image_url && (
               <p className="text-xs text-gray-400 mt-1">
@@ -466,7 +466,7 @@ function ArtistModal({ artist, onClose, onSuccess }: ArtistModalProps) {
                   onClick={() => toggleGenre(genre.id)}
                   className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
                     formData.genres.includes(genre.id)
-                      ? 'bg-green-600 text-white'
+                      ? 'bg-[#ff4a14] text-white'
                       : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
                   }`}
                 >
@@ -500,7 +500,7 @@ function ArtistModal({ artist, onClose, onSuccess }: ArtistModalProps) {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg"
+              className="flex-1 bg-[#ff4a14] hover:bg-[#d43e11] disabled:opacity-50 text-white px-4 py-2 rounded-lg"
             >
               {loading ? 'Saving...' : 'Save'}
             </button>

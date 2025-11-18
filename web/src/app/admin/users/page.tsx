@@ -132,7 +132,7 @@ export default function UsersManagement() {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
+            className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff4a14]"
           />
         </div>
 
@@ -230,7 +230,7 @@ export default function UsersManagement() {
                           <td className="px-6 py-4">
                             <div className="flex flex-col gap-1">
                               {isAdmin && (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900/30 text-green-400 w-fit">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#ff4a14]/30 text-[#ff5c2e] w-fit">
                                   Admin
                                 </span>
                               )}
@@ -267,7 +267,7 @@ export default function UsersManagement() {
                                 onClick={() => handleBanToggle(user)}
                                 className={`px-3 py-1 text-sm rounded ${
                                   user.is_banned
-                                    ? 'bg-green-600 text-white hover:bg-green-700'
+                                    ? 'bg-[#ff4a14] text-white hover:bg-[#d43e11]'
                                     : 'bg-red-600 text-white hover:bg-red-700'
                                 }`}
                                 title={user.is_banned ? 'Unban user' : 'Ban user'}
@@ -346,7 +346,7 @@ export default function UsersManagement() {
                     handleResetPassword(showPasswordReset.email)
                   }
                   disabled={!showPasswordReset.email}
-                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                  className="flex-1 px-4 py-2 bg-[#ff4a14] text-white rounded-lg hover:bg-[#d43e11] disabled:opacity-50"
                 >
                   Send Reset Email
                 </button>
@@ -472,7 +472,7 @@ function EditUserModal({ user, onClose, onSuccess }: EditUserModalProps) {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+              className="flex-1 px-4 py-2 bg-[#ff4a14] text-white rounded-lg hover:bg-[#d43e11] disabled:opacity-50"
             >
               {loading ? 'Saving...' : 'Save Changes'}
             </button>

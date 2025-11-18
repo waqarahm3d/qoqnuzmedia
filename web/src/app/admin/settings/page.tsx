@@ -149,9 +149,9 @@ export default function SettingsPage() {
         {/* Success Message */}
         {successMessage && (
           <div style={{
-            background: 'rgba(29, 185, 84, 0.1)',
-            border: '1px solid #1DB954',
-            color: '#1ed760',
+            background: 'rgba(255, 74, 20, 0.1)',
+            border: '1px solid #ff4a14',
+            color: '#ff5c2e',
             padding: '16px',
             borderRadius: '8px',
             marginBottom: '24px',
@@ -205,7 +205,7 @@ export default function SettingsPage() {
             <SettingField
               label="Primary Color"
               description="Main brand color (hex code)"
-              value={settings.theme_primary_color?.value || '#1DB954'}
+              value={settings.theme_primary_color?.value || '#ff4a14'}
               onChange={(value) => updateSetting('theme_primary_color', value)}
               type="color"
             />
@@ -270,7 +270,7 @@ export default function SettingsPage() {
             disabled={saving}
             style={{
               padding: '12px 32px',
-              background: saving ? '#282828' : '#1DB954',
+              background: saving ? '#282828' : '#ff4a14',
               color: '#ffffff',
               border: 'none',
               borderRadius: '500px',
@@ -280,10 +280,10 @@ export default function SettingsPage() {
               transition: 'all 0.2s',
             }}
             onMouseOver={(e) => {
-              if (!saving) e.currentTarget.style.background = '#1ed760';
+              if (!saving) e.currentTarget.style.background = '#ff5c2e';
             }}
             onMouseOut={(e) => {
-              if (!saving) e.currentTarget.style.background = '#1DB954';
+              if (!saving) e.currentTarget.style.background = '#ff4a14';
             }}
           >
             {saving ? 'Saving...' : 'Save Settings'}
@@ -326,7 +326,7 @@ function SettingField({ label, description, value, onChange, type = 'text' }: Se
           fontSize: '14px',
           outline: 'none',
         }}
-        onFocus={(e) => e.currentTarget.style.borderColor = '#1DB954'}
+        onFocus={(e) => e.currentTarget.style.borderColor = '#ff4a14'}
         onBlur={(e) => e.currentTarget.style.borderColor = '#282828'}
       />
     </div>
@@ -356,7 +356,7 @@ function SettingToggle({ label, description, value, onChange }: SettingTogglePro
         style={{
           width: '50px',
           height: '28px',
-          background: value ? '#1DB954' : '#727272',
+          background: value ? '#ff4a14' : '#727272',
           border: 'none',
           borderRadius: '500px',
           position: 'relative',
