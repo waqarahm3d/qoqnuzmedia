@@ -4,6 +4,7 @@ import { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth/AuthContext';
+import AdminAuthGuard from '@/components/admin/AdminAuthGuard';
 import {
   DashboardIcon,
   AnalyticsIcon,
@@ -81,7 +82,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <AdminAuthGuard>
+      <div className="min-h-screen bg-gray-900">
       {/* Sidebar */}
       <div
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-gray-800 transform transition-transform duration-300 ease-in-out ${
@@ -193,5 +195,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <main className="p-6">{children}</main>
       </div>
     </div>
+    </AdminAuthGuard>
   );
 }
