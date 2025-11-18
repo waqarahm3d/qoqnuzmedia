@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkAdminAccess, createClient } from '@/lib/auth-utils';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * API endpoint to get trending tracks
  * Returns pre-calculated trending tracks from the database

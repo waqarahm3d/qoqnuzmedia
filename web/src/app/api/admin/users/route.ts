@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin, requirePermission } from '@/lib/auth/admin-middleware';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/admin/users
  * Get all users with pagination

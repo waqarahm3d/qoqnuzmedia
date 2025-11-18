@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth/admin-middleware';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * POST /api/admin/users/[userId]/ban
  * Ban or unban a user

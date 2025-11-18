@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin, requirePermission } from '@/lib/auth/admin-middleware';
 import { apiSuccess, apiError, apiServerError, apiValidationError, withErrorHandling } from '@/lib/api-response';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/admin/tracks
  * Get all tracks with pagination

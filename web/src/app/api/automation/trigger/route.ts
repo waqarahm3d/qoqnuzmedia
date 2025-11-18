@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkAdminAccess, createClient } from '@/lib/auth-utils';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * Admin endpoint to manually trigger automation tasks
  * Useful for testing or forcing an immediate update
  */
 export async function POST(request: NextRequest) {
   try {
-    // Check if user has admin access (checks both database and ADMIN_EMAILS env var)
+    // Check if user has admin access (database only)
     const authCheck = await checkAdminAccess(request);
 
     if (authCheck.error) {
@@ -108,7 +110,7 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    // Check if user has admin access (checks both database and ADMIN_EMAILS env var)
+    // Check if user has admin access (database only)
     const authCheck = await checkAdminAccess(request);
 
     if (authCheck.error) {

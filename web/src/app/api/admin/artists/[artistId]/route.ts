@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin, requirePermission } from '@/lib/auth/admin-middleware';
 import { uploadToR2 } from '@/lib/r2';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/admin/artists/[artistId]
  * Get artist details

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth/admin-middleware';
 import { apiSuccess, apiServerError, apiValidationError } from '@/lib/api-response';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/admin/downloads/whitelist
  * Get all whitelist entries

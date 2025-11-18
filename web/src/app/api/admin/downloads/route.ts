@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth/admin-middleware';
 import { apiSuccess, apiError, apiServerError, apiValidationError } from '@/lib/api-response';
 
+export const dynamic = 'force-dynamic';
+
 const AUDIO_PROCESSOR_URL = process.env.AUDIO_PROCESSOR_URL || 'http://localhost:8000';
 const AUDIO_PROCESSOR_API_KEY = process.env.AUDIO_PROCESSOR_API_KEY || '';
 
