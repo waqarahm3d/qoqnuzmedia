@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -20,6 +20,9 @@ import {
   MenuIcon,
   ChevronLeftIcon,
   DownloadIcon,
+  AutomationIcon,
+  FeaturedIcon,
+  ImageIcon,
 } from '@/components/icons/admin-icons';
 
 interface AdminLayoutProps {
@@ -28,17 +31,42 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [logoUrl, setLogoUrl] = useState<string>('');
+  const [siteName, setSiteName] = useState<string>('Qoqnuz');
   const pathname = usePathname();
   const { signOut, user } = useAuth();
+
+  // Fetch logo and site name from settings
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/admin/settings');
+        if (response.ok) {
+          const data = await response.json();
+          const logoSetting = data.settings.find((s: any) => s.key === 'site_logo_url');
+          const nameSetting = data.settings.find((s: any) => s.key === 'site_name');
+
+          if (logoSetting?.value) setLogoUrl(logoSetting.value);
+          if (nameSetting?.value) setSiteName(nameSetting.value);
+        }
+      } catch (error) {
+        console.error('Failed to fetch settings:', error);
+      }
+    };
+
+    fetchSettings();
+  }, []);
 
   const navigation = [
     { name: 'Dashboard', href: '/admin', Icon: DashboardIcon },
     { name: 'Analytics', href: '/admin/analytics', Icon: AnalyticsIcon },
+    { name: 'Automation', href: '/admin/automation', Icon: AutomationIcon },
     { name: 'Artists', href: '/admin/artists', Icon: MicrophoneIcon },
     { name: 'Albums', href: '/admin/albums', Icon: DiscIcon },
     { name: 'Tracks', href: '/admin/tracks', Icon: MusicIcon },
     { name: 'Playlists', href: '/admin/playlists', Icon: PlaylistIcon },
     { name: 'Genres', href: '/admin/genres', Icon: TheaterIcon },
+    { name: 'Featured Sections', href: '/admin/featured-sections', Icon: FeaturedIcon },
     { name: 'Downloads', href: '/admin/downloads', Icon: DownloadIcon },
     { name: 'Users', href: '/admin/users', Icon: UsersIcon },
     { name: 'Theme', href: '/admin/theme', Icon: PaletteIcon },
@@ -63,8 +91,19 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between h-16 px-6 bg-gray-900">
-            <Link href="/admin" className="text-xl font-bold text-[#ff5c2e]">
-              Qoqnuz Admin
+            <Link href="/admin" className="flex items-center gap-3">
+              {logoUrl ? (
+                <img
+                  src={logoUrl}
+                  alt={`${siteName} Admin`}
+                  className="h-10 max-w-[140px] object-contain"
+                />
+              ) : (
+                <div className="flex items-center gap-2">
+                  <ImageIcon size={24} className="text-[#ff4a14]" />
+                  <span className="text-lg font-bold text-[#ff4a14]">{siteName}</span>
+                </div>
+              )}
             </Link>
             <button
               onClick={() => setSidebarOpen(false)}
