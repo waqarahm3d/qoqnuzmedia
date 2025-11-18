@@ -13,11 +13,14 @@ export async function requireAdmin(request: NextRequest) {
   // Create Supabase client that properly reads cookies from the request
   const authClient = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
-      getAll() {
-        return request.cookies.getAll();
+      get(name: string) {
+        return request.cookies.get(name)?.value;
       },
-      setAll(cookiesToSet) {
+      set(name: string, value: string, options: any) {
         // We don't need to set cookies in this context
+      },
+      remove(name: string, options: any) {
+        // We don't need to remove cookies in this context
       },
     },
   });
