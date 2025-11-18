@@ -22,7 +22,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     // Check if user owns playlist or is a collaborator
     const { data: playlist } = await supabase
       .from('playlists')
-      .select('user_id')
+      .select('owner_id')
       .eq('id', playlistId)
       .single();
 
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return apiError('Playlist not found', 404);
     }
 
-    const isOwner = playlist.user_id === user.id;
+    const isOwner = playlist.owner_id === user.id;
 
     if (!isOwner) {
       // Check if user is a collaborator
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Check if user owns the playlist
     const { data: playlist, error: playlistError } = await supabase
       .from('playlists')
-      .select('user_id')
+      .select('owner_id')
       .eq('id', playlistId)
       .single();
 
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return apiError('Playlist not found', 404);
     }
 
-    if (playlist.user_id !== user.id) {
+    if (playlist.owner_id !== user.id) {
       return apiError('Only playlist owner can add collaborators', 403);
     }
 
@@ -190,7 +190,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     // Get collaborator record
     const { data: collaborator, error: collabError } = await supabase
       .from('playlist_collaborators')
-      .select('*, playlists!inner(user_id)')
+      .select('*, playlists!inner(owner_id)')
       .eq('id', collaborator_id)
       .eq('playlist_id', playlistId)
       .single();
@@ -199,7 +199,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return apiError('Collaborator not found', 404);
     }
 
-    const isOwner = collaborator.playlists.user_id === user.id;
+    const isOwner = collaborator.playlists.owner_id === user.id;
     const isTargetUser = collaborator.user_id === user.id;
 
     // Check permissions
@@ -271,7 +271,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     // Get collaborator and playlist info
     const { data: collaborator, error: collabError } = await supabase
       .from('playlist_collaborators')
-      .select('*, playlists!inner(user_id)')
+      .select('*, playlists!inner(owner_id)')
       .eq('id', collaboratorId)
       .eq('playlist_id', playlistId)
       .single();
@@ -280,7 +280,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return apiError('Collaborator not found', 404);
     }
 
-    const isOwner = collaborator.playlists.user_id === user.id;
+    const isOwner = collaborator.playlists.owner_id === user.id;
     const isTargetUser = collaborator.user_id === user.id;
 
     // Only owner or the collaborator themselves can remove

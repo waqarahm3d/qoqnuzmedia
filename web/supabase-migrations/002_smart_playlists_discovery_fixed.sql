@@ -215,7 +215,7 @@ CREATE POLICY "Playlist owners can manage collaborators"
     EXISTS (
       SELECT 1 FROM playlists
       WHERE playlists.id = playlist_collaborators.playlist_id
-      AND playlists.user_id = auth.uid()
+      AND playlists.owner_id = auth.uid()
     )
   );
 
