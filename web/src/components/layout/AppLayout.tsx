@@ -5,6 +5,7 @@ import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { ResponsivePlayer } from './ResponsivePlayer';
 import { MobileNav } from './MobileNav';
+import { NowPlayingOverlay } from '../player/NowPlayingOverlay';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -34,6 +35,9 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
       {/* Mobile Navigation - Fixed at bottom on mobile */}
       <MobileNav />
+
+      {/* Now Playing Overlay - Full screen when open */}
+      <NowPlayingOverlay />
     </div>
   );
 };

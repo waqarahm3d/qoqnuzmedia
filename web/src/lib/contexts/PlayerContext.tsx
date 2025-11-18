@@ -28,6 +28,7 @@ interface PlayerContextType {
   repeat: 'off' | 'all' | 'one';
   queue: Track[];
   showStillListeningPrompt: boolean;
+  showOverlay: boolean;
   playTrack: (track: Track, skipQueueUpdate?: boolean) => void;
   pause: () => void;
   resume: () => void;
@@ -43,6 +44,8 @@ interface PlayerContextType {
   addToQueue: (track: Track) => void;
   setQueue: (tracks: Track[]) => void;
   confirmStillListening: () => void;
+  openOverlay: () => void;
+  closeOverlay: () => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -62,6 +65,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [queue, setQueue] = useState<Track[]>([]);
   const [queueIndex, setQueueIndex] = useState(0);
   const [showStillListeningPrompt, setShowStillListeningPrompt] = useState(false);
+  const [showOverlay, setShowOverlay] = useState(false);
   const [playbackStartTime, setPlaybackStartTime] = useState<number | null>(null);
   const stillListeningTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -329,6 +333,14 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     resume();
   };
 
+  const openOverlay = () => {
+    setShowOverlay(true);
+  };
+
+  const closeOverlay = () => {
+    setShowOverlay(false);
+  };
+
   return (
     <PlayerContext.Provider
       value={{
@@ -343,6 +355,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         repeat,
         queue,
         showStillListeningPrompt,
+        showOverlay,
         playTrack,
         pause,
         resume,
@@ -358,6 +371,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         addToQueue,
         setQueue: setQueueWithTracks,
         confirmStillListening,
+        openOverlay,
+        closeOverlay,
       }}
     >
       {children}

@@ -5,6 +5,14 @@ import { TrackRow } from '@/components/ui/TrackRow';
 import { useAlbums, useArtists, usePlaylists, useTracks, useGenres } from '@/lib/hooks/useMusic';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
 import { getMediaUrl } from '@/lib/media-utils';
+import {
+  HeartIcon,
+  SparklesIcon,
+  RecentIcon,
+  DiscoverIcon,
+  PodcastIcon,
+  NewReleasesIcon
+} from '@/components/icons';
 
 export default function HomePage() {
   const { albums, loading: albumsLoading } = useAlbums(12);
@@ -93,24 +101,24 @@ export default function HomePage() {
       {/* Quick Access Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {[
-          { name: 'Liked Songs', href: '/liked', color: 'from-purple-700 to-purple-900' },
-          { name: 'Your Top Songs 2024', href: '/playlist/top-2024', color: 'from-blue-700 to-blue-900' },
-          { name: 'Recently Played', href: '/recent', color: 'from-[#d43e11] to-[#8a2a00]' },
-          { name: 'Your Episodes', href: '/episodes', color: 'from-red-700 to-red-900' },
-          { name: 'Discover Weekly', href: '/discover', color: 'from-pink-700 to-pink-900' },
-          { name: 'Release Radar', href: '/releases', color: 'from-yellow-700 to-yellow-900' },
+          { name: 'Liked Songs', href: '/liked', color: 'from-purple-700 to-purple-900', Icon: HeartIcon },
+          { name: 'Smart Playlists', href: '/playlists/smart', color: 'from-primary/80 to-primary', Icon: SparklesIcon },
+          { name: 'Recently Played', href: '/recent', color: 'from-[#d43e11] to-[#8a2a00]', Icon: RecentIcon },
+          { name: 'Discover', href: '/discover', color: 'from-blue-600 to-blue-800', Icon: DiscoverIcon },
+          { name: 'Your Episodes', href: '/episodes', color: 'from-green-600 to-green-800', Icon: PodcastIcon },
+          { name: 'New Releases', href: '/releases', color: 'from-pink-600 to-pink-800', Icon: NewReleasesIcon },
         ].map((item, index) => (
           <a
             key={index}
             href={item.href}
-            className="group relative bg-surface/40 hover:bg-surface rounded overflow-hidden transition-all duration-300 hover:shadow-xl"
+            className="group relative bg-surface/40 hover:bg-surface rounded overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.02]"
           >
             <div className="flex items-center h-20">
-              <div className={`w-20 h-20 bg-gradient-to-br ${item.color} flex items-center justify-center flex-shrink-0`}>
-                <span className="text-2xl">♪</span>
+              <div className={`w-20 h-20 bg-gradient-to-br ${item.color} flex items-center justify-center flex-shrink-0 shadow-lg`}>
+                <item.Icon size={36} className="text-white" />
               </div>
               <div className="px-4 flex-1 min-w-0">
-                <h3 className="font-semibold text-white truncate">{item.name}</h3>
+                <h3 className="font-semibold text-white truncate group-hover:text-primary transition-colors">{item.name}</h3>
               </div>
             </div>
           </a>

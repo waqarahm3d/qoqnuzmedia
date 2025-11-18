@@ -89,7 +89,7 @@ export const Header = () => {
 
           {/* Dropdown Menu */}
           {showDropdown && (
-            <div className="absolute right-0 mt-2 w-48 bg-surface rounded-md shadow-xl border border-white/10 py-1 z-50">
+            <div className="absolute right-0 mt-2 w-56 bg-surface rounded-md shadow-xl border border-white/10 py-1 z-50">
               <Link
                 href="/profile"
                 className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/5 transition-colors"
@@ -98,6 +98,29 @@ export const Header = () => {
                 <UserIcon size={16} />
                 Profile
               </Link>
+              <div className="border-t border-white/10 my-1" />
+              <Link
+                href="/playlists/smart"
+                className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/5 transition-colors"
+                onClick={() => setShowDropdown(false)}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z" />
+                  <path d="M19 12l.75 2.25L22 15l-2.25.75L19 18l-.75-2.25L16 15l2.25-.75L19 12z" />
+                </svg>
+                Smart Playlists
+              </Link>
+              <Link
+                href="/discover"
+                className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/5 transition-colors lg:hidden"
+                onClick={() => setShowDropdown(false)}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                </svg>
+                Discover
+              </Link>
+              <div className="border-t border-white/10 my-1" />
               <Link
                 href="/settings"
                 className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/5 transition-colors"

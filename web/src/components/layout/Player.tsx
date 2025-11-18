@@ -25,6 +25,7 @@ export const Player = () => {
     skipForward,
     skipBackward,
     confirmStillListening,
+    openOverlay,
   } = usePlayer();
 
   const formatTime = (seconds: number) => {
@@ -75,40 +76,45 @@ export const Player = () => {
       <div className="flex items-center justify-between gap-4 max-w-screen-2xl mx-auto">
         {/* Current Track Info */}
         <div className="flex items-center gap-3 min-w-0 flex-1 lg:w-[30%]">
-          {currentTrack.image ? (
-            <div className="relative w-14 h-14 flex-shrink-0 hidden sm:block">
-              <Image
-                src={currentTrack.image}
-                alt={currentTrack.title}
-                fill
-                className="object-cover rounded"
-                sizes="56px"
-              />
-            </div>
-          ) : (
-            <div className="w-14 h-14 bg-gray-800 rounded flex items-center justify-center flex-shrink-0 hidden sm:block">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                className="text-gray-600"
-              >
-                <path d="M9 18V5l12-2v13" />
-                <circle cx="6" cy="18" r="3" />
-                <circle cx="18" cy="16" r="3" />
-              </svg>
-            </div>
-          )}
+          <button
+            onClick={openOverlay}
+            className="flex items-center gap-3 min-w-0 flex-1 hover:bg-white/5 rounded-md p-1 -m-1 transition-colors"
+          >
+            {currentTrack.image ? (
+              <div className="relative w-14 h-14 flex-shrink-0 hidden sm:block">
+                <Image
+                  src={currentTrack.image}
+                  alt={currentTrack.title}
+                  fill
+                  className="object-cover rounded"
+                  sizes="56px"
+                />
+              </div>
+            ) : (
+              <div className="w-14 h-14 bg-gray-800 rounded flex items-center justify-center flex-shrink-0 hidden sm:block">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="text-gray-600"
+                >
+                  <path d="M9 18V5l12-2v13" />
+                  <circle cx="6" cy="18" r="3" />
+                  <circle cx="18" cy="16" r="3" />
+                </svg>
+              </div>
+            )}
 
-          <div className="min-w-0 flex-1">
-            <div className="text-sm font-medium text-white truncate hover:underline cursor-pointer">
-              {currentTrack.title}
+            <div className="min-w-0 flex-1 text-left">
+              <div className="text-sm font-medium text-white truncate">
+                {currentTrack.title}
+              </div>
+              <div className="text-xs text-gray-400 truncate">
+                {currentTrack.artist}
+              </div>
             </div>
-            <div className="text-xs text-gray-400 truncate hover:underline cursor-pointer">
-              {currentTrack.artist}
-            </div>
-          </div>
+          </button>
 
           <button
             onClick={toggleLike}

@@ -6,14 +6,14 @@ import {
   HomeIcon,
   SearchIcon,
   LibraryIcon,
-  UserIcon,
+  DiscoverIcon,
 } from '../icons';
 
 const navItems = [
   { name: 'Home', href: '/home', icon: HomeIcon },
+  { name: 'Discover', href: '/discover', icon: DiscoverIcon },
   { name: 'Search', href: '/search', icon: SearchIcon },
   { name: 'Library', href: '/library', icon: LibraryIcon },
-  { name: 'Profile', href: '/profile', icon: UserIcon },
 ];
 
 export const MobileNav = () => {
