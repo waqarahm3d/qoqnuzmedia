@@ -67,18 +67,9 @@ export default function AutomationDashboard() {
   const fetchStatus = async () => {
     try {
       setLoading(true);
-      const { data: { session } } = await supabase.auth.getSession();
+      setError('');
 
-      if (!session) {
-        setError('Not authenticated');
-        return;
-      }
-
-      const response = await fetch('/api/automation/trigger', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
+      const response = await fetch('/api/automation/trigger');
 
       if (response.ok) {
         const data = await response.json();
@@ -86,34 +77,21 @@ export default function AutomationDashboard() {
         setLastRefresh(new Date());
       } else {
         const errorData = await response.json();
+        console.error('Automation status error:', errorData);
         setError(errorData.error || 'Failed to fetch automation status');
       }
     } catch (err: any) {
-      setError(err.message);
+      console.error('Fetch error:', err);
+      setError(err.message || 'Failed to connect to server');
     } finally {
       setLoading(false);
     }
   };
 
   const fetchCronExecutions = async () => {
-    try {
-      const { data, error } = await supabase.rpc('get_cron_job_status');
-
-      if (!error && data) {
-        // Fetch recent executions from cron.job_run_details
-        const { data: executions } = await supabase
-          .from('cron.job_run_details')
-          .select('*')
-          .order('start_time', { ascending: false })
-          .limit(20);
-
-        if (executions) {
-          setCronExecutions(executions as any);
-        }
-      }
-    } catch (err) {
-      console.error('Failed to fetch cron executions:', err);
-    }
+    // Note: Direct access to cron.job_run_details is not available via Supabase client
+    // Execution history would need to be tracked in a custom table or via server-side API
+    // For now, we rely on the cron job status from the main API endpoint
   };
 
   const triggerAutomation = async (task: string) => {
@@ -122,18 +100,10 @@ export default function AutomationDashboard() {
       setSuccessMessage('');
       setError('');
 
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (!session) {
-        setError('Not authenticated');
-        return;
-      }
-
       const response = await fetch('/api/automation/trigger', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({ task }),
       });
