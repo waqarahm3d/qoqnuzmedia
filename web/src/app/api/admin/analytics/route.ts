@@ -61,11 +61,37 @@ export async function GET(request: NextRequest) {
       .select(`
         artist_id,
         total_plays:play_count,
-        artists(id, name, profile_image_url)
+        artists(id, name, avatar_url)
       `)
       .gte('date', thirtyDaysAgo.toISOString().split('T')[0])
       .order('play_count', { ascending: false })
       .limit(10);
+
+    // Get top albums (by play count of their tracks)
+    const { data: topAlbums } = await supabase
+      .from('albums')
+      .select(`
+        id,
+        title,
+        cover_url,
+        artists(id, name)
+      `)
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    // Get top playlists (by follower count or track count)
+    const { data: topPlaylists } = await supabase
+      .from('playlists')
+      .select(`
+        id,
+        name,
+        cover_url,
+        is_public,
+        profiles(id, display_name)
+      `)
+      .eq('is_public', true)
+      .order('created_at', { ascending: false })
+      .limit(5);
 
     // Get daily plays for chart (last 30 days)
     const { data: dailyPlays } = await supabase
@@ -98,6 +124,8 @@ export async function GET(request: NextRequest) {
       },
       topTracks: topTracks || [],
       topArtists: topArtists || [],
+      topAlbums: topAlbums || [],
+      topPlaylists: topPlaylists || [],
       dailyPlaysChart: dailyPlaysChart || [],
     });
   } catch (error: any) {
