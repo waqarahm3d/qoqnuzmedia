@@ -65,7 +65,7 @@ export const Header = () => {
     try {
       const { data, error } = await supabase
         .from('admin_users')
-        .select('id')
+        .select('user_id')
         .eq('user_id', user.id)
         .maybeSingle();
 

@@ -25,7 +25,7 @@ export async function PATCH(
     // Check if user is admin
     const { data: adminCheck } = await supabase
       .from('admin_users')
-      .select('id')
+      .select('user_id')
       .eq('user_id', user.id)
       .maybeSingle();
 
@@ -80,7 +80,7 @@ export async function DELETE(
     // Check if user is admin
     const { data: adminCheck } = await supabase
       .from('admin_users')
-      .select('id')
+      .select('user_id')
       .eq('user_id', user.id)
       .maybeSingle();
 

@@ -32,7 +32,7 @@ export function useAdminAuth() {
         // Check if user has admin role
         const { data, error } = await supabase
           .from('admin_users')
-          .select('id, role_id')
+          .select('user_id, role_id')
           .eq('user_id', user.id)
           .maybeSingle();
 

@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     // Check if user is admin
     const { data: adminCheck } = await supabase
       .from('admin_users')
-      .select('id')
+      .select('user_id')
       .eq('user_id', user.id)
       .maybeSingle();
 
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
     // Check if user is admin
     const { data: adminCheck } = await supabase
       .from('admin_users')
-      .select('id')
+      .select('user_id')
       .eq('user_id', user.id)
       .maybeSingle();
 
