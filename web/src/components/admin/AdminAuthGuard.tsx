@@ -31,7 +31,7 @@ export default function AdminAuthGuard({ children }: AdminAuthGuardProps) {
       // Check if user has admin access
       const { data: adminUser, error: adminError } = await supabase
         .from('admin_users')
-        .select('id, role_id')
+        .select('user_id, role_id')
         .eq('user_id', session.user.id)
         .maybeSingle();
 

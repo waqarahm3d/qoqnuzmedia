@@ -70,7 +70,7 @@ export async function middleware(req: NextRequest) {
     // Check if user has admin access
     const { data: adminUser } = await supabase
       .from('admin_users')
-      .select('id, role_id')
+      .select('user_id, role_id')
       .eq('user_id', session.user.id)
       .maybeSingle();
 

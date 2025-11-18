@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/AuthContext';
 
@@ -18,6 +18,8 @@ export default function SignInPage() {
 
   const { signIn, verifyMFAChallenge } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirectTo') || '/home';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,8 +37,8 @@ export default function SignInPage() {
       setShowMfaVerify(true);
       setLoading(false);
     } else {
-      // No MFA, proceed to home
-      router.push('/home');
+      // No MFA, proceed to redirect destination
+      router.push(redirectTo);
     }
   };
 
@@ -56,7 +58,7 @@ export default function SignInPage() {
       setError(verifyError.message || 'Invalid code. Please try again.');
       setLoading(false);
     } else {
-      router.push('/home');
+      router.push(redirectTo);
     }
   };
 
