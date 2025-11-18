@@ -154,10 +154,20 @@ export default function AdminUsersPage() {
     if (!selectedUser) return;
     setSaving(true);
     try {
+      // Convert empty strings to null for date and optional fields
+      const cleanedForm = {
+        ...editForm,
+        date_of_birth: editForm.date_of_birth || null,
+        gender: editForm.gender || null,
+        country: editForm.country || null,
+        phone: editForm.phone || null,
+        website: editForm.website || null,
+      };
+
       const response = await fetch(`/api/admin/users/${selectedUser.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editForm),
+        body: JSON.stringify(cleanedForm),
       });
       if (response.ok) {
         fetchUsers();
