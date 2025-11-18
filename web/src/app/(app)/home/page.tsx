@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { TrackRow } from '@/components/ui/TrackRow';
 import { useAlbums, useArtists, usePlaylists, useTracks, useGenres } from '@/lib/hooks/useMusic';
@@ -26,11 +27,32 @@ export default function HomePage() {
 
   const loading = albumsLoading || artistsLoading || playlistsLoading || tracksLoading || genresLoading;
 
-  // Sort tracks by play_count for trending (client-side for now)
-  const trendingTracks = [...tracks]
-    .filter(t => t.play_count > 0)
-    .sort((a, b) => (b.play_count || 0) - (a.play_count || 0))
-    .slice(0, 10);
+  // Fetch trending tracks from automation system
+  const [trendingTracks, setTrendingTracks] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchTrending = async () => {
+      try {
+        const response = await fetch('/api/automation/trending?limit=10');
+        if (response.ok) {
+          const data = await response.json();
+          setTrendingTracks(data.tracks || []);
+        }
+      } catch (error) {
+        console.error('Error fetching trending tracks:', error);
+        // Fallback to client-side trending if automation not available
+        const fallbackTrending = [...tracks]
+          .filter(t => t.play_count > 0)
+          .sort((a, b) => (b.play_count || 0) - (a.play_count || 0))
+          .slice(0, 10);
+        setTrendingTracks(fallbackTrending);
+      }
+    };
+
+    if (!tracksLoading && tracks.length > 0) {
+      fetchTrending();
+    }
+  }, [tracksLoading, tracks]);
 
   // Get popular albums (sorted by release date for now, ideally by play count)
   const popularAlbums = [...albums]

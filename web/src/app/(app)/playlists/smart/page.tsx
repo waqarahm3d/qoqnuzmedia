@@ -59,30 +59,45 @@ export default function SmartPlaylistsPage() {
     },
   ];
 
-  // Auto-generate all playlists on mount
+  // Fetch pre-generated playlists from automation system
   useEffect(() => {
-    const generateAllPlaylists = async () => {
+    const fetchPlaylists = async () => {
       setLoading(true);
-      const results: Record<string, SmartPlaylistResult> = {};
 
-      for (const playlist of smartPlaylists) {
-        try {
-          const response = await fetch(`/api/playlists/smart?type=${playlist.type}&limit=50`);
+      try {
+        // Fetch all smart playlists from automation system
+        const response = await fetch('/api/automation/smart-playlists');
 
-          if (response.ok) {
-            const data = await response.json();
-            results[playlist.type] = data.data.playlist || data.data;
-          }
-        } catch (error) {
-          console.error(`Error generating ${playlist.type}:`, error);
+        if (response.ok) {
+          const data = await response.json();
+          const results: Record<string, SmartPlaylistResult> = {};
+
+          // Map playlists to our format
+          data.playlists?.forEach((playlist: any) => {
+            results[playlist.playlist_type] = {
+              tracks: playlist.tracks || [],
+              metadata: {
+                algorithm: playlist.playlist_type,
+                generatedAt: playlist.generated_at,
+                trackCount: playlist.track_count || 0,
+                criteria: playlist.metadata || {},
+              },
+            };
+          });
+
+          setPlaylists(results);
+        } else if (response.status === 404) {
+          // No playlists generated yet, show empty state
+          setPlaylists({});
         }
+      } catch (error) {
+        console.error('Error fetching smart playlists:', error);
+      } finally {
+        setLoading(false);
       }
-
-      setPlaylists(results);
-      setLoading(false);
     };
 
-    generateAllPlaylists();
+    fetchPlaylists();
   }, []);
 
   const viewPlaylist = (type: string) => {
