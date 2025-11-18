@@ -130,19 +130,31 @@ export async function GET(request: NextRequest) {
       error: authError,
     } = await supabase.auth.getUser();
 
+    console.log('Auth check:', { user: user?.email, authError });
+
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      console.error('Auth failed:', authError);
+      return NextResponse.json({
+        error: 'Unauthorized',
+        details: authError?.message || 'No user found'
+      }, { status: 401 });
     }
 
     // Check if user is admin
-    const { data: adminCheck } = await supabase
+    const { data: adminCheck, error: adminError } = await supabase
       .from('admin_users')
       .select('id')
       .eq('user_id', user.id)
       .single();
 
+    console.log('Admin check:', { adminCheck, adminError, userId: user.id });
+
     if (!adminCheck) {
-      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
+      console.error('Admin check failed:', adminError);
+      return NextResponse.json({
+        error: 'Forbidden - Admin access required',
+        details: adminError?.message || 'User not in admin_users table'
+      }, { status: 403 });
     }
 
     // Get cron job status
