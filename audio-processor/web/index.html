@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Processor - Control Panel</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>🎵 Audio Processor</h1>
+            <p>Download and process audio from YouTube and SoundCloud</p>
+        </header>
+
+        <!-- API Key Setup -->
+        <section class="card">
+            <h2>API Configuration</h2>
+            <div class="form-group">
+                <label for="apiKey">API Key:</label>
+                <input type="password" id="apiKey" placeholder="Enter your API key">
+                <button onclick="saveApiKey()" class="btn btn-primary">Save API Key</button>
+            </div>
+            <div id="apiKeyStatus" class="status-message"></div>
+        </section>
+
+        <!-- Download Form -->
+        <section class="card">
+            <h2>Submit Download</h2>
+            <form id="downloadForm" onsubmit="submitDownload(event)">
+                <div class="form-group">
+                    <label for="url">URL:</label>
+                    <input type="url" id="url" placeholder="https://www.youtube.com/watch?v=..." required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="sourceType">Platform:</label>
+                        <select id="sourceType" required>
+                            <option value="youtube">YouTube</option>
+                            <option value="soundcloud">SoundCloud</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="downloadType">Type:</label>
+                        <select id="downloadType" required>
+                            <option value="single">Single Track</option>
+                            <option value="playlist">Playlist</option>
+                            <option value="channel">Channel/User</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-large">Start Download</button>
+            </form>
+            <div id="downloadStatus" class="status-message"></div>
+        </section>
+
+        <!-- Jobs List -->
+        <section class="card">
+            <h2>Recent Jobs</h2>
+            <div class="filters">
+                <select id="statusFilter" onchange="loadJobs()">
+                    <option value="">All Statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="queued">Queued</option>
+                    <option value="downloading">Downloading</option>
+                    <option value="processing">Processing</option>
+                    <option value="completed">Completed</option>
+                    <option value="failed">Failed</option>
+                </select>
+                <button onclick="loadJobs()" class="btn btn-secondary">Refresh</button>
+            </div>
+            <div id="jobsList" class="jobs-container">
+                <p class="loading">Loading jobs...</p>
+            </div>
+        </section>
+
+        <!-- Statistics -->
+        <section class="card">
+            <h2>Statistics</h2>
+            <div id="stats" class="stats-grid">
+                <p class="loading">Loading statistics...</p>
+            </div>
+        </section>
+
+        <!-- Health Status -->
+        <section class="card">
+            <h2>System Health</h2>
+            <div id="health" class="health-status">
+                <p class="loading">Checking system health...</p>
+            </div>
+        </section>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: audio_processor_db
+    environment:
+      POSTGRES_USER: audioprocessor
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+      POSTGRES_DB: audio_processor
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U audioprocessor"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - audio_processor_network
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: audio_processor_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - audio_processor_network
+
+  # FastAPI Application
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: audio_processor_api
+    environment:
+      - DATABASE_URL=postgresql://audioprocessor:${DB_PASSWORD:-changeme}@db/audio_processor
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+      - ENVIRONMENT=production
+      - DEBUG=False
+      - SECRET_KEY=${SECRET_KEY:-change-this-secret-key}
+      - API_KEY=${API_KEY:-your-api-key}
+      - MAX_STORAGE_GB=${MAX_STORAGE_GB:-100}
+      - AUDIO_FORMAT=mp3
+      - AUDIO_BITRATE=320
+      - NORMALIZE_AUDIO=true
+      - MAX_CONCURRENT_DOWNLOADS=3
+      - RATE_LIMIT_PER_MINUTE=10
+      - WHITELIST_ENABLED=${WHITELIST_ENABLED:-false}
+      - WHITELISTED_CHANNELS=${WHITELISTED_CHANNELS:-}
+      - WEBHOOK_URL=${WEBHOOK_URL:-}
+    volumes:
+      - ./downloads:/app/downloads
+      - ./temp:/app/temp
+      - ./logs:/app/logs
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - audio_processor_network
+    restart: unless-stopped
+
+  # Celery Worker
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: audio_processor_worker
+    command: celery -A app.celery_app worker --loglevel=info --concurrency=2
+    environment:
+      - DATABASE_URL=postgresql://audioprocessor:${DB_PASSWORD:-changeme}@db/audio_processor
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+      - ENVIRONMENT=production
+      - DEBUG=False
+      - API_KEY=${API_KEY:-your-api-key}
+      - MAX_STORAGE_GB=${MAX_STORAGE_GB:-100}
+      - AUDIO_FORMAT=mp3
+      - AUDIO_BITRATE=320
+      - NORMALIZE_AUDIO=true
+      - MAX_CONCURRENT_DOWNLOADS=3
+      - WHITELIST_ENABLED=${WHITELIST_ENABLED:-false}
+      - WHITELISTED_CHANNELS=${WHITELISTED_CHANNELS:-}
+      - WEBHOOK_URL=${WEBHOOK_URL:-}
+    volumes:
+      - ./downloads:/app/downloads
+      - ./temp:/app/temp
+      - ./logs:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - audio_processor_network
+    restart: unless-stopped
+
+  # Celery Beat (Scheduler)
+  beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: audio_processor_beat
+    command: celery -A app.celery_app beat --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql://audioprocessor:${DB_PASSWORD:-changeme}@db/audio_processor
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+      - ENVIRONMENT=production
+    depends_on:
+      - redis
+      - db
+    networks:
+      - audio_processor_network
+    restart: unless-stopped
+
+  # Flower (Celery Monitoring)
+  flower:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: audio_processor_flower
+    command: celery -A app.celery_app flower --port=5555
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+    networks:
+      - audio_processor_network
+    restart: unless-stopped
+
+  # Nginx (Optional - Reverse Proxy)
+  nginx:
+    image: nginx:alpine
+    container_name: audio_processor_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./downloads:/usr/share/nginx/html/downloads:ro
+    depends_on:
+      - api
+    networks:
+      - audio_processor_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  audio_processor_network:
+    driver: bridge

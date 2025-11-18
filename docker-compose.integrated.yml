@@ -1,0 +1,148 @@
+version: '3.8'
+
+services:
+  # ================================================================
+  # Redis - Task Queue and Cache
+  # ================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: qoqnuz-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - qoqnuz-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # ================================================================
+  # Audio Processor API
+  # ================================================================
+  audio-processor-api:
+    build:
+      context: ./audio-processor
+      dockerfile: Dockerfile
+    container_name: qoqnuz-audio-processor-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./audio-processor/.env
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
+      - CALLBACK_URL=${NEXT_PUBLIC_APP_URL}/api/admin/downloads/callback
+    volumes:
+      - audio_downloads:/app/downloads
+      - audio_temp:/app/temp
+      - audio_logs:/app/logs
+    depends_on:
+      - redis
+    networks:
+      - qoqnuz-network
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
+
+  # ================================================================
+  # Audio Processor Worker
+  # ================================================================
+  audio-processor-worker:
+    build:
+      context: ./audio-processor
+      dockerfile: Dockerfile
+    container_name: qoqnuz-audio-processor-worker
+    restart: unless-stopped
+    env_file:
+      - ./audio-processor/.env
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
+      - CALLBACK_URL=${NEXT_PUBLIC_APP_URL}/api/admin/downloads/callback
+    volumes:
+      - audio_downloads:/app/downloads
+      - audio_temp:/app/temp
+      - audio_logs:/app/logs
+    depends_on:
+      - redis
+      - audio-processor-api
+    networks:
+      - qoqnuz-network
+    command: celery -A app.celery_app worker --loglevel=info --concurrency=2
+
+  # ================================================================
+  # Celery Beat (Scheduler)
+  # ================================================================
+  audio-processor-beat:
+    build:
+      context: ./audio-processor
+      dockerfile: Dockerfile
+    container_name: qoqnuz-audio-processor-beat
+    restart: unless-stopped
+    env_file:
+      - ./audio-processor/.env
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+    volumes:
+      - audio_temp:/app/temp
+      - audio_logs:/app/logs
+    depends_on:
+      - redis
+      - audio-processor-api
+    networks:
+      - qoqnuz-network
+    command: celery -A app.celery_app beat --loglevel=info
+
+  # ================================================================
+  # Flower (Celery Monitoring) - Optional
+  # ================================================================
+  flower:
+    build:
+      context: ./audio-processor
+      dockerfile: Dockerfile
+    container_name: qoqnuz-flower
+    restart: unless-stopped
+    ports:
+      - "5555:5555"
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+    depends_on:
+      - redis
+      - audio-processor-worker
+    networks:
+      - qoqnuz-network
+    command: celery -A app.celery_app flower --port=5555
+
+volumes:
+  redis_data:
+    driver: local
+  audio_downloads:
+    driver: local
+  audio_temp:
+    driver: local
+  audio_logs:
+    driver: local
+
+networks:
+  qoqnuz-network:
+    driver: bridge

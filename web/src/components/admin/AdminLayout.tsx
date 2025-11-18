@@ -19,6 +19,7 @@ import {
   LogoutIcon,
   MenuIcon,
   ChevronLeftIcon,
+  DownloadIcon,
 } from '@/components/icons/admin-icons';
 
 interface AdminLayoutProps {
@@ -38,6 +39,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { name: 'Tracks', href: '/admin/tracks', Icon: MusicIcon },
     { name: 'Playlists', href: '/admin/playlists', Icon: PlaylistIcon },
     { name: 'Genres', href: '/admin/genres', Icon: TheaterIcon },
+    { name: 'Downloads', href: '/admin/downloads', Icon: DownloadIcon },
     { name: 'Users', href: '/admin/users', Icon: UsersIcon },
     { name: 'Theme', href: '/admin/theme', Icon: PaletteIcon },
     { name: 'Settings', href: '/admin/settings', Icon: SettingsIcon },
