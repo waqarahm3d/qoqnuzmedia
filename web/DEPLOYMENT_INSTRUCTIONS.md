@@ -34,18 +34,20 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 **IMPORTANT:** Before deploying this update, you MUST add at least one admin user to the database. Otherwise, NO ONE will have admin access.
 
-### Step 1: Run the Admin Setup Script
+### Step 1: Run the Admin Migration Script
 
 1. Go to your Supabase Dashboard
 2. Navigate to the SQL Editor
-3. Copy the contents of `supabase/scripts/setup_admin_system.sql`
+3. Copy the contents of `supabase/scripts/migrate_admin_system.sql`
 4. Paste and run it in the SQL Editor
 
 This script will:
-- Create `admin_roles` and `admin_users` tables (if they don't exist)
+- Add missing columns to existing `admin_roles` and `admin_users` tables
 - Set up proper RLS policies
-- Create default admin roles (Super Admin, Admin, Content Manager, Viewer)
+- Create or update default admin roles (Super Admin, Admin, Content Manager, Viewer)
 - Show you all registered users
+
+**Note:** This script is safe to run multiple times and will work whether the tables already exist or not.
 
 ### Step 2: Add Your First Admin
 
