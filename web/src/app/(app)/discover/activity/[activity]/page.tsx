@@ -5,7 +5,7 @@ import { TrackRow } from '@/components/ui/TrackRow';
 import { useParams, useRouter } from 'next/navigation';
 import { getMediaUrl } from '@/lib/media-utils';
 import { SparklesIcon, MusicIcon } from '@/components/icons';
-import { createBrowserSupabaseClient } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth/AuthContext';
 
 const formatDuration = (ms: number) => {
   const minutes = Math.floor(ms / 60000);
@@ -27,33 +27,24 @@ const activityInfo: Record<string, { icon: React.ComponentType<any>; title: stri
 export default function ActivityBrowsePage() {
   const params = useParams();
   const router = useRouter();
+  const { user } = useAuth();
   const activity = params.activity as string;
   const [tracks, setTracks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   const info = activityInfo[activity] || { icon: MusicIcon, title: activity, description: 'Browse tracks by activity' };
   const IconComponent = info.icon;
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const supabase = createBrowserSupabaseClient();
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (!session) {
-        router.push('/auth/signin');
-        return;
-      }
-
-      setIsAuthenticated(true);
-    };
-
-    checkAuth();
-  }, [router]);
+    if (!user) {
+      router.push('/auth/signin');
+      return;
+    }
+  }, [user, router]);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!user) return;
 
     const fetchTracks = async () => {
       setLoading(true);
