@@ -4,17 +4,101 @@ import { requireAdmin } from '@/lib/auth/admin-middleware';
 export const dynamic = 'force-dynamic';
 
 /**
- * Admin endpoint to manually trigger automation tasks
- * Useful for testing or forcing an immediate update
+ * GET /api/automation/trigger
+ * Get automation system status
+ */
+export async function GET(request: NextRequest) {
+  try {
+    // Verify admin access
+    const { user, adminUser, response, supabase } = await requireAdmin(request);
+    if (response) return response;
+
+    // Get cron job status
+    let cronJobs: any[] = [];
+    try {
+      const { data } = await supabase.rpc('get_cron_job_status');
+      cronJobs = data || [];
+    } catch (error) {
+      console.log('Cron jobs not available:', error);
+      // Not a critical error - cron might not be installed
+    }
+
+    // Get background task stats
+    const { data: taskStats } = await supabase
+      .from('background_tasks')
+      .select('status, task_type, created_at')
+      .order('created_at', { ascending: false })
+      .limit(100);
+
+    const taskSummary = {
+      total: taskStats?.length || 0,
+      by_status: {} as Record<string, number>,
+      by_type: {} as Record<string, number>,
+      recent_tasks: taskStats?.slice(0, 10) || [],
+    };
+
+    taskStats?.forEach((task) => {
+      taskSummary.by_status[task.status] = (taskSummary.by_status[task.status] || 0) + 1;
+      taskSummary.by_type[task.task_type] = (taskSummary.by_type[task.task_type] || 0) + 1;
+    });
+
+    // Get smart playlist stats
+    const { data: playlistStats } = await supabase
+      .from('smart_playlists')
+      .select('playlist_type, generated_at, expires_at')
+      .order('generated_at', { ascending: false });
+
+    const playlistSummary = {
+      total: playlistStats?.length || 0,
+      by_type: {} as Record<string, number>,
+      latest_generation: playlistStats?.[0]?.generated_at || null,
+    };
+
+    playlistStats?.forEach((playlist) => {
+      playlistSummary.by_type[playlist.playlist_type] =
+        (playlistSummary.by_type[playlist.playlist_type] || 0) + 1;
+    });
+
+    // Get trending tracks stats
+    const { data: trendingStats } = await supabase
+      .from('trending_tracks')
+      .select('calculated_at')
+      .order('calculated_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    return NextResponse.json({
+      success: true,
+      automation_status: {
+        cron_jobs: cronJobs,
+        background_tasks: taskSummary,
+        smart_playlists: playlistSummary,
+        trending_tracks: {
+          last_calculated: trendingStats?.calculated_at || null,
+        },
+      },
+    });
+  } catch (error: any) {
+    console.error('Automation status error:', error);
+    return NextResponse.json(
+      { error: error.message || 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST /api/automation/trigger
+ * Manually trigger automation tasks
  */
 export async function POST(request: NextRequest) {
   try {
-    // Check if user has admin access
+    // Verify admin access
     const { user, adminUser, response, supabase } = await requireAdmin(request);
     if (response) return response;
 
     const body = await request.json();
-    const { task } = body; // 'all', 'smart_playlists', 'trending', 'listening_stats'
+    const { task } = body;
 
     const results: any = {
       triggered_at: new Date().toISOString(),
@@ -24,9 +108,7 @@ export async function POST(request: NextRequest) {
     try {
       switch (task) {
         case 'all':
-          // Trigger all automations
-          const { error: allError } = await supabase.rpc('trigger_all_automations');
-          if (allError) throw allError;
+          await supabase.rpc('trigger_all_automations');
           results.tasks.push({
             name: 'all_automations',
             status: 'success',
@@ -35,9 +117,7 @@ export async function POST(request: NextRequest) {
           break;
 
         case 'smart_playlists':
-          // Generate smart playlists for all users
-          const { error: playlistError } = await supabase.rpc('generate_all_smart_playlists');
-          if (playlistError) throw playlistError;
+          await supabase.rpc('generate_all_smart_playlists');
           results.tasks.push({
             name: 'smart_playlists',
             status: 'success',
@@ -46,9 +126,7 @@ export async function POST(request: NextRequest) {
           break;
 
         case 'trending':
-          // Calculate trending tracks
-          const { error: trendingError } = await supabase.rpc('calculate_trending_tracks');
-          if (trendingError) throw trendingError;
+          await supabase.rpc('calculate_trending_tracks');
           results.tasks.push({
             name: 'trending',
             status: 'success',
@@ -57,9 +135,7 @@ export async function POST(request: NextRequest) {
           break;
 
         case 'listening_stats':
-          // Aggregate listening history
-          const { error: statsError } = await supabase.rpc('aggregate_all_user_listening_history');
-          if (statsError) throw statsError;
+          await supabase.rpc('aggregate_all_user_listening_history');
           results.tasks.push({
             name: 'listening_stats',
             status: 'success',
@@ -93,87 +169,6 @@ export async function POST(request: NextRequest) {
     }
   } catch (error: any) {
     console.error('Automation trigger error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
-
-/**
- * GET endpoint to view automation status
- */
-export async function GET(request: NextRequest) {
-  try {
-    // Check if user has admin access
-    const { user, adminUser, response, supabase } = await requireAdmin(request);
-    if (response) return response;
-
-    // Get cron job status
-    const { data: cronJobs, error: cronError } = await supabase.rpc('get_cron_job_status');
-
-    if (cronError) {
-      console.error('Error fetching cron status:', cronError);
-    }
-
-    // Get background task stats
-    const { data: taskStats } = await supabase
-      .from('background_tasks')
-      .select('status, task_type, created_at')
-      .order('created_at', { ascending: false })
-      .limit(100);
-
-    const taskSummary: any = {
-      total: taskStats?.length || 0,
-      by_status: {},
-      by_type: {},
-      recent_tasks: taskStats?.slice(0, 10) || [],
-    };
-
-    taskStats?.forEach((task) => {
-      taskSummary.by_status[task.status] =
-        (taskSummary.by_status[task.status] || 0) + 1;
-      taskSummary.by_type[task.task_type] =
-        (taskSummary.by_type[task.task_type] || 0) + 1;
-    });
-
-    // Get smart playlist stats
-    const { data: playlistStats } = await supabase
-      .from('smart_playlists')
-      .select('playlist_type, generated_at, expires_at')
-      .order('generated_at', { ascending: false });
-
-    const playlistSummary: any = {
-      total: playlistStats?.length || 0,
-      by_type: {},
-      latest_generation: playlistStats?.[0]?.generated_at || null,
-    };
-
-    playlistStats?.forEach((playlist) => {
-      playlistSummary.by_type[playlist.playlist_type] =
-        (playlistSummary.by_type[playlist.playlist_type] || 0) + 1;
-    });
-
-    // Get trending tracks stats
-    const { data: trendingStats } = await supabase
-      .from('trending_tracks')
-      .select('calculated_at')
-      .limit(1)
-      .single();
-
-    return NextResponse.json({
-      success: true,
-      automation_status: {
-        cron_jobs: cronJobs || [],
-        background_tasks: taskSummary,
-        smart_playlists: playlistSummary,
-        trending_tracks: {
-          last_calculated: trendingStats?.calculated_at || null,
-        },
-      },
-    });
-  } catch (error: any) {
-    console.error('Automation status error:', error);
     return NextResponse.json(
       { error: error.message || 'Internal server error' },
       { status: 500 }
