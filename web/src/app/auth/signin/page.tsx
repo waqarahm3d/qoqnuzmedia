@@ -11,7 +11,12 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const { signIn } = useAuth();
+  // MFA States
+  const [showMfaVerify, setShowMfaVerify] = useState(false);
+  const [mfaCode, setMfaCode] = useState('');
+  const [mfaFactorId, setMfaFactorId] = useState('');
+
+  const { signIn, verifyMFAChallenge } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -19,15 +24,203 @@ export default function SignInPage() {
     setLoading(true);
     setError('');
 
-    const { error: signInError } = await signIn(email, password);
+    const { data, error: signInError } = await signIn(email, password);
 
     if (signInError) {
       setError(signInError.message);
+      setLoading(false);
+    } else if (data?.user?.factors && data.user.factors.length > 0) {
+      // MFA is enabled, show verification UI
+      setMfaFactorId(data.user.factors[0].id);
+      setShowMfaVerify(true);
+      setLoading(false);
+    } else {
+      // No MFA, proceed to home
+      router.push('/');
+    }
+  };
+
+  const handleMfaVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mfaCode || mfaCode.length !== 6) {
+      setError('Please enter a valid 6-digit code');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    const { error: verifyError } = await verifyMFAChallenge(mfaFactorId, mfaCode);
+
+    if (verifyError) {
+      setError(verifyError.message || 'Invalid code. Please try again.');
       setLoading(false);
     } else {
       router.push('/');
     }
   };
+
+  // Show MFA verification form if needed
+  if (showMfaVerify) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'linear-gradient(135deg, #121212 0%, #1a1a1a 100%)',
+          padding: '20px',
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+        }}
+      >
+        <div
+          style={{
+            background: '#181818',
+            padding: '48px 40px',
+            borderRadius: '8px',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5)',
+            maxWidth: '450px',
+            width: '100%',
+            border: '1px solid #282828',
+          }}
+        >
+          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+            <h1
+              style={{
+                fontSize: '32px',
+                fontWeight: '700',
+                color: '#ffffff',
+                marginBottom: '8px',
+                letterSpacing: '-0.5px',
+              }}
+            >
+              Two-Factor Authentication
+            </h1>
+            <p style={{ fontSize: '16px', color: '#b3b3b3', margin: 0 }}>
+              Enter the 6-digit code from your authenticator app
+            </p>
+          </div>
+
+          {error && (
+            <div
+              style={{
+                padding: '16px',
+                background: 'rgba(230, 77, 77, 0.1)',
+                border: '1px solid rgba(230, 77, 77, 0.5)',
+                borderRadius: '4px',
+                marginBottom: '24px',
+                color: '#e64d4d',
+                fontSize: '14px',
+                lineHeight: '1.5',
+              }}
+            >
+              <strong>⚠️ Error:</strong> {error}
+            </div>
+          )}
+
+          <form onSubmit={handleMfaVerify}>
+            <div style={{ marginBottom: '24px' }}>
+              <label
+                htmlFor="mfaCode"
+                style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontWeight: '700',
+                }}
+              >
+                Verification Code
+              </label>
+              <input
+                id="mfaCode"
+                type="text"
+                required
+                value={mfaCode}
+                onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="000000"
+                maxLength={6}
+                style={{
+                  width: '100%',
+                  padding: '14px 16px',
+                  background: '#121212',
+                  color: '#ffffff',
+                  border: '1px solid #727272',
+                  borderRadius: '4px',
+                  fontSize: '24px',
+                  boxSizing: 'border-box',
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  textAlign: 'center',
+                  letterSpacing: '8px',
+                }}
+                onFocus={(e) => (e.target.style.borderColor = '#ff4a14')}
+                onBlur={(e) => (e.target.style.borderColor = '#727272')}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading || mfaCode.length !== 6}
+              style={{
+                width: '100%',
+                padding: '16px',
+                background: loading || mfaCode.length !== 6 ? '#535353' : '#ff4a14',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '500px',
+                fontSize: '16px',
+                fontWeight: '700',
+                cursor: loading || mfaCode.length !== 6 ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s',
+                textTransform: 'uppercase',
+                letterSpacing: '1.5px',
+              }}
+              onMouseEnter={(e) => {
+                if (!loading && mfaCode.length === 6) {
+                  e.currentTarget.style.transform = 'scale(1.04)';
+                  e.currentTarget.style.background = '#ff5c2e';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!loading && mfaCode.length === 6) {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.background = '#ff4a14';
+                }
+              }}
+            >
+              {loading ? 'Verifying...' : 'Verify'}
+            </button>
+
+            <div style={{ marginTop: '24px', textAlign: 'center' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowMfaVerify(false);
+                  setMfaCode('');
+                  setError('');
+                }}
+                style={{
+                  color: '#b3b3b3',
+                  fontSize: '14px',
+                  textDecoration: 'none',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'color 0.2s',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = '#ffffff')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = '#b3b3b3')}
+              >
+                ← Back to sign in
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

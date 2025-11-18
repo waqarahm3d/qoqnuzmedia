@@ -9,12 +9,17 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signUp: (email: string, password: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: any; data?: any }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any }>;
   updatePassword: (newPassword: string) => Promise<{ error: any }>;
   signInWithOTP: (email: string) => Promise<{ error: any }>;
   verifyOTP: (email: string, token: string) => Promise<{ error: any }>;
+  enrollMFA: () => Promise<{ error: any; data?: any }>;
+  verifyMFAEnrollment: (code: string) => Promise<{ error: any }>;
+  unenrollMFA: (factorId: string) => Promise<{ error: any }>;
+  verifyMFAChallenge: (factorId: string, code: string) => Promise<{ error: any }>;
+  getMFAFactors: () => Promise<{ error: any; data?: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -64,11 +69,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-    return { error };
+    return { data, error };
   };
 
   const signOut = async () => {
@@ -116,6 +121,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error };
   };
 
+  // MFA Methods
+  const enrollMFA = async () => {
+    const { data, error } = await supabase.auth.mfa.enroll({
+      factorType: 'totp',
+    });
+    return { data, error };
+  };
+
+  const verifyMFAEnrollment = async (code: string) => {
+    const factors = await supabase.auth.mfa.listFactors();
+    if (factors.data && factors.data.totp && factors.data.totp.length > 0) {
+      const factorId = factors.data.totp[0].id;
+      const { error } = await supabase.auth.mfa.challengeAndVerify({
+        factorId,
+        code,
+      });
+      return { error };
+    }
+    return { error: new Error('No MFA factor found') };
+  };
+
+  const unenrollMFA = async (factorId: string) => {
+    const { error } = await supabase.auth.mfa.unenroll({
+      factorId,
+    });
+    return { error };
+  };
+
+  const verifyMFAChallenge = async (factorId: string, code: string) => {
+    const { error } = await supabase.auth.mfa.challengeAndVerify({
+      factorId,
+      code,
+    });
+    return { error };
+  };
+
+  const getMFAFactors = async () => {
+    const { data, error } = await supabase.auth.mfa.listFactors();
+    return { data, error };
+  };
+
   const value = {
     user,
     session,
@@ -127,6 +173,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     updatePassword,
     signInWithOTP,
     verifyOTP,
+    enrollMFA,
+    verifyMFAEnrollment,
+    unenrollMFA,
+    verifyMFAChallenge,
+    getMFAFactors,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
