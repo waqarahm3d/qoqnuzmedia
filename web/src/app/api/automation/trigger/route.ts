@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     // Check if user is admin
     const { data: adminCheck } = await supabase
       .from('admin_users')
-      .select('id')
+      .select('user_id')
       .eq('user_id', user.id)
       .single();
 
@@ -160,7 +160,7 @@ export async function GET(request: NextRequest) {
     // Check if user is admin
     const { data: adminCheck, error: adminError } = await supabase
       .from('admin_users')
-      .select('id')
+      .select('user_id')
       .eq('user_id', user.id)
       .single();
 
