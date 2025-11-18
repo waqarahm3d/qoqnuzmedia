@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@supabase/ssr';
 import { createAdminSupabaseClient } from '@/lib/supabase';
 
 /**
@@ -10,29 +10,15 @@ export async function requireAdmin(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-  // Read from Authorization header
-  const authHeader = request.headers.get('Authorization');
-  let accessToken = authHeader?.replace('Bearer ', '');
-
-  // Fallback to cookies
-  if (!accessToken) {
-    accessToken =
-      request.cookies.get('sb-access-token')?.value ||
-      request.cookies.get('sb-auth-token')?.value;
-  }
-
-  if (!accessToken) {
-    return {
-      user: null,
-      adminUser: null,
-      response: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
-      supabase: createAdminSupabaseClient(),
-    };
-  }
-
-  // Create authenticated client for user verification
-  const authClient = createClient(supabaseUrl, supabaseAnonKey, {
-    global: { headers: { Authorization: `Bearer ${accessToken}` } },
+  // Create Supabase client with proper SSR cookie handling
+  const authClient = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      get(name: string) {
+        return request.cookies.get(name)?.value;
+      },
+      set() {},
+      remove() {},
+    },
   });
 
   const { data: { user }, error } = await authClient.auth.getUser();
