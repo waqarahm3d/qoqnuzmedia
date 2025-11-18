@@ -12,6 +12,8 @@ export const Header = () => {
   const { user, signOut } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string>('');
+  const [siteName, setSiteName] = useState<string>('Qoqnuz');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -30,6 +32,32 @@ export const Header = () => {
       checkAdminStatus();
     }
   }, [user]);
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch('/api/admin/settings');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.settings && Array.isArray(data.settings)) {
+          const logoSetting = data.settings.find((s: any) => s.key === 'site_logo_url');
+          const nameSetting = data.settings.find((s: any) => s.key === 'site_name');
+
+          if (logoSetting?.value) {
+            setLogoUrl(logoSetting.value);
+          }
+          if (nameSetting?.value) {
+            setSiteName(nameSetting.value);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch settings:', error);
+    }
+  };
 
   const checkAdminStatus = async () => {
     if (!user) return;
@@ -55,12 +83,22 @@ export const Header = () => {
   return (
     <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm">
       <div className="flex items-center justify-between px-4 lg:px-8 py-4">
-        {/* Logo - Can be customized from admin settings */}
+        {/* Logo - Customizable from admin settings */}
         <Link
           href="/home"
-          className="text-2xl font-bold text-[#ff4a14] hover:text-[#ff5c2e] transition-colors"
+          className="hover:opacity-80 transition-opacity flex items-center"
         >
-          Qoqnuz
+          {logoUrl ? (
+            <img
+              src={logoUrl}
+              alt={siteName}
+              className="h-10 max-w-[200px] object-contain"
+            />
+          ) : (
+            <span className="text-2xl font-bold text-[#ff4a14]">
+              {siteName}
+            </span>
+          )}
         </Link>
 
         {/* User Menu or Sign In */}

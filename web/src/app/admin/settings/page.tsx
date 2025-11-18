@@ -16,6 +16,8 @@ export default function SettingsPage() {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string>('');
 
   useEffect(() => {
     fetchSettings();
@@ -86,6 +88,61 @@ export default function SettingsPage() {
     });
   };
 
+  const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setError('Logo file size must be less than 2MB');
+      return;
+    }
+
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+    setError('');
+  };
+
+  const uploadLogo = async (): Promise<string | null> => {
+    if (!logoFile) return null;
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      // Generate unique filename
+      const fileExt = logoFile.name.split('.').pop();
+      const fileName = `logo-${Date.now()}.${fileExt}`;
+      const filePath = `branding/${fileName}`;
+
+      // Upload to Supabase storage
+      const { data, error: uploadError } = await supabase.storage
+        .from('media')
+        .upload(filePath, logoFile, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('media')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (err: any) {
+      console.error('Logo upload error:', err);
+      throw new Error(err.message || 'Failed to upload logo');
+    }
+  };
+
   const saveSettings = async () => {
     try {
       setSaving(true);
@@ -97,6 +154,27 @@ export default function SettingsPage() {
       if (!session) {
         setError('Not authenticated');
         return;
+      }
+
+      // Upload logo if a new file was selected
+      if (logoFile) {
+        try {
+          const logoUrl = await uploadLogo();
+          if (logoUrl) {
+            updateSetting('site_logo_url', logoUrl);
+            // Update settings state with new logo URL
+            setSettings(prev => ({
+              ...prev,
+              site_logo_url: {
+                key: 'site_logo_url',
+                value: logoUrl,
+                description: 'URL of the site logo',
+              },
+            }));
+          }
+        } catch (uploadErr: any) {
+          throw new Error(`Logo upload failed: ${uploadErr.message}`);
+        }
       }
 
       const response = await fetch('/api/admin/settings', {
@@ -114,6 +192,7 @@ export default function SettingsPage() {
       }
 
       setSuccessMessage('Settings saved successfully!');
+      setLogoFile(null); // Clear the logo file after successful save
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err: any) {
       setError(err.message);
@@ -174,6 +253,84 @@ export default function SettingsPage() {
             <p>{error}</p>
           </div>
         )}
+
+        {/* Branding Section */}
+        <div style={{ background: '#181818', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#ffffff', marginBottom: '20px' }}>
+            Branding
+          </h2>
+          <div>
+            <label style={{ display: 'block', color: '#ffffff', fontWeight: 600, marginBottom: '8px' }}>
+              Site Logo
+            </label>
+            <p style={{ color: '#b3b3b3', fontSize: '14px', marginBottom: '16px' }}>
+              Upload your site logo. This will appear in the header and throughout the platform. Recommended size: 200x50px (PNG or SVG)
+            </p>
+            <div style={{ display: 'flex', gap: '24px', alignItems: 'start' }}>
+              <div style={{ flexShrink: 0 }}>
+                <div style={{
+                  width: '200px',
+                  height: '80px',
+                  background: '#121212',
+                  border: '1px solid #282828',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                }}>
+                  {logoPreview || settings.site_logo_url?.value ? (
+                    <img
+                      src={logoPreview || settings.site_logo_url?.value}
+                      alt="Logo preview"
+                      style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                    />
+                  ) : (
+                    <div style={{ color: '#b3b3b3', fontSize: '14px', textAlign: 'center' }}>
+                      No logo uploaded
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div style={{ flex: 1 }}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoSelect}
+                  style={{ display: 'none' }}
+                  id="logo-upload"
+                />
+                <label
+                  htmlFor="logo-upload"
+                  style={{
+                    display: 'inline-block',
+                    padding: '12px 24px',
+                    background: '#ff4a14',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.background = '#ff5c2e'}
+                  onMouseOut={(e) => e.currentTarget.style.background = '#ff4a14'}
+                >
+                  {logoPreview || settings.site_logo_url?.value ? 'Replace Logo' : 'Upload Logo'}
+                </label>
+                <p style={{ color: '#b3b3b3', fontSize: '12px', marginTop: '8px' }}>
+                  Max file size: 2MB. Supported formats: PNG, JPG, SVG, WEBP
+                </p>
+                {logoFile && (
+                  <p style={{ color: '#ff5c2e', fontSize: '12px', marginTop: '4px' }}>
+                    New logo selected: {logoFile.name}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Site Settings */}
         <div style={{ background: '#181818', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
