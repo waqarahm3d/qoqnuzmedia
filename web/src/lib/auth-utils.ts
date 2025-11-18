@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextRequest } from 'next/server';
+import { createAdminSupabaseClient } from './supabase';
 
 /**
  * Create Supabase client from request cookies
@@ -24,18 +25,19 @@ export function createClient(request: NextRequest) {
  * Check if a user has admin access
  * Returns the authenticated user if they are an admin, null otherwise
  *
- * Checks both:
- * 1. admin_users table in database
- * 2. ADMIN_EMAILS environment variable
+ * This function ONLY checks the admin_users table in the database.
+ * There is no environment variable fallback - users must be granted admin access
+ * through the database.
  */
 export async function checkAdminAccess(request: NextRequest) {
-  const supabase = createClient(request);
+  // Use regular client to get authenticated user from cookies
+  const authClient = createClient(request);
 
   // Get authenticated user
   const {
     data: { user },
     error: authError,
-  } = await supabase.auth.getUser();
+  } = await authClient.auth.getUser();
 
   if (authError || !user) {
     return {
@@ -45,24 +47,23 @@ export async function checkAdminAccess(request: NextRequest) {
     };
   }
 
+  // Use admin client (service role) to check admin status
+  // This bypasses RLS and ensures we can read admin_users table
+  const adminClient = createAdminSupabaseClient();
+
   // Check if user is in admin_users table
-  const { data: adminUser, error: adminError } = await supabase
+  const { data: adminUser, error: adminError } = await adminClient
     .from('admin_users')
     .select('user_id, role_id')
     .eq('user_id', user.id)
     .maybeSingle();
 
-  // Check if user email is in ADMIN_EMAILS environment variable
-  const adminEmails = process.env.ADMIN_EMAILS?.split(',').map(e => e.trim().toLowerCase()) || [];
-  const isAutoAdmin = user.email && adminEmails.includes(user.email.toLowerCase());
-
-  // User is admin if they're in database OR in ADMIN_EMAILS
-  if (adminUser || isAutoAdmin) {
+  // User is admin only if they're in the database
+  if (adminUser && !adminError) {
     return {
       user,
       isAdmin: true,
-      isDatabaseAdmin: !!adminUser,
-      isEnvAdmin: isAutoAdmin,
+      adminUser,
       error: null,
       status: 200,
     };
@@ -70,7 +71,7 @@ export async function checkAdminAccess(request: NextRequest) {
 
   return {
     user: null,
-    error: 'Forbidden - Admin access required',
+    error: 'Forbidden - Admin access required. Contact administrator to request access.',
     status: 403,
   };
 }

@@ -1,6 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { createAdminSupabaseClient } from './src/lib/supabase';
 
 export async function middleware(req: NextRequest) {
   let res = NextResponse.next({
@@ -67,19 +68,17 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(redirectUrl);
     }
 
-    // Check if user has admin access
-    const { data: adminUser } = await supabase
+    // Check if user has admin access in the database
+    // Use service role client to bypass RLS
+    const adminClient = createAdminSupabaseClient();
+    const { data: adminUser } = await adminClient
       .from('admin_users')
       .select('user_id, role_id')
       .eq('user_id', session.user.id)
       .maybeSingle();
 
-    // Check ADMIN_EMAILS environment variable for auto-admin
-    const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',').map(e => e.trim().toLowerCase()) || [];
-    const isAutoAdmin = session.user.email && adminEmails.includes(session.user.email.toLowerCase());
-
-    // If not admin and not in auto-admin list, deny access
-    if (!adminUser && !isAutoAdmin) {
+    // If not admin, deny access
+    if (!adminUser) {
       return NextResponse.redirect(new URL('/home', req.url));
     }
   }

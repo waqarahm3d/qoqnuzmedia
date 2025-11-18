@@ -35,7 +35,7 @@ export async function requireAdmin(request: NextRequest) {
   // Use admin client for database operations (bypasses RLS)
   const supabase = createAdminSupabaseClient();
 
-  // Check if user has admin role
+  // Check if user has admin role in the database
   const { data: adminUser, error: adminError } = await supabase
     .from('admin_users')
     .select(`
@@ -45,43 +45,16 @@ export async function requireAdmin(request: NextRequest) {
     .eq('user_id', user.id)
     .single();
 
-  // If no admin user found, check if this is the first user (auto-admin)
-  // or if user email is in ADMIN_EMAILS environment variable
+  // If no admin user found, deny access
   if (adminError || !adminUser) {
-    const adminEmails = process.env.ADMIN_EMAILS?.split(',').map(e => e.trim().toLowerCase()) || [];
-    const isAutoAdmin = adminEmails.includes(user.email?.toLowerCase() || '');
-
-    if (isAutoAdmin) {
-      // Get Super Admin role
-      const { data: superAdminRole } = await supabase
-        .from('admin_roles')
-        .select('*')
-        .eq('name', 'Super Admin')
-        .single();
-
-      if (superAdminRole) {
-        // Auto-create admin user entry
-        const { data: newAdminUser } = await supabase
-          .from('admin_users')
-          .insert({
-            user_id: user.id,
-            role_id: superAdminRole.id,
-          })
-          .select(`
-            *,
-            role:admin_roles(*)
-          `)
-          .single();
-
-        return { user, adminUser: newAdminUser, response: null, supabase };
-      }
-    }
-
     return {
       user,
       adminUser: null,
       response: NextResponse.json(
-        { error: 'Forbidden - Admin access required. Contact administrator to grant access.' },
+        {
+          error: 'Forbidden - Admin access required.',
+          message: 'You must be granted admin access by an existing administrator. Contact your system administrator to request access.',
+        },
         { status: 403 }
       ),
       supabase,
