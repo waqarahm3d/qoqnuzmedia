@@ -1,7 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { createAdminSupabaseClient } from './src/lib/supabase';
 
 export async function middleware(req: NextRequest) {
   let res = NextResponse.next({
@@ -69,16 +68,16 @@ export async function middleware(req: NextRequest) {
     }
 
     // Check if user has admin access in the database
-    // Use service role client to bypass RLS
-    const adminClient = createAdminSupabaseClient();
-    const { data: adminUser } = await adminClient
+    // This uses the regular Supabase client with RLS policy:
+    // "Users can check their own admin status"
+    const { data: adminUser, error: adminError } = await supabase
       .from('admin_users')
       .select('user_id, role_id')
       .eq('user_id', session.user.id)
       .maybeSingle();
 
     // If not admin, deny access
-    if (!adminUser) {
+    if (!adminUser || adminError) {
       return NextResponse.redirect(new URL('/home', req.url));
     }
   }
