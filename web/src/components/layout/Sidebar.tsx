@@ -8,18 +8,22 @@ import {
   LibraryIcon,
   PlusIcon,
   HeartFilledIcon,
+  DiscoverIcon,
+  SparklesIcon,
 } from '../icons';
 import { usePlaylists } from '@/lib/hooks/useMusic';
 
 const navItems = [
   { name: 'Home', href: '/home', icon: HomeIcon },
   { name: 'Search', href: '/search', icon: SearchIcon },
+  { name: 'Discover', href: '/discover', icon: DiscoverIcon },
   { name: 'Your Library', href: '/library', icon: LibraryIcon },
 ];
 
 const libraryItems = [
   { name: 'Create Playlist', href: '/playlist/create', icon: PlusIcon },
   { name: 'Liked Songs', href: '/liked', icon: HeartFilledIcon },
+  { name: 'Smart Playlists', href: '/playlists/smart', icon: SparklesIcon },
 ];
 
 export const Sidebar = () => {

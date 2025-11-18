@@ -4,12 +4,13 @@ import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { TrackRow, TrackListHeader } from '@/components/ui/TrackRow';
-import { PlayIcon, HeartIcon, HeartFilledIcon, MoreIcon, DownloadIcon, ShareIcon } from '@/components/icons';
+import { PlayIcon, HeartIcon, HeartFilledIcon, MoreIcon, DownloadIcon, ShareIcon, UserIcon } from '@/components/icons';
 import { useState, useEffect } from 'react';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { getMediaUrl } from '@/lib/media-utils';
 import { EmbedModal } from '@/components/ui/EmbedModal';
+import { CollaboratorList } from '@/components/playlists/CollaboratorList';
 
 export default function PlaylistPage() {
   const params = useParams();
@@ -17,6 +18,7 @@ export default function PlaylistPage() {
   const [loading, setLoading] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
   const [showEmbedModal, setShowEmbedModal] = useState(false);
+  const [showCollaborators, setShowCollaborators] = useState(false);
   const { playTrack, setQueue } = usePlayer();
   const { user } = useAuth();
 
@@ -223,6 +225,13 @@ export default function PlaylistPage() {
               <polyline points="8 6 2 12 8 18" />
             </svg>
           </button>
+          <button
+            onClick={() => setShowCollaborators(true)}
+            className="text-white/60 hover:text-white transition-colors"
+            title="Manage collaborators"
+          >
+            <UserIcon size={32} />
+          </button>
           <button className="text-white/60 hover:text-white transition-colors">
             <DownloadIcon size={28} />
           </button>
@@ -270,6 +279,15 @@ export default function PlaylistPage() {
           type="playlist"
           id={playlist.id}
           title={playlist.name}
+        />
+      )}
+
+      {/* Collaborators Modal */}
+      {showCollaborators && playlist && (
+        <CollaboratorList
+          playlistId={playlist.id}
+          isOwner={playlist.owner_id === user?.id}
+          onClose={() => setShowCollaborators(false)}
         />
       )}
     </div>
