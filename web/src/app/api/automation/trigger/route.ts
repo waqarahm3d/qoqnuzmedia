@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase';
 
 /**
  * Admin endpoint to manually trigger automation tasks
@@ -7,7 +7,7 @@ import { createServerClient } from '@/lib/supabase';
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createServerClient();
+    const supabase = createServerSupabaseClient();
 
     // Get authenticated user
     const {
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerClient();
+    const supabase = createServerSupabaseClient();
 
     // Get authenticated user
     const {

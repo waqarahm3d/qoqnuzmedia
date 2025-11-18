@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase';
 
 /**
  * Background task worker endpoint
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const supabase = createServerClient();
+    const supabase = createServerSupabaseClient();
     const body = await request.json();
     const { taskType, batchSize = 10 } = body;
 
@@ -224,7 +224,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const supabase = createServerClient();
+    const supabase = createServerSupabaseClient();
 
     // Get task statistics
     const { data: stats } = await supabase

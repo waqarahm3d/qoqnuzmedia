@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase';
 
 /**
  * API endpoint to get trending tracks
@@ -7,7 +7,7 @@ import { createServerClient } from '@/lib/supabase';
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerClient();
+    const supabase = createServerSupabaseClient();
 
     const searchParams = request.nextUrl.searchParams;
     const limit = parseInt(searchParams.get('limit') || '50');
@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createServerClient();
+    const supabase = createServerSupabaseClient();
 
     // Get authenticated user
     const {
