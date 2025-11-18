@@ -55,3 +55,77 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+/**
+ * DELETE /api/admin/users
+ * Bulk delete users
+ */
+export async function DELETE(request: NextRequest) {
+  const { user, adminUser, response, supabase } = await requireAdmin(request);
+  if (response) return response;
+
+  try {
+    const body = await request.json();
+    const { user_ids } = body;
+
+    if (!user_ids || !Array.isArray(user_ids) || user_ids.length === 0) {
+      return NextResponse.json(
+        { error: 'user_ids array is required' },
+        { status: 400 }
+      );
+    }
+
+    // Prevent deleting yourself
+    if (user_ids.includes(user!.id)) {
+      return NextResponse.json(
+        { error: 'Cannot delete your own account' },
+        { status: 400 }
+      );
+    }
+
+    // Check if any of the users are admins
+    const { data: adminCheck } = await supabase
+      .from('admin_users')
+      .select('user_id')
+      .in('user_id', user_ids);
+
+    if (adminCheck && adminCheck.length > 0) {
+      return NextResponse.json(
+        { error: 'Cannot delete admin users. Remove their admin role first.' },
+        { status: 400 }
+      );
+    }
+
+    // Delete users from auth.users (this will cascade to profiles)
+    const deleteResults = [];
+    const errors = [];
+
+    for (const userId of user_ids) {
+      const { error } = await supabase.auth.admin.deleteUser(userId);
+      if (error) {
+        errors.push({ userId, error: error.message });
+      } else {
+        deleteResults.push(userId);
+      }
+    }
+
+    if (errors.length > 0 && deleteResults.length === 0) {
+      return NextResponse.json(
+        { error: 'Failed to delete users', details: errors },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      message: `Successfully deleted ${deleteResults.length} user(s)`,
+      deleted: deleteResults,
+      errors: errors.length > 0 ? errors : undefined,
+    });
+  } catch (error: any) {
+    console.error('Delete users error:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete users', details: error.message },
+      { status: 500 }
+    );
+  }
+}

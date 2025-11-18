@@ -163,3 +163,56 @@ export async function PUT(
     );
   }
 }
+
+/**
+ * DELETE /api/admin/users/[userId]
+ * Delete a user
+ */
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { userId: string } }
+) {
+  const { user, adminUser, response, supabase } = await requireAdmin(request);
+  if (response) return response;
+
+  const { userId } = params;
+
+  try {
+    // Prevent deleting yourself
+    if (userId === user!.id) {
+      return NextResponse.json(
+        { error: 'Cannot delete your own account' },
+        { status: 400 }
+      );
+    }
+
+    // Check if user is an admin
+    const { data: adminCheck } = await supabase
+      .from('admin_users')
+      .select('user_id')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (adminCheck) {
+      return NextResponse.json(
+        { error: 'Cannot delete admin users. Remove their admin role first.' },
+        { status: 400 }
+      );
+    }
+
+    // Delete user from auth.users (this will cascade to profiles)
+    const { error } = await supabase.auth.admin.deleteUser(userId);
+
+    if (error) throw error;
+
+    return NextResponse.json({
+      message: 'User deleted successfully',
+    });
+  } catch (error: any) {
+    console.error('Delete user error:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete user', details: error.message },
+      { status: 500 }
+    );
+  }
+}

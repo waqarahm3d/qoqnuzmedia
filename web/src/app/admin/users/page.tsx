@@ -81,6 +81,8 @@ export default function AdminUsersPage() {
   const [editForm, setEditForm] = useState<Partial<User>>({});
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
   const [artistForm, setArtistForm] = useState({ name: '', bio: '', genres: '' });
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [deleting, setDeleting] = useState(false);
 
   // Fetch users
   const fetchUsers = async () => {
@@ -327,6 +329,79 @@ export default function AdminUsersPage() {
     setSocialLinks(socialLinks.filter((_, i) => i !== index));
   };
 
+  // Delete single user
+  const deleteUser = async () => {
+    if (!selectedUser) return;
+    if (!confirm(`Are you sure you want to permanently delete this user? This action cannot be undone.`)) return;
+
+    setDeleting(true);
+    try {
+      const response = await fetch(`/api/admin/users/${selectedUser.id}`, {
+        method: 'DELETE',
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setModalOpen(false);
+        setSelectedUser(null);
+        fetchUsers();
+        alert('User deleted successfully');
+      } else {
+        alert(data.error || 'Failed to delete user');
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      alert('Failed to delete user');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  // Delete multiple users
+  const deleteSelectedUsers = async () => {
+    if (selectedUsers.length === 0) return;
+    if (!confirm(`Are you sure you want to permanently delete ${selectedUsers.length} user(s)? This action cannot be undone.`)) return;
+
+    setDeleting(true);
+    try {
+      const response = await fetch('/api/admin/users', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_ids: selectedUsers }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setSelectedUsers([]);
+        fetchUsers();
+        alert(data.message);
+      } else {
+        alert(data.error || 'Failed to delete users');
+      }
+    } catch (error) {
+      console.error('Error deleting users:', error);
+      alert('Failed to delete users');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  // Toggle user selection
+  const toggleUserSelection = (userId: string) => {
+    setSelectedUsers(prev =>
+      prev.includes(userId)
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    );
+  };
+
+  // Toggle all users selection
+  const toggleAllUsers = () => {
+    if (selectedUsers.length === users.length) {
+      setSelectedUsers([]);
+    } else {
+      setSelectedUsers(users.map(u => u.id));
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="p-6">
@@ -337,6 +412,15 @@ export default function AdminUsersPage() {
             <p className="text-white/60">Manage all users, roles, and artist profiles</p>
           </div>
           <div className="flex items-center gap-3">
+            {selectedUsers.length > 0 && (
+              <button
+                onClick={deleteSelectedUsers}
+                disabled={deleting}
+                className="px-4 py-2 bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded-lg disabled:opacity-50"
+              >
+                {deleting ? 'Deleting...' : `Delete ${selectedUsers.length} selected`}
+              </button>
+            )}
             <input
               type="text"
               placeholder="Search users..."
@@ -381,6 +465,14 @@ export default function AdminUsersPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-white/10">
+                <th className="p-4 w-12">
+                  <input
+                    type="checkbox"
+                    checked={users.length > 0 && selectedUsers.length === users.length}
+                    onChange={toggleAllUsers}
+                    className="rounded"
+                  />
+                </th>
                 <th className="text-left p-4 text-white/60 font-medium">User</th>
                 <th className="text-left p-4 text-white/60 font-medium hidden md:table-cell">Status</th>
                 <th className="text-left p-4 text-white/60 font-medium hidden lg:table-cell">Joined</th>
@@ -390,13 +482,13 @@ export default function AdminUsersPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="p-8 text-center text-white/60">
+                  <td colSpan={5} className="p-8 text-center text-white/60">
                     Loading users...
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="p-8 text-center text-white/60">
+                  <td colSpan={5} className="p-8 text-center text-white/60">
                     No users found
                   </td>
                 </tr>
@@ -407,6 +499,14 @@ export default function AdminUsersPage() {
                     className="border-b border-white/5 hover:bg-white/5 cursor-pointer"
                     onClick={() => openUserModal(user.id)}
                   >
+                    <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={selectedUsers.includes(user.id)}
+                        onChange={() => toggleUserSelection(user.id)}
+                        className="rounded"
+                      />
+                    </td>
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-white/10 overflow-hidden flex-shrink-0">
@@ -803,6 +903,27 @@ export default function AdminUsersPage() {
                             ))}
                           </div>
                         </div>
+                      )}
+                    </div>
+
+                    {/* Delete Account */}
+                    <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+                      <h3 className="font-medium mb-3 text-red-400">Danger Zone</h3>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-white/60 text-sm">Permanently delete this user account</p>
+                          <p className="text-red-400/60 text-xs mt-1">This action cannot be undone</p>
+                        </div>
+                        <button
+                          onClick={deleteUser}
+                          disabled={deleting || (selectedUser.admin_users && selectedUser.admin_users.length > 0)}
+                          className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg disabled:opacity-50"
+                        >
+                          {deleting ? 'Deleting...' : 'Delete User'}
+                        </button>
+                      </div>
+                      {selectedUser.admin_users && selectedUser.admin_users.length > 0 && (
+                        <p className="text-yellow-400/60 text-xs mt-2">Remove admin role before deleting</p>
                       )}
                     </div>
                   </div>
