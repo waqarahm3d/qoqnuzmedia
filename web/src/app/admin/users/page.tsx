@@ -83,6 +83,7 @@ export default function AdminUsersPage() {
   const [artistForm, setArtistForm] = useState({ name: '', bio: '', genres: '' });
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [deleting, setDeleting] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   // Fetch users
   const fetchUsers = async () => {
@@ -393,6 +394,61 @@ export default function AdminUsersPage() {
     );
   };
 
+  // Upload avatar
+  const uploadAvatar = async (file: File) => {
+    if (!selectedUser) return;
+
+    setUploading(true);
+    try {
+      // Create unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${selectedUser.id}-${Date.now()}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      // Upload to Supabase storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true,
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      const avatarUrl = urlData.publicUrl;
+
+      // Update form and save to profile
+      setEditForm({ ...editForm, avatar_url: avatarUrl });
+
+      // Also update the profile immediately
+      const response = await fetch(`/api/admin/users/${selectedUser.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ avatar_url: avatarUrl }),
+      });
+
+      if (response.ok) {
+        // Update selected user's avatar
+        setSelectedUser({ ...selectedUser, avatar_url: avatarUrl });
+        fetchUsers();
+        alert('Avatar uploaded successfully');
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to update avatar');
+      }
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      alert('Failed to upload avatar');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   // Toggle all users selection
   const toggleAllUsers = () => {
     if (selectedUsers.length === users.length) {
@@ -534,7 +590,7 @@ export default function AdminUsersPage() {
                               </span>
                             )}
                           </div>
-                          <div className="text-white/60 text-sm">{user.bio?.slice(0, 50) || 'No bio'}</div>
+                          <div className="text-white/60 text-sm">{(user as any).email || 'No email'}</div>
                         </div>
                       </div>
                     </td>
@@ -679,13 +735,43 @@ export default function AdminUsersPage() {
                         />
                       </div>
                       <div>
-                        <label className="block text-white/60 text-sm mb-1">Avatar URL</label>
-                        <input
-                          type="text"
-                          value={editForm.avatar_url || ''}
-                          onChange={(e) => setEditForm({ ...editForm, avatar_url: e.target.value })}
-                          className="w-full px-3 py-2 bg-surface border border-white/10 rounded-lg"
-                        />
+                        <label className="block text-white/60 text-sm mb-1">Avatar</label>
+                        <div className="flex items-center gap-4">
+                          <div className="w-16 h-16 rounded-full bg-white/10 overflow-hidden flex-shrink-0">
+                            {editForm.avatar_url ? (
+                              <img
+                                src={editForm.avatar_url}
+                                alt="Avatar"
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-white/40 text-xl">
+                                {(editForm.display_name || 'U')[0].toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) uploadAvatar(file);
+                              }}
+                              className="hidden"
+                              id="avatar-upload"
+                            />
+                            <label
+                              htmlFor="avatar-upload"
+                              className={`inline-block px-4 py-2 bg-surface hover:bg-surface/80 rounded-lg cursor-pointer text-sm ${
+                                uploading ? 'opacity-50 pointer-events-none' : ''
+                              }`}
+                            >
+                              {uploading ? 'Uploading...' : 'Choose Image'}
+                            </label>
+                            <p className="text-white/40 text-xs mt-1">JPG, PNG or GIF. Max 2MB.</p>
+                          </div>
+                        </div>
                       </div>
                       <div className="md:col-span-2">
                         <label className="block text-white/60 text-sm mb-1">Bio</label>

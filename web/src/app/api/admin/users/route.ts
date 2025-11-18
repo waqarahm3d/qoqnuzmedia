@@ -38,8 +38,19 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error;
 
+    // Fetch emails for all users from auth.users
+    const usersWithEmail = await Promise.all(
+      (users || []).map(async (profile) => {
+        const { data: authUser } = await supabase.auth.admin.getUserById(profile.id);
+        return {
+          ...profile,
+          email: authUser?.user?.email || null,
+        };
+      })
+    );
+
     return NextResponse.json({
-      users: users || [],
+      users: usersWithEmail,
       pagination: {
         page,
         limit,
