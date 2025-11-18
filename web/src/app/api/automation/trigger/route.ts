@@ -1,22 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-
-// Helper to create Supabase client from request cookies
-function createClient(request: NextRequest) {
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
-        set() {},
-        remove() {},
-      },
-    }
-  );
-}
+import { checkAdminAccess, createClient } from '@/lib/auth-utils';
 
 /**
  * Admin endpoint to manually trigger automation tasks
@@ -24,28 +7,14 @@ function createClient(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    // Check if user has admin access (checks both database and ADMIN_EMAILS env var)
+    const authCheck = await checkAdminAccess(request);
+
+    if (authCheck.error) {
+      return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
+    }
+
     const supabase = createClient(request);
-
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check if user is admin
-    const { data: adminCheck } = await supabase
-      .from('admin_users')
-      .select('user_id')
-      .eq('user_id', user.id)
-      .single();
-
-    if (!adminCheck) {
-      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
-    }
 
     const body = await request.json();
     const { task } = body; // 'all', 'smart_playlists', 'trending', 'listening_stats'
@@ -139,40 +108,14 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
+    // Check if user has admin access (checks both database and ADMIN_EMAILS env var)
+    const authCheck = await checkAdminAccess(request);
+
+    if (authCheck.error) {
+      return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
+    }
+
     const supabase = createClient(request);
-
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    console.log('Auth check:', { user: user?.email, authError });
-
-    if (authError || !user) {
-      console.error('Auth failed:', authError);
-      return NextResponse.json({
-        error: 'Unauthorized',
-        details: authError?.message || 'No user found'
-      }, { status: 401 });
-    }
-
-    // Check if user is admin
-    const { data: adminCheck, error: adminError } = await supabase
-      .from('admin_users')
-      .select('user_id')
-      .eq('user_id', user.id)
-      .single();
-
-    console.log('Admin check:', { adminCheck, adminError, userId: user.id });
-
-    if (!adminCheck) {
-      console.error('Admin check failed:', adminError);
-      return NextResponse.json({
-        error: 'Forbidden - Admin access required',
-        details: adminError?.message || 'User not in admin_users table'
-      }, { status: 403 });
-    }
 
     // Get cron job status
     const { data: cronJobs, error: cronError } = await supabase.rpc('get_cron_job_status');
