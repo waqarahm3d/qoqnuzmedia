@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
+import { TrackRow } from '@/components/ui/TrackRow';
 import { useAlbums, useArtists, usePlaylists, useTracks, useGenres } from '@/lib/hooks/useMusic';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -12,8 +13,7 @@ import {
   RecentIcon,
   DiscoverIcon,
   PodcastIcon,
-  NewReleasesIcon,
-  PlayIcon
+  NewReleasesIcon
 } from '@/components/icons';
 
 export default function HomePage() {
@@ -157,45 +157,31 @@ export default function HomePage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold">Trending Songs</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {trendingTracks.map((track: any) => (
-              <button
-                key={track.id}
-                onClick={() => {
-                  playTrack({
-                    id: track.id,
-                    title: track.title,
-                    artist: track.artists?.name || 'Unknown Artist',
-                    artistId: track.artist_id,
-                    album: track.albums?.title || 'Single',
-                    albumId: track.album_id,
-                    image: getMediaUrl(track.albums?.cover_art_url || track.cover_art_url),
-                    duration: track.duration_ms || 0,
-                  });
-                }}
-                className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-all group text-left bg-surface/30"
-              >
-                <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 relative">
-                  {track.albums?.cover_art_url || track.cover_art_url ? (
-                    <img
-                      src={getMediaUrl(track.albums?.cover_art_url || track.cover_art_url)}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-primary to-primary/50" />
-                  )}
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <PlayIcon size={16} className="text-white" />
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-medium truncate ${currentTrack?.id === track.id ? 'text-primary' : 'text-white'}`}>
-                    {track.title}
-                  </p>
-                  <p className="text-xs text-white/50 truncate">{track.artists?.name || 'Unknown Artist'}</p>
-                </div>
-              </button>
+              <div key={track.id} className="bg-surface/30 rounded-xl">
+                <TrackRow
+                  title={track.title}
+                  artist={track.artists?.name || 'Unknown Artist'}
+                  image={getMediaUrl(track.albums?.cover_art_url || track.cover_art_url)}
+                  trackId={track.id}
+                  artistId={track.artist_id}
+                  showImage={true}
+                  isPlaying={currentTrack?.id === track.id && isPlaying}
+                  onPlay={() => {
+                    playTrack({
+                      id: track.id,
+                      title: track.title,
+                      artist: track.artists?.name || 'Unknown Artist',
+                      artistId: track.artist_id,
+                      album: track.albums?.title || 'Single',
+                      albumId: track.album_id,
+                      image: getMediaUrl(track.albums?.cover_art_url || track.cover_art_url),
+                      duration: track.duration_ms || 0,
+                    });
+                  }}
+                />
+              </div>
             ))}
           </div>
         </section>
@@ -207,45 +193,31 @@ export default function HomePage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold">Recently Added Tracks</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {tracks.slice(0, 10).map((track: any) => (
-              <button
-                key={track.id}
-                onClick={() => {
-                  playTrack({
-                    id: track.id,
-                    title: track.title,
-                    artist: track.artists?.name || 'Unknown Artist',
-                    artistId: track.artist_id,
-                    album: track.albums?.title || 'Single',
-                    albumId: track.album_id,
-                    image: getMediaUrl(track.albums?.cover_art_url || track.cover_art_url),
-                    duration: track.duration_ms || 0,
-                  });
-                }}
-                className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-all group text-left bg-surface/30"
-              >
-                <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 relative">
-                  {track.albums?.cover_art_url || track.cover_art_url ? (
-                    <img
-                      src={getMediaUrl(track.albums?.cover_art_url || track.cover_art_url)}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-primary to-primary/50" />
-                  )}
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <PlayIcon size={16} className="text-white" />
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-medium truncate ${currentTrack?.id === track.id ? 'text-primary' : 'text-white'}`}>
-                    {track.title}
-                  </p>
-                  <p className="text-xs text-white/50 truncate">{track.artists?.name || 'Unknown Artist'}</p>
-                </div>
-              </button>
+              <div key={track.id} className="bg-surface/30 rounded-xl">
+                <TrackRow
+                  title={track.title}
+                  artist={track.artists?.name || 'Unknown Artist'}
+                  image={getMediaUrl(track.albums?.cover_art_url || track.cover_art_url)}
+                  trackId={track.id}
+                  artistId={track.artist_id}
+                  showImage={true}
+                  isPlaying={currentTrack?.id === track.id && isPlaying}
+                  onPlay={() => {
+                    playTrack({
+                      id: track.id,
+                      title: track.title,
+                      artist: track.artists?.name || 'Unknown Artist',
+                      artistId: track.artist_id,
+                      album: track.albums?.title || 'Single',
+                      albumId: track.album_id,
+                      image: getMediaUrl(track.albums?.cover_art_url || track.cover_art_url),
+                      duration: track.duration_ms || 0,
+                    });
+                  }}
+                />
+              </div>
             ))}
           </div>
         </section>
