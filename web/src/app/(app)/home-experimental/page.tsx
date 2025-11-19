@@ -290,6 +290,7 @@ export default function HomeExperimentalPage() {
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [generatorStep, setGeneratorStep] = useState<'genres' | 'recommendations'>('genres');
   const [activeView, setActiveView] = useState<'home' | 'generator' | 'favorites' | 'settings'>('home');
+  const [navExpanded, setNavExpanded] = useState(false);
 
   const loading = albumsLoading || artistsLoading || playlistsLoading || tracksLoading || genresLoading;
 
@@ -349,10 +350,38 @@ export default function HomeExperimentalPage() {
     );
   }
 
+  // Navigation items
+  const navItems = [
+    { id: 'home', icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+    ), label: 'Home' },
+    { id: 'generator', icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <circle cx="12" cy="12" r="10"/>
+        <circle cx="12" cy="12" r="6"/>
+        <circle cx="12" cy="12" r="2"/>
+      </svg>
+    ), label: 'Generator' },
+    { id: 'favorites', icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+      </svg>
+    ), label: 'Favorites' },
+    { id: 'settings', icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+      </svg>
+    ), label: 'Settings' },
+  ];
+
   return (
-    <div className="min-h-screen flex" style={{ background: `linear-gradient(135deg, ${COLORS.surface} 0%, ${COLORS.background} 100%)` }}>
-      {/* Left Sidebar - Icon Navigation */}
-      <aside className="w-20 flex-shrink-0 flex flex-col items-center py-8 border-r border-white/5">
+    <div className="min-h-screen flex flex-col md:flex-row pb-16 md:pb-0" style={{ background: `linear-gradient(135deg, ${COLORS.surface} 0%, ${COLORS.background} 100%)` }}>
+      {/* Desktop Left Sidebar - Hidden on mobile */}
+      <aside className="hidden md:flex w-20 flex-shrink-0 flex-col items-center py-8 border-r border-white/5">
         {/* Logo */}
         <div className="mb-12">
           <div
@@ -365,32 +394,7 @@ export default function HomeExperimentalPage() {
 
         {/* Navigation Icons */}
         <nav className="flex-1 flex flex-col items-center gap-2">
-          {[
-            { id: 'home', icon: (
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                <polyline points="9 22 9 12 15 12 15 22"/>
-              </svg>
-            ), label: 'Home' },
-            { id: 'generator', icon: (
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/>
-                <circle cx="12" cy="12" r="6"/>
-                <circle cx="12" cy="12" r="2"/>
-              </svg>
-            ), label: 'Generator' },
-            { id: 'favorites', icon: (
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
-              </svg>
-            ), label: 'Favorites' },
-            { id: 'settings', icon: (
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="3"/>
-                <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
-              </svg>
-            ), label: 'Settings' },
-          ].map((item) => (
+          {navItems.map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveView(item.id as any)}
@@ -421,6 +425,82 @@ export default function HomeExperimentalPage() {
           </button>
         </div>
       </aside>
+
+      {/* Mobile Bottom Navigation - Collapsible */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50">
+        {/* Expanded Menu */}
+        <div
+          className={`absolute bottom-full left-0 right-0 transition-all duration-300 ease-out ${
+            navExpanded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
+          }`}
+          style={{ background: `linear-gradient(to top, ${COLORS.background}, ${COLORS.surface})` }}
+        >
+          <div className="p-4 space-y-2">
+            {navItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => {
+                  setActiveView(item.id as any);
+                  setNavExpanded(false);
+                }}
+                className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all ${
+                  activeView === item.id
+                    ? 'text-white'
+                    : 'text-white/60'
+                }`}
+                style={{
+                  background: activeView === item.id
+                    ? `linear-gradient(135deg, ${COLORS.primary}60, ${COLORS.secondary}60)`
+                    : 'rgba(255,255,255,0.05)',
+                }}
+              >
+                {item.icon}
+                <span className="font-medium">{item.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <div
+          className="flex items-center justify-between px-4 py-3 border-t border-white/10"
+          style={{ background: COLORS.background }}
+        >
+          {/* Logo */}
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center"
+            style={{ background: `linear-gradient(135deg, ${COLORS.accent}, ${COLORS.primary})` }}
+          >
+            <span className="text-white font-bold text-sm">Q</span>
+          </div>
+
+          {/* Current View Label */}
+          <span className="text-white/60 text-sm font-medium capitalize">{activeView}</span>
+
+          {/* Toggle Button */}
+          <button
+            onClick={() => setNavExpanded(!navExpanded)}
+            className="w-10 h-10 rounded-full flex items-center justify-center transition-all"
+            style={{
+              background: navExpanded
+                ? `linear-gradient(135deg, ${COLORS.accent}, ${COLORS.primary})`
+                : 'rgba(255,255,255,0.1)',
+            }}
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className={`text-white transition-transform duration-300 ${navExpanded ? 'rotate-180' : ''}`}
+            >
+              <polyline points="18 15 12 9 6 15"/>
+            </svg>
+          </button>
+        </div>
+      </div>
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto">
@@ -698,46 +778,46 @@ export default function HomeExperimentalPage() {
       {/* Now Playing Mini Bar */}
       {currentTrack && (
         <div
-          className="fixed bottom-0 left-20 right-0 h-20 flex items-center px-6 border-t border-white/5"
+          className="fixed bottom-16 md:bottom-0 left-0 md:left-20 right-0 h-16 md:h-20 flex items-center px-4 md:px-6 border-t border-white/5 z-40"
           style={{ background: `linear-gradient(to right, ${COLORS.surface}, ${COLORS.background})` }}
         >
           {/* Track Info */}
-          <div className="flex items-center gap-4 flex-1">
-            <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0">
+          <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
+            <div className="w-10 h-10 md:w-14 md:h-14 rounded-lg overflow-hidden flex-shrink-0">
               {currentTrack.image ? (
                 <img src={currentTrack.image} alt="" className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.accent})` }} />
               )}
             </div>
-            <div className="min-w-0">
-              <p className="font-medium text-white truncate">{currentTrack.title}</p>
-              <p className="text-sm text-white/60 truncate">{currentTrack.artist}</p>
+            <div className="min-w-0 flex-1">
+              <p className="font-medium text-white truncate text-sm md:text-base">{currentTrack.title}</p>
+              <p className="text-xs md:text-sm text-white/60 truncate">{currentTrack.artist}</p>
             </div>
-            <button className="p-2 text-white/40 hover:opacity-80 transition-colors ml-2">
+            <button className="hidden md:block p-2 text-white/40 hover:opacity-80 transition-colors">
               <HeartIcon size={20} />
             </button>
           </div>
 
           {/* Controls */}
-          <div className="flex items-center gap-6">
-            <button onClick={skipBackward} className="text-white/60 hover:text-white transition-colors">
+          <div className="flex items-center gap-3 md:gap-6">
+            <button onClick={skipBackward} className="hidden md:block text-white/60 hover:text-white transition-colors">
               <SkipBackIcon size={20} />
             </button>
             <button
               onClick={togglePlayPause}
-              className="w-10 h-10 rounded-full flex items-center justify-center"
+              className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center"
               style={{ background: COLORS.accent }}
             >
-              {isPlaying ? <PauseIcon size={20} className="text-white" /> : <PlayIcon size={20} className="text-white ml-0.5" />}
+              {isPlaying ? <PauseIcon size={16} className="text-white md:w-5 md:h-5" /> : <PlayIcon size={16} className="text-white ml-0.5 md:w-5 md:h-5" />}
             </button>
             <button onClick={skipForward} className="text-white/60 hover:text-white transition-colors">
-              <SkipForwardIcon size={20} />
+              <SkipForwardIcon size={18} className="md:w-5 md:h-5" />
             </button>
           </div>
 
-          {/* Progress */}
-          <div className="flex-1 flex items-center gap-3 ml-6">
+          {/* Progress - Hidden on mobile */}
+          <div className="hidden md:flex flex-1 items-center gap-3 ml-6">
             <span className="text-xs text-white/40 w-10">{formatTime(currentTime)}</span>
             <div className="flex-1 h-1 rounded-full bg-white/10 overflow-hidden">
               <div
