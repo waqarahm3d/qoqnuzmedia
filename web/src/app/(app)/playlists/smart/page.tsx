@@ -36,7 +36,7 @@ export default function SmartPlaylistsPage() {
   const { playTrack, setQueue, currentTrack, isPlaying } = usePlayer();
 
   // Helper to get auth headers for API calls
-  const getAuthHeaders = async () => {
+  const getAuthHeaders = async (): Promise<Record<string, string>> => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.access_token) {
       return { 'Authorization': `Bearer ${session.access_token}` };
