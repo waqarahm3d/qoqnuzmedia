@@ -423,13 +423,19 @@ export async function generateMoodPlaylist(mood: string, limit: number = 50): Pr
     }
   }
 
-  const { data: tracks, error } = await query.order('play_count', { ascending: false }).limit(limit);
+  const { data: tracks, error } = await query
+    .order('play_count', { ascending: false, nullsFirst: false })
+    .limit(limit);
 
   if (error) {
     console.error('[MoodPlaylist] Query error:', error);
+    console.error('[MoodPlaylist] Error details:', JSON.stringify(error));
   }
 
   console.log(`[MoodPlaylist] Found ${tracks?.length || 0} tracks for mood: ${mood}`);
+  if (tracks && tracks.length > 0) {
+    console.log(`[MoodPlaylist] First track: ${tracks[0].title}`);
+  }
 
   return {
     tracks: (tracks || []).sort(() => Math.random() - 0.5),
