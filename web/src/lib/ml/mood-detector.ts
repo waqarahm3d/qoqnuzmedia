@@ -110,12 +110,23 @@ export async function detectTrackMood(
  * Fetch audio file from URL
  */
 async function fetchAudioFile(url: string): Promise<ArrayBuffer> {
-  // If URL is relative, prepend the app base URL
+  // Determine full URL
   let fullUrl = url;
-  if (url.startsWith('/')) {
+
+  // If it's not already a full URL, construct one
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL ||
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
-    fullUrl = `${baseUrl}${url}`;
+
+    // Ensure URL starts with /
+    const path = url.startsWith('/') ? url : `/${url}`;
+
+    // If path doesn't include /api/media/, add it
+    if (!path.startsWith('/api/media/')) {
+      fullUrl = `${baseUrl}/api/media${path}`;
+    } else {
+      fullUrl = `${baseUrl}${path}`;
+    }
   }
 
   const response = await fetch(fullUrl);
