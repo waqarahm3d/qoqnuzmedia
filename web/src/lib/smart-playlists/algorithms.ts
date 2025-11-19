@@ -393,27 +393,21 @@ export async function generateMoodPlaylist(mood: string, limit: number = 50): Pr
     .eq('is_active', true)
     .single();
 
-  if (!moodPreset) {
-    return {
-      tracks: [],
-      metadata: {
-        algorithm: 'mood',
-        generatedAt: new Date().toISOString(),
-        trackCount: 0,
-        criteria: { error: 'Mood preset not found' },
-      },
-    };
-  }
+  // Determine which tags to search for
+  // If preset exists, use its tags; otherwise use the mood name directly
+  const searchTags = moodPreset?.tags || [mood];
+
+  console.log(`[MoodPlaylist] Searching for mood: ${mood}, tags: ${JSON.stringify(searchTags)}`);
 
   // Build query based on filters
-  // Use overlaps instead of contains - matches tracks with ANY of the preset tags
+  // Use overlaps - matches tracks with ANY of the tags
   let query = supabase
     .from('tracks')
     .select('*, artists (id, name), albums (id, title, cover_art_url)')
-    .overlaps('mood_tags', moodPreset.tags);
+    .overlaps('mood_tags', searchTags);
 
-  // Apply filters from preset
-  const filters = moodPreset.filters as any;
+  // Apply filters from preset (only if preset exists)
+  const filters = moodPreset?.filters as any;
   if (filters) {
     if (filters.energy) {
       query = query.gte('energy_level', filters.energy[0]).lte('energy_level', filters.energy[1]);
@@ -429,7 +423,13 @@ export async function generateMoodPlaylist(mood: string, limit: number = 50): Pr
     }
   }
 
-  const { data: tracks } = await query.order('popularity', { ascending: false }).limit(limit);
+  const { data: tracks, error } = await query.order('play_count', { ascending: false }).limit(limit);
+
+  if (error) {
+    console.error('[MoodPlaylist] Query error:', error);
+  }
+
+  console.log(`[MoodPlaylist] Found ${tracks?.length || 0} tracks for mood: ${mood}`);
 
   return {
     tracks: (tracks || []).sort(() => Math.random() - 0.5),
@@ -439,8 +439,9 @@ export async function generateMoodPlaylist(mood: string, limit: number = 50): Pr
       trackCount: tracks?.length || 0,
       criteria: {
         mood,
-        moodTags: moodPreset.tags,
+        moodTags: searchTags,
         filters: filters || {},
+        presetFound: !!moodPreset,
       },
     },
   };
