@@ -29,17 +29,18 @@ export default function SettingsPage() {
   const [mfaLoading, setMfaLoading] = useState(false);
   const [mfaMessage, setMfaMessage] = useState('');
 
-  const { user, enrollMFA, verifyMFAEnrollment, unenrollMFA, getMFAFactors } = useAuth();
+  const { user, loading: authLoading, enrollMFA, verifyMFAEnrollment, unenrollMFA, getMFAFactors } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       router.push('/auth/signin');
       return;
     }
     fetchProfile();
     fetchMfaFactors();
-  }, [user]);
+  }, [user, authLoading]);
 
   const fetchProfile = async () => {
     try {

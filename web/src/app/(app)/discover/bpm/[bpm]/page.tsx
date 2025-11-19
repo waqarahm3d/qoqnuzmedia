@@ -17,7 +17,7 @@ const formatDuration = (ms: number) => {
 export default function BPMBrowsePage() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { playTrack, setQueue, currentTrack, isPlaying } = usePlayer();
   const bpm = parseInt(params.bpm as string);
   const [tracks, setTracks] = useState<any[]>([]);
@@ -55,11 +55,12 @@ export default function BPMBrowsePage() {
   };
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       router.push('/auth/signin');
       return;
     }
-  }, [user, router]);
+  }, [user, router, authLoading]);
 
   useEffect(() => {
     if (!user) return;
@@ -99,7 +100,7 @@ export default function BPMBrowsePage() {
     return 'Ideal for sprinting and HIIT workouts';
   };
 
-  if (loading || !user) {
+  if (loading || authLoading || !user) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>

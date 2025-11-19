@@ -12,18 +12,21 @@ import { HeartFilledIcon } from '@/components/icons';
 export default function LikedSongsPage() {
   const [tracks, setTracks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const { playTrack, currentTrack, isPlaying } = usePlayer();
 
   useEffect(() => {
+    // Wait for auth to finish loading before checking user
+    if (authLoading) return;
+
     if (!user) {
       router.push('/auth/signin');
       return;
     }
     fetchLikedTracks();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user, authLoading]);
 
   const fetchLikedTracks = async () => {
     try {
@@ -42,7 +45,7 @@ export default function LikedSongsPage() {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
