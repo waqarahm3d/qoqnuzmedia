@@ -25,6 +25,7 @@ import {
   FeaturedIcon,
   ImageIcon,
   MoodIcon,
+  DiagnosticsIcon,
 } from '@/components/icons/admin-icons';
 
 interface AdminLayoutProps {
@@ -74,6 +75,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { name: 'Users', href: '/admin/users', Icon: UsersIcon },
     { name: 'Theme', href: '/admin/theme', Icon: PaletteIcon },
     { name: 'Settings', href: '/admin/settings', Icon: SettingsIcon },
+    { name: 'Diagnostics', href: '/admin/diagnostics', Icon: DiagnosticsIcon },
   ];
 
   const isActive = (href: string) => {

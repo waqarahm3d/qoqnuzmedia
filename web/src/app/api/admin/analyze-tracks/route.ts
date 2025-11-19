@@ -75,29 +75,49 @@ export async function GET(request: NextRequest) {
 
     const adminSupabase = supabase;
 
-    // Get counts
-    const { count: totalTracks } = await adminSupabase
+    // Get counts with error handling
+    const { count: totalTracks, error: totalError } = await adminSupabase
       .from('tracks')
       .select('*', { count: 'exact', head: true });
 
-    const { count: analyzedTracks } = await adminSupabase
+    if (totalError) {
+      console.error('Error getting total tracks:', totalError);
+      throw totalError;
+    }
+
+    const { count: analyzedTracks, error: analyzedError } = await adminSupabase
       .from('tracks')
       .select('*', { count: 'exact', head: true })
       .not('mood_tags', 'is', null)
       .neq('mood_tags', '{}');
 
-    const { count: pendingTracks } = await adminSupabase
+    if (analyzedError) {
+      console.error('Error getting analyzed tracks:', analyzedError);
+      throw analyzedError;
+    }
+
+    const { count: pendingTracks, error: pendingError } = await adminSupabase
       .from('tracks')
       .select('*', { count: 'exact', head: true })
       .or('mood_tags.is.null,mood_tags.eq.{}')
       .not('audio_url', 'is', null);
 
+    if (pendingError) {
+      console.error('Error getting pending tracks:', pendingError);
+      throw pendingError;
+    }
+
     // Get mood distribution
-    const { data: moodDistribution } = await adminSupabase
+    const { data: moodDistribution, error: moodError } = await adminSupabase
       .from('tracks')
       .select('mood_tags')
       .not('mood_tags', 'is', null)
       .neq('mood_tags', '{}');
+
+    if (moodError) {
+      console.error('Error getting mood distribution:', moodError);
+      throw moodError;
+    }
 
     const moodCounts: Record<string, number> = {};
     moodDistribution?.forEach(track => {

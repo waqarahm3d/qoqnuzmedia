@@ -473,11 +473,11 @@ export async function generateActivityPlaylist(activity: string, limit: number =
     };
   }
 
-  // Build query
+  // Build query - use overlaps to match ANY tag
   let query = supabase
     .from('tracks')
-    .select('*, artists (id, name)')
-    .contains('activity_tags', activityPreset.tags);
+    .select('*, artists (id, name), albums (id, title, cover_art_url)')
+    .overlaps('activity_tags', activityPreset.tags);
 
   // Apply filters
   const filters = activityPreset.filters as any;
