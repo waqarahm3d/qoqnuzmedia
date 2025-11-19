@@ -406,10 +406,11 @@ export async function generateMoodPlaylist(mood: string, limit: number = 50): Pr
   }
 
   // Build query based on filters
+  // Use overlaps instead of contains - matches tracks with ANY of the preset tags
   let query = supabase
     .from('tracks')
-    .select('*, artists (id, name)')
-    .contains('mood_tags', moodPreset.tags);
+    .select('*, artists (id, name), albums (id, title, cover_art_url)')
+    .overlaps('mood_tags', moodPreset.tags);
 
   // Apply filters from preset
   const filters = moodPreset.filters as any;
