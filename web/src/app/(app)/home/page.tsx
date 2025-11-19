@@ -158,7 +158,7 @@ export default function HomePage() {
             <h2 className="text-2xl font-bold">Trending Songs</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {trendingTracks.map((track: any, index: number) => (
+            {trendingTracks.map((track: any) => (
               <button
                 key={track.id}
                 onClick={() => {
@@ -173,11 +173,8 @@ export default function HomePage() {
                     duration: track.duration_ms || 0,
                   });
                 }}
-                className="flex items-center gap-4 p-3 rounded-xl hover:bg-white/5 transition-all group text-left bg-surface/30"
+                className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-all group text-left bg-surface/30"
               >
-                <span className="w-6 text-center text-sm text-white/40 font-medium">
-                  {index + 1}
-                </span>
                 <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 relative">
                   {track.albums?.cover_art_url || track.cover_art_url ? (
                     <img
@@ -198,7 +195,6 @@ export default function HomePage() {
                   </p>
                   <p className="text-xs text-white/50 truncate">{track.artists?.name || 'Unknown Artist'}</p>
                 </div>
-                <span className="text-xs text-white/40">{formatDuration(track.duration_ms || 0)}</span>
               </button>
             ))}
           </div>
@@ -212,7 +208,7 @@ export default function HomePage() {
             <h2 className="text-2xl font-bold">Recently Added Tracks</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {tracks.slice(0, 10).map((track: any, index: number) => (
+            {tracks.slice(0, 10).map((track: any) => (
               <button
                 key={track.id}
                 onClick={() => {
@@ -227,11 +223,8 @@ export default function HomePage() {
                     duration: track.duration_ms || 0,
                   });
                 }}
-                className="flex items-center gap-4 p-3 rounded-xl hover:bg-white/5 transition-all group text-left bg-surface/30"
+                className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-all group text-left bg-surface/30"
               >
-                <span className="w-6 text-center text-sm text-white/40 font-medium">
-                  {index + 1}
-                </span>
                 <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 relative">
                   {track.albums?.cover_art_url || track.cover_art_url ? (
                     <img
@@ -252,7 +245,6 @@ export default function HomePage() {
                   </p>
                   <p className="text-xs text-white/50 truncate">{track.artists?.name || 'Unknown Artist'}</p>
                 </div>
-                <span className="text-xs text-white/40">{formatDuration(track.duration_ms || 0)}</span>
               </button>
             ))}
           </div>
