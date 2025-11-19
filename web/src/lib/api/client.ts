@@ -422,7 +422,8 @@ export async function getActivityFeed(limit = 20) {
 }
 
 export async function getPlayHistory(limit = 50) {
-  return fetchAPI(`/api/history?limit=${limit}`);
+  const data = await fetchAPI<{ history: any[] }>(`/api/history?limit=${limit}`);
+  return data.history || [];
 }
 
 export async function trackPlay(trackId: string) {
