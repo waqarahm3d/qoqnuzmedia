@@ -3,7 +3,6 @@
 import { createContext, useContext, useState, useRef, ReactNode, useEffect, useCallback } from 'react';
 import * as api from '@/lib/api/client';
 import { getMediaUrl } from '@/lib/media-utils';
-import { useWebAudioPlayer } from '@/lib/hooks';
 
 interface Track {
   id: string;
@@ -31,12 +30,7 @@ interface PlayerContextType {
   showStillListeningPrompt: boolean;
   showOverlay: boolean;
   isLoading: boolean;
-  isBuffering: boolean;
   error: string | null;
-  // Visualization methods
-  getFrequencyData: () => Uint8Array | null;
-  getWaveformData: () => Uint8Array | null;
-  getAverageFrequency: () => number;
   // Control methods
   playTrack: (track: Track, skipQueueUpdate?: boolean) => void;
   pause: () => void;
@@ -62,19 +56,14 @@ const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
 export function PlayerProvider({ children }: { children: ReactNode }) {
   // Ref to hold the latest handleTrackEnd function
   const handleTrackEndRef = useRef<() => void>(() => {});
-
-  // Use Web Audio API player hook
-  const [audioState, audioControls, audioRef] = useWebAudioPlayer({
-    initialVolume: 80,
-    fftSize: 256,
-    enableVisualization: true,
-    onEnded: () => handleTrackEndRef.current(),
-    onError: (e) => {
-      console.error('Audio playback error:', e);
-    },
-  });
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolumeState] = useState(80);
+  const [isMuted, setIsMuted] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [shuffle, setShuffle] = useState(false);
   const [repeat, setRepeat] = useState<'off' | 'all' | 'one'>('off');
@@ -83,19 +72,85 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [showStillListeningPrompt, setShowStillListeningPrompt] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
   const [playbackStartTime, setPlaybackStartTime] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const stillListeningTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Extract state from Web Audio hook
-  const {
-    isPlaying,
-    currentTime,
-    duration,
-    volume,
-    isMuted,
-    isLoading,
-    isBuffering,
-    error
-  } = audioState;
+  // Initialize audio element
+  useEffect(() => {
+    audioRef.current = new Audio();
+    const audio = audioRef.current;
+
+    // Set initial volume
+    audio.volume = volume / 100;
+
+    const handleTimeUpdate = () => {
+      setCurrentTime(audio.currentTime);
+    };
+
+    const handleDurationChange = () => {
+      if (!isNaN(audio.duration)) {
+        setDuration(audio.duration);
+      }
+    };
+
+    const handleEnded = () => {
+      handleTrackEndRef.current();
+    };
+
+    const handleError = () => {
+      setError('Playback error');
+      setIsPlaying(false);
+      setIsLoading(false);
+    };
+
+    const handlePlay = () => {
+      setIsPlaying(true);
+      setError(null);
+    };
+
+    const handlePause = () => {
+      setIsPlaying(false);
+    };
+
+    const handleLoadStart = () => {
+      setIsLoading(true);
+      setError(null);
+    };
+
+    const handleCanPlay = () => {
+      setIsLoading(false);
+    };
+
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('durationchange', handleDurationChange);
+    audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('error', handleError);
+    audio.addEventListener('play', handlePlay);
+    audio.addEventListener('pause', handlePause);
+    audio.addEventListener('loadstart', handleLoadStart);
+    audio.addEventListener('canplay', handleCanPlay);
+
+    return () => {
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('durationchange', handleDurationChange);
+      audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('error', handleError);
+      audio.removeEventListener('play', handlePlay);
+      audio.removeEventListener('pause', handlePause);
+      audio.removeEventListener('loadstart', handleLoadStart);
+      audio.removeEventListener('canplay', handleCanPlay);
+      audio.pause();
+      audio.src = '';
+    };
+  }, []);
+
+  // Update volume
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = isMuted ? 0 : volume / 100;
+    }
+  }, [volume, isMuted]);
 
   // Check if track is liked
   useEffect(() => {
@@ -120,7 +175,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
           if (elapsedTime >= threeHours) {
             // Pause and show prompt
-            audioControls.pause();
+            audioRef.current?.pause();
             setShowStillListeningPrompt(true);
 
             // Clear the timer
@@ -145,23 +200,28 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         stillListeningTimerRef.current = null;
       }
     };
-  }, [isPlaying, playbackStartTime, audioControls]);
+  }, [isPlaying, playbackStartTime]);
 
   const handleTrackEnd = useCallback(async () => {
     if (repeat === 'one') {
-      audioControls.play();
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play();
+      }
       return;
     }
 
     if (repeat === 'all' && queueIndex === queue.length - 1) {
-      // Play first track - we need to call playTrackInternal
+      // Play first track
       const firstTrack = queue[0];
-      if (firstTrack) {
+      if (firstTrack && audioRef.current) {
         setQueueIndex(0);
         setCurrentTrack(firstTrack);
         api.getStreamUrl(firstTrack.id).then(({ url }) => {
-          audioControls.loadTrack(url);
-          audioControls.play();
+          if (audioRef.current) {
+            audioRef.current.src = url;
+            audioRef.current.play();
+          }
           api.trackPlay(firstTrack.id);
         });
       }
@@ -172,12 +232,14 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       // Move to next track
       const nextIndex = queueIndex + 1;
       const nextTrack = queue[nextIndex];
-      if (nextTrack) {
+      if (nextTrack && audioRef.current) {
         setQueueIndex(nextIndex);
         setCurrentTrack(nextTrack);
         api.getStreamUrl(nextTrack.id).then(({ url }) => {
-          audioControls.loadTrack(url);
-          audioControls.play();
+          if (audioRef.current) {
+            audioRef.current.src = url;
+            audioRef.current.play();
+          }
           api.trackPlay(nextTrack.id);
         });
       }
@@ -200,15 +262,15 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
               duration: t.duration_ms,
             }));
 
-            if (relatedTracks.length > 0) {
+            if (relatedTracks.length > 0 && audioRef.current) {
               // Add related tracks to queue and play the first one
               setQueue([...queue, ...relatedTracks]);
               const nextIndex = queue.length;
               setQueueIndex(nextIndex);
               setCurrentTrack(relatedTracks[0]);
               const { url } = await api.getStreamUrl(relatedTracks[0].id);
-              audioControls.loadTrack(url);
-              audioControls.play();
+              audioRef.current.src = url;
+              audioRef.current.play();
               api.trackPlay(relatedTracks[0].id);
             }
           }
@@ -217,7 +279,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         }
       }
     }
-  }, [repeat, queueIndex, queue, audioControls]);
+  }, [repeat, queueIndex, queue]);
 
   // Keep the ref updated with latest handleTrackEnd
   useEffect(() => {
@@ -231,9 +293,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       // Get streaming URL from backend
       const { url } = await api.getStreamUrl(track.id);
 
-      // Load and play using Web Audio controls
-      audioControls.loadTrack(url);
-      await audioControls.play();
+      // Load and play
+      if (audioRef.current) {
+        audioRef.current.src = url;
+        await audioRef.current.play();
+      }
 
       // Track play in history
       api.trackPlay(track.id);
@@ -245,7 +309,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('Error playing track:', error);
     }
-  }, [audioControls, queue.length]);
+  }, [queue.length]);
 
   const fetchAndQueueRelatedTracks = async (track: Track) => {
     try {
@@ -273,28 +337,41 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   };
 
   const pause = useCallback(() => {
-    audioControls.pause();
-  }, [audioControls]);
+    audioRef.current?.pause();
+  }, []);
 
   const resume = useCallback(() => {
-    audioControls.play();
-  }, [audioControls]);
+    audioRef.current?.play();
+  }, []);
 
   const togglePlayPause = useCallback(() => {
-    audioControls.toggle();
-  }, [audioControls]);
+    if (isPlaying) {
+      audioRef.current?.pause();
+    } else {
+      audioRef.current?.play();
+    }
+  }, [isPlaying]);
 
   const seek = useCallback((time: number) => {
-    audioControls.seek(time);
-  }, [audioControls]);
+    if (audioRef.current) {
+      audioRef.current.currentTime = time;
+      setCurrentTime(time);
+    }
+  }, []);
 
   const setVolume = useCallback((newVolume: number) => {
-    audioControls.setVolume(newVolume);
-  }, [audioControls]);
+    const clampedVolume = Math.max(0, Math.min(100, newVolume));
+    setVolumeState(clampedVolume);
+    if (clampedVolume === 0) {
+      setIsMuted(true);
+    } else if (isMuted) {
+      setIsMuted(false);
+    }
+  }, [isMuted]);
 
   const toggleMute = useCallback(() => {
-    audioControls.toggleMute();
-  }, [audioControls]);
+    setIsMuted(prev => !prev);
+  }, []);
 
   const toggleLike = async () => {
     if (!currentTrack) return;
@@ -389,12 +466,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         showStillListeningPrompt,
         showOverlay,
         isLoading,
-        isBuffering,
         error,
-        // Visualization methods from Web Audio API
-        getFrequencyData: audioControls.getFrequencyData,
-        getWaveformData: audioControls.getWaveformData,
-        getAverageFrequency: audioControls.getAverageFrequency,
         // Control methods
         playTrack,
         pause,
