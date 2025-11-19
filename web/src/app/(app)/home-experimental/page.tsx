@@ -1,93 +1,265 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { getMediaUrl } from '@/lib/media-utils';
 import { useAlbums, useArtists, usePlaylists, useTracks, useGenres } from '@/lib/hooks/useMusic';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
 import { PlayIcon, PauseIcon, SkipBackIcon, SkipForwardIcon, HeartIcon } from '@/components/icons';
 
-// Bubble-based Playlist Generator with Force-Directed Layout
-// Based on detailed design specifications
+// SIFloatingCollection-style Physics-based Floating Bubbles
+// Inspired by Apple Music genre selection
 
-// Color palette from specs
+// Color palette
 const COLORS = {
-  primary: '#2427BA',      // Deep blue/purple
-  secondary: '#148784',    // Turquoise
-  accent: '#FB4E2F',       // Coral/orange
+  primary: '#2427BA',
+  secondary: '#148784',
+  accent: '#FB4E2F',
   background: '#0D0D1A',
   surface: '#1A1A2E',
 };
 
-// Genre bubble component with animations
-interface GenreBubbleProps {
-  genre: any;
-  isSelected: boolean;
-  onClick: () => void;
-  position: { x: number; y: number };
-  size: number;
+// Physics constants
+const PHYSICS = {
+  gravity: 0.02,
+  friction: 0.99,
+  bounceDamping: 0.7,
+  repulsion: 0.5,
+  attraction: 0.001,
+  maxVelocity: 3,
+  floatStrength: 0.15,
+};
+
+// Bubble physics state
+interface BubbleState {
+  id: string;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  radius: number;
   color: string;
+  name: string;
+  isSelected: boolean;
 }
 
-function GenreBubble({ genre, isSelected, onClick, position, size, color }: GenreBubbleProps) {
-  const [isHovered, setIsHovered] = useState(false);
-  const [showRipple, setShowRipple] = useState(false);
+// Floating Bubbles Container Component
+function FloatingBubbles({
+  genres,
+  selectedGenres,
+  onToggleGenre,
+  containerRef,
+}: {
+  genres: any[];
+  selectedGenres: string[];
+  onToggleGenre: (id: string) => void;
+  containerRef: React.RefObject<HTMLDivElement>;
+}) {
+  const [bubbles, setBubbles] = useState<BubbleState[]>([]);
+  const animationRef = useRef<number>();
+  const bubblesRef = useRef<BubbleState[]>([]);
 
-  const handleClick = () => {
-    setShowRipple(true);
-    setTimeout(() => setShowRipple(false), 600);
-    onClick();
+  // Initialize bubbles with random positions and velocities
+  useEffect(() => {
+    if (!genres || genres.length === 0 || !containerRef.current) return;
+
+    const container = containerRef.current;
+    const rect = container.getBoundingClientRect();
+    const colors = [COLORS.primary, COLORS.secondary, COLORS.accent, '#6B46C1', '#D53F8C', '#38B2AC'];
+
+    const initialBubbles: BubbleState[] = genres.map((genre: any, index: number) => {
+      // Size based on index (popularity simulation)
+      const radius = Math.max(30, Math.min(50, 50 - index * 1.5));
+
+      // Random initial position within container
+      const x = Math.random() * (rect.width - radius * 2) + radius;
+      const y = Math.random() * (rect.height - radius * 2) + radius;
+
+      // Random initial velocity
+      const vx = (Math.random() - 0.5) * 2;
+      const vy = (Math.random() - 0.5) * 2;
+
+      return {
+        id: genre.id,
+        x,
+        y,
+        vx,
+        vy,
+        radius,
+        color: genre.color || colors[index % colors.length],
+        name: genre.name,
+        isSelected: selectedGenres.includes(genre.id),
+      };
+    });
+
+    setBubbles(initialBubbles);
+    bubblesRef.current = initialBubbles;
+  }, [genres, containerRef]);
+
+  // Update selection state
+  useEffect(() => {
+    bubblesRef.current = bubblesRef.current.map(bubble => ({
+      ...bubble,
+      isSelected: selectedGenres.includes(bubble.id),
+    }));
+    setBubbles([...bubblesRef.current]);
+  }, [selectedGenres]);
+
+  // Physics simulation loop
+  const simulate = useCallback(() => {
+    if (!containerRef.current || bubblesRef.current.length === 0) {
+      animationRef.current = requestAnimationFrame(simulate);
+      return;
+    }
+
+    const container = containerRef.current;
+    const rect = container.getBoundingClientRect();
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+
+    bubblesRef.current = bubblesRef.current.map((bubble, i) => {
+      let { x, y, vx, vy, radius, isSelected } = bubble;
+
+      // Apply floating force (gentle upward drift)
+      vy -= PHYSICS.floatStrength * (Math.random() - 0.3);
+
+      // Apply slight attraction to center
+      const dx = centerX - x;
+      const dy = centerY - y;
+      const distToCenter = Math.sqrt(dx * dx + dy * dy);
+      if (distToCenter > 50) {
+        vx += (dx / distToCenter) * PHYSICS.attraction * distToCenter;
+        vy += (dy / distToCenter) * PHYSICS.attraction * distToCenter;
+      }
+
+      // Apply gentle gravity
+      vy += PHYSICS.gravity;
+
+      // Collision detection with other bubbles
+      for (let j = 0; j < bubblesRef.current.length; j++) {
+        if (i === j) continue;
+
+        const other = bubblesRef.current[j];
+        const dx = other.x - x;
+        const dy = other.y - y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const minDist = radius + other.radius + 4; // 4px gap
+
+        if (dist < minDist && dist > 0) {
+          // Collision response - push apart
+          const overlap = minDist - dist;
+          const nx = dx / dist;
+          const ny = dy / dist;
+
+          // Move bubbles apart
+          x -= nx * overlap * 0.5;
+          y -= ny * overlap * 0.5;
+
+          // Apply repulsion force
+          vx -= nx * PHYSICS.repulsion;
+          vy -= ny * PHYSICS.repulsion;
+        }
+      }
+
+      // Apply friction
+      vx *= PHYSICS.friction;
+      vy *= PHYSICS.friction;
+
+      // Clamp velocity
+      const speed = Math.sqrt(vx * vx + vy * vy);
+      if (speed > PHYSICS.maxVelocity) {
+        vx = (vx / speed) * PHYSICS.maxVelocity;
+        vy = (vy / speed) * PHYSICS.maxVelocity;
+      }
+
+      // Update position
+      x += vx;
+      y += vy;
+
+      // Boundary collision
+      if (x - radius < 0) {
+        x = radius;
+        vx = Math.abs(vx) * PHYSICS.bounceDamping;
+      }
+      if (x + radius > rect.width) {
+        x = rect.width - radius;
+        vx = -Math.abs(vx) * PHYSICS.bounceDamping;
+      }
+      if (y - radius < 0) {
+        y = radius;
+        vy = Math.abs(vy) * PHYSICS.bounceDamping;
+      }
+      if (y + radius > rect.height) {
+        y = rect.height - radius;
+        vy = -Math.abs(vy) * PHYSICS.bounceDamping;
+      }
+
+      return { ...bubble, x, y, vx, vy };
+    });
+
+    setBubbles([...bubblesRef.current]);
+    animationRef.current = requestAnimationFrame(simulate);
+  }, [containerRef]);
+
+  // Start/stop animation loop
+  useEffect(() => {
+    animationRef.current = requestAnimationFrame(simulate);
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [simulate]);
+
+  // Handle bubble click with impulse
+  const handleBubbleClick = (bubble: BubbleState, e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    // Apply impulse on click
+    const index = bubblesRef.current.findIndex(b => b.id === bubble.id);
+    if (index !== -1) {
+      bubblesRef.current[index].vy -= 3; // Bounce up on click
+      bubblesRef.current[index].vx += (Math.random() - 0.5) * 2;
+    }
+
+    onToggleGenre(bubble.id);
   };
 
   return (
-    <button
-      onClick={handleClick}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className="absolute rounded-full flex items-center justify-center font-medium transition-all duration-300 overflow-hidden"
-      style={{
-        left: `${position.x}%`,
-        top: `${position.y}%`,
-        width: `${size}px`,
-        height: `${size}px`,
-        transform: `translate(-50%, -50%) scale(${isHovered ? 1.15 : isSelected ? 1.1 : 1})`,
-        background: isSelected
-          ? `radial-gradient(circle at 30% 30%, ${color}ee, ${color}aa)`
-          : `radial-gradient(circle at 30% 30%, ${color}99, ${color}66)`,
-        boxShadow: isHovered
-          ? `0 0 30px ${color}80, 0 10px 40px ${color}40`
-          : isSelected
-            ? `0 0 20px ${color}60, inset 0 0 20px ${color}40`
-            : `0 4px 20px ${color}30`,
-        border: isSelected ? `3px solid ${color}` : '2px solid transparent',
-        fontSize: size < 70 ? '10px' : size < 90 ? '12px' : '14px',
-        color: 'white',
-        textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-        zIndex: isHovered || isSelected ? 10 : 1,
-      }}
-      aria-label={`Select ${genre.name} genre`}
-      aria-pressed={isSelected}
-    >
-      {/* Ripple effect on click */}
-      {showRipple && (
-        <span
-          className="absolute inset-0 rounded-full animate-ping"
-          style={{ background: `${color}40` }}
-        />
-      )}
-
-      {/* Selected indicator glow */}
-      {isSelected && (
-        <span
-          className="absolute inset-0 rounded-full animate-pulse"
-          style={{ background: `radial-gradient(circle, ${color}20 0%, transparent 70%)` }}
-        />
-      )}
-
-      <span className="relative z-10 px-2 text-center leading-tight">
-        {genre.name}
-      </span>
-    </button>
+    <>
+      {bubbles.map((bubble) => (
+        <button
+          key={bubble.id}
+          onClick={(e) => handleBubbleClick(bubble, e)}
+          className="absolute rounded-full flex items-center justify-center font-medium transition-shadow duration-200 select-none"
+          style={{
+            left: bubble.x,
+            top: bubble.y,
+            width: bubble.radius * 2,
+            height: bubble.radius * 2,
+            transform: 'translate(-50%, -50%)',
+            background: bubble.isSelected
+              ? `radial-gradient(circle at 30% 30%, ${bubble.color}, ${bubble.color}cc)`
+              : `radial-gradient(circle at 30% 30%, ${bubble.color}cc, ${bubble.color}88)`,
+            boxShadow: bubble.isSelected
+              ? `0 0 30px ${bubble.color}80, 0 8px 32px ${bubble.color}40, inset 0 -4px 12px ${bubble.color}40`
+              : `0 4px 20px ${bubble.color}40, inset 0 -4px 12px ${bubble.color}20`,
+            border: bubble.isSelected ? `3px solid white` : '2px solid transparent',
+            fontSize: bubble.radius < 35 ? '9px' : bubble.radius < 45 ? '11px' : '13px',
+            color: 'white',
+            textShadow: '0 1px 3px rgba(0,0,0,0.5)',
+            cursor: 'pointer',
+            zIndex: bubble.isSelected ? 10 : 1,
+          }}
+          aria-label={`Select ${bubble.name} genre`}
+          aria-pressed={bubble.isSelected}
+        >
+          <span className="px-1 text-center leading-tight truncate">
+            {bubble.name}
+          </span>
+        </button>
+      ))}
+    </>
   );
 }
 
@@ -100,52 +272,14 @@ export default function HomeExperimentalPage() {
   const { genres, loading: genresLoading } = useGenres();
   const { setQueue, playTrack, currentTrack, isPlaying, togglePlayPause, skipForward, skipBackward, currentTime, duration } = usePlayer();
 
+  const bubbleContainerRef = useRef<HTMLDivElement>(null);
+
   // Playlist generator state
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [generatorStep, setGeneratorStep] = useState<'genres' | 'recommendations'>('genres');
   const [activeView, setActiveView] = useState<'home' | 'generator' | 'favorites' | 'settings'>('home');
 
   const loading = albumsLoading || artistsLoading || playlistsLoading || tracksLoading || genresLoading;
-
-  // Generate bubble positions using force-directed simulation
-  const bubbleData = useMemo(() => {
-    if (!genres || genres.length === 0) return [];
-
-    const colors = [COLORS.primary, COLORS.secondary, COLORS.accent, '#6B46C1', '#D53F8C', '#38B2AC'];
-
-    // Calculate positions in a circular/organic pattern
-    const centerX = 50;
-    const centerY = 50;
-    const maxRadius = 35;
-
-    return genres.map((genre: any, index: number) => {
-      // Assign popularity based on index for demo (in real app, use actual data)
-      const popularity = 100 - (index * 5) + Math.random() * 10;
-
-      // Size based on popularity (40-100px range)
-      const size = Math.max(50, Math.min(100, popularity * 0.8 + 30));
-
-      // Calculate position using golden angle for even distribution
-      const goldenAngle = Math.PI * (3 - Math.sqrt(5));
-      const angle = index * goldenAngle;
-      const radius = maxRadius * Math.sqrt(index / genres.length);
-
-      // Add some randomness for organic feel
-      const jitterX = (Math.random() - 0.5) * 8;
-      const jitterY = (Math.random() - 0.5) * 8;
-
-      const x = centerX + radius * Math.cos(angle) + jitterX;
-      const y = centerY + radius * Math.sin(angle) + jitterY;
-
-      return {
-        ...genre,
-        position: { x: Math.max(10, Math.min(90, x)), y: Math.max(15, Math.min(85, y)) },
-        size,
-        color: genre.color || colors[index % colors.length],
-        popularity,
-      };
-    });
-  }, [genres]);
 
   const toggleGenreSelection = (genreId: string) => {
     setSelectedGenres(prev =>
@@ -192,7 +326,7 @@ export default function HomeExperimentalPage() {
   // Get recommendations based on selected genres
   const recommendations = tracks.filter((track: any) => {
     if (selectedGenres.length === 0) return true;
-    return true; // In real app, filter by selected genres
+    return true;
   }).slice(0, 12);
 
   if (loading) {
@@ -304,13 +438,12 @@ export default function HomeExperimentalPage() {
                   </button>
                 </div>
 
-                {/* Decorative illustration - abstract music bubbles */}
+                {/* Decorative bubbles */}
                 <div className="absolute right-8 top-1/2 -translate-y-1/2 hidden lg:block">
                   <div className="relative w-64 h-64">
-                    <div className="absolute w-20 h-20 rounded-full animate-pulse" style={{ background: `${COLORS.accent}80`, top: '10%', right: '20%' }} />
-                    <div className="absolute w-16 h-16 rounded-full animate-pulse" style={{ background: `${COLORS.secondary}80`, top: '50%', right: '10%', animationDelay: '0.5s' }} />
-                    <div className="absolute w-12 h-12 rounded-full animate-pulse" style={{ background: `${COLORS.primary}80`, bottom: '20%', right: '30%', animationDelay: '1s' }} />
-                    <div className="absolute w-8 h-8 rounded-full animate-pulse" style={{ background: 'white', opacity: 0.3, top: '30%', right: '50%', animationDelay: '1.5s' }} />
+                    <div className="absolute w-20 h-20 rounded-full animate-bounce" style={{ background: `${COLORS.accent}80`, top: '10%', right: '20%', animationDuration: '3s' }} />
+                    <div className="absolute w-16 h-16 rounded-full animate-bounce" style={{ background: `${COLORS.secondary}80`, top: '50%', right: '10%', animationDuration: '2.5s', animationDelay: '0.5s' }} />
+                    <div className="absolute w-12 h-12 rounded-full animate-bounce" style={{ background: `${COLORS.primary}80`, bottom: '20%', right: '30%', animationDuration: '2s', animationDelay: '1s' }} />
                   </div>
                 </div>
               </div>
@@ -346,7 +479,7 @@ export default function HomeExperimentalPage() {
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-medium truncate ${currentTrack?.id === track.id ? 'text-white' : 'text-white'}`}
+                      <p className="text-sm font-medium truncate text-white"
                          style={{ color: currentTrack?.id === track.id ? COLORS.accent : undefined }}>
                         {track.title}
                       </p>
@@ -405,22 +538,21 @@ export default function HomeExperimentalPage() {
                 {/* Genre Selection Step */}
                 <div className="text-center py-8 px-8">
                   <h2 className="text-3xl font-bold text-white mb-2">Playlist Generator</h2>
-                  <p className="text-white/60">Select genres to create your perfect playlist</p>
+                  <p className="text-white/60">Tap bubbles to select your favorite genres</p>
                 </div>
 
-                {/* Bubble Interface */}
-                <div className="flex-1 relative min-h-[400px] mx-8 mb-8 rounded-2xl overflow-hidden" style={{ background: 'rgba(0,0,0,0.3)' }}>
-                  {bubbleData.map((genre: any) => (
-                    <GenreBubble
-                      key={genre.id}
-                      genre={genre}
-                      isSelected={selectedGenres.includes(genre.id)}
-                      onClick={() => toggleGenreSelection(genre.id)}
-                      position={genre.position}
-                      size={genre.size}
-                      color={genre.color}
-                    />
-                  ))}
+                {/* Floating Bubbles Container */}
+                <div
+                  ref={bubbleContainerRef}
+                  className="flex-1 relative mx-8 mb-8 rounded-2xl overflow-hidden"
+                  style={{ background: 'rgba(0,0,0,0.3)', minHeight: '400px' }}
+                >
+                  <FloatingBubbles
+                    genres={genres}
+                    selectedGenres={selectedGenres}
+                    onToggleGenre={toggleGenreSelection}
+                    containerRef={bubbleContainerRef}
+                  />
                 </div>
 
                 {/* Action Button */}
@@ -539,7 +671,7 @@ export default function HomeExperimentalPage() {
         )}
       </main>
 
-      {/* Now Playing Mini Bar (at bottom when track is playing) */}
+      {/* Now Playing Mini Bar */}
       {currentTrack && (
         <div
           className="fixed bottom-0 left-20 right-0 h-20 flex items-center px-6 border-t border-white/5"
