@@ -181,7 +181,7 @@ export async function getTracks(params?: { limit?: number; offset?: number }) {
     .from('tracks')
     .select(`
       *,
-      artists (
+      artists!tracks_artist_id_fkey (
         id,
         name
       ),
@@ -263,7 +263,7 @@ export async function getPlaylist(id: string) {
           id,
           title,
           duration_ms,
-          artists (
+          artists!tracks_artist_id_fkey (
             id,
             name
           ),
@@ -323,7 +323,7 @@ export async function getLikedTracks() {
         id,
         title,
         duration_ms,
-        artists (
+        artists!tracks_artist_id_fkey (
           id,
           name
         ),

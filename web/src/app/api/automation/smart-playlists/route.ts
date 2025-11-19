@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
             artist_id,
             album_id,
             play_count,
-            artists (
+            artists!tracks_artist_id_fkey (
               id,
               name
             ),

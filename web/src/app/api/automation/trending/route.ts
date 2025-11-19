@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
           album_id,
           play_count,
           created_at,
-          artists (
+          artists!tracks_artist_id_fkey (
             id,
             name,
             avatar_url
