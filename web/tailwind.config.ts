@@ -30,10 +30,18 @@ const config: Config = {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
         },
+        'soundwave': {
+          '0%, 100%': { height: '4px' },
+          '50%': { height: '16px' },
+        },
       },
       animation: {
         'slide-up': 'slide-up 0.3s ease-out',
         'fade-in': 'fade-in 0.3s ease-out',
+        'soundwave-1': 'soundwave 0.5s ease-in-out infinite',
+        'soundwave-2': 'soundwave 0.5s ease-in-out 0.1s infinite',
+        'soundwave-3': 'soundwave 0.5s ease-in-out 0.2s infinite',
+        'soundwave-4': 'soundwave 0.5s ease-in-out 0.3s infinite',
       },
     },
   },

@@ -129,10 +129,22 @@ export const TrackRow = ({
                 </svg>
               </div>
             )}
-            {/* Play overlay */}
-            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <PlayIcon size={20} className="text-white" />
-            </div>
+            {/* Play overlay or Sound wave for playing track */}
+            {isPlaying ? (
+              <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                {/* Animated sound wave bars */}
+                <div className="flex items-end gap-[3px] h-4">
+                  <span className="w-[3px] bg-primary animate-soundwave-1 rounded-full"></span>
+                  <span className="w-[3px] bg-primary animate-soundwave-2 rounded-full"></span>
+                  <span className="w-[3px] bg-primary animate-soundwave-3 rounded-full"></span>
+                  <span className="w-[3px] bg-primary animate-soundwave-4 rounded-full"></span>
+                </div>
+              </div>
+            ) : (
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <PlayIcon size={20} className="text-white" />
+              </div>
+            )}
           </div>
         )}
 

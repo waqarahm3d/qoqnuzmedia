@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { getMediaUrl } from '@/lib/media-utils';
 import { MusicIcon, SparklesIcon, HeartFilledIcon, DiscoverIcon } from '@/components/icons';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
+import { supabase } from '@/lib/supabase-client';
 
 const formatDuration = (ms: number) => {
   const minutes = Math.floor(ms / 60000);
@@ -33,6 +34,15 @@ export default function SmartPlaylistsPage() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { playTrack, setQueue, currentTrack, isPlaying } = usePlayer();
+
+  // Helper to get auth headers for API calls
+  const getAuthHeaders = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.access_token) {
+      return { 'Authorization': `Bearer ${session.access_token}` };
+    }
+    return {};
+  };
 
   // Format track for player and play it
   const handlePlayTrack = (track: any, allTracks: any[]) => {
@@ -97,7 +107,8 @@ export default function SmartPlaylistsPage() {
 
       try {
         // Fetch all smart playlists from automation system
-        const response = await fetch('/api/automation/smart-playlists');
+        const headers = await getAuthHeaders();
+        const response = await fetch('/api/automation/smart-playlists', { headers });
 
         if (response.ok) {
           const data = await response.json();
@@ -147,7 +158,8 @@ export default function SmartPlaylistsPage() {
     // Otherwise, generate it on-demand
     setGenerating(type);
     try {
-      const response = await fetch(`/api/playlists/smart?type=${type}`);
+      const headers = await getAuthHeaders();
+      const response = await fetch(`/api/playlists/smart?type=${type}`, { headers });
       if (response.ok) {
         const data = await response.json();
         const playlist = data.playlist || data;

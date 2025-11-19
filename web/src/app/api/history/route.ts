@@ -27,11 +27,22 @@ export async function GET(request: NextRequest) {
       `)
       .eq('user_id', user.id)
       .order('played_at', { ascending: false })
-      .limit(limit);
+      .limit(limit * 3); // Fetch more to ensure we have enough after deduplication
 
     if (error) throw error;
 
-    return NextResponse.json({ history: history || [] });
+    // Deduplicate: keep only the most recent play of each track
+    const seenTracks = new Set<string>();
+    const uniqueHistory = (history || []).filter((item: any) => {
+      const trackId = item.track?.id;
+      if (!trackId || seenTracks.has(trackId)) {
+        return false;
+      }
+      seenTracks.add(trackId);
+      return true;
+    }).slice(0, limit); // Apply the original limit after deduplication
+
+    return NextResponse.json({ history: uniqueHistory });
   } catch (error: any) {
     console.error('Get history error:', error);
     return NextResponse.json(

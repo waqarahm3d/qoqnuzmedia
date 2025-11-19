@@ -34,7 +34,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (!user) {
-      router.push('/login');
+      router.push('/auth/signin');
       return;
     }
     fetchProfile();

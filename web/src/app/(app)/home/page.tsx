@@ -23,7 +23,7 @@ export default function HomePage() {
   const { playlists, loading: playlistsLoading } = usePlaylists(12);
   const { tracks, loading: tracksLoading } = useTracks(20);
   const { genres, loading: genresLoading } = useGenres();
-  const { setQueue, playTrack } = usePlayer();
+  const { setQueue, playTrack, currentTrack, isPlaying } = usePlayer();
 
   const loading = albumsLoading || artistsLoading || playlistsLoading || tracksLoading || genresLoading;
 
@@ -159,19 +159,16 @@ export default function HomePage() {
           </div>
           <div className="bg-black/20 rounded-lg p-4">
             <div className="space-y-2">
-              {trendingTracks.map((track: any, index: number) => (
+              {trendingTracks.map((track: any) => (
                 <TrackRow
                   key={track.id}
-                  number={index + 1}
                   title={track.title}
                   artist={track.artists?.name || 'Unknown Artist'}
-                  album={track.albums?.title || 'Single'}
                   image={getMediaUrl(track.albums?.cover_art_url || track.cover_art_url)}
-                  duration={formatDuration(track.duration_ms || 0)}
                   trackId={track.id}
                   artistId={track.artist_id}
-                  albumId={track.album_id}
                   showImage={true}
+                  isPlaying={currentTrack?.id === track.id && isPlaying}
                   onPlay={() => {
                     playTrack({
                       id: track.id,
@@ -184,7 +181,6 @@ export default function HomePage() {
                       duration: track.duration_ms || 0,
                     });
                   }}
-                  onLike={() => {}}
                 />
               ))}
             </div>
@@ -200,18 +196,16 @@ export default function HomePage() {
           </div>
           <div className="bg-black/20 rounded-lg p-4">
             <div className="space-y-2">
-              {tracks.slice(0, 10).map((track: any, index: number) => (
+              {tracks.slice(0, 10).map((track: any) => (
                 <TrackRow
                   key={track.id}
-                  number={index + 1}
                   title={track.title}
                   artist={track.artists?.name || 'Unknown Artist'}
-                  album={track.albums?.title || 'Single'}
                   image={getMediaUrl(track.albums?.cover_art_url || track.cover_art_url)}
-                  duration={formatDuration(track.duration_ms || 0)}
                   trackId={track.id}
                   artistId={track.artist_id}
-                  albumId={track.album_id}
+                  showImage={true}
+                  isPlaying={currentTrack?.id === track.id && isPlaying}
                   onPlay={() => {
                     playTrack({
                       id: track.id,
@@ -224,7 +218,6 @@ export default function HomePage() {
                       duration: track.duration_ms || 0,
                     });
                   }}
-                  onLike={() => {}}
                 />
               ))}
             </div>

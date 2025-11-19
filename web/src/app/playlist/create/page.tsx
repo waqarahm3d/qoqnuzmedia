@@ -16,7 +16,7 @@ export default function CreatePlaylistPage() {
 
   useEffect(() => {
     if (!user) {
-      router.push('/login');
+      router.push('/auth/signin');
     }
   }, [user]);
 
