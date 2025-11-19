@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminSupabaseClient } from '@/lib/supabase';
+import { detectTrackMood, updateTrackMood } from '@/lib/ml';
+import { getMediaUrl } from '@/lib/media-utils';
 
 /**
  * Background task worker endpoint
@@ -105,14 +107,14 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Process mood detection for a track
- * This is a placeholder - you would integrate with a real mood detection service/ML model
+ * Process mood detection for a track using ML model
+ * Extracts audio features and classifies mood
  */
 async function processMoodDetection(trackId: string, supabase: any) {
   // Fetch track details
   const { data: track } = await supabase
     .from('tracks')
-    .select('id, title, audio_url, bpm, energy_level')
+    .select('id, title, audio_url')
     .eq('id', trackId)
     .single();
 
@@ -120,48 +122,61 @@ async function processMoodDetection(trackId: string, supabase: any) {
     throw new Error('Track not found');
   }
 
-  // Placeholder: In production, you would:
-  // 1. Download the audio file
-  // 2. Extract audio features (using librosa, essentia, or a cloud service)
-  // 3. Run ML model to detect mood
-  // 4. Return mood classification
-
-  // For now, return a mock result based on energy/BPM
-  let mood = 'neutral';
-  const energy = track.energy_level || 0.5;
-  const bpm = track.bpm || 120;
-
-  if (energy > 0.7 && bpm > 130) {
-    mood = 'energetic';
-  } else if (energy > 0.6 && bpm > 120) {
-    mood = 'happy';
-  } else if (energy < 0.4 && bpm < 100) {
-    mood = 'calm';
-  } else if (energy < 0.3) {
-    mood = 'sad';
+  if (!track.audio_url) {
+    throw new Error('Track has no audio URL');
   }
 
-  // Update track with detected mood
-  await supabase
-    .from('tracks')
-    .update({ mood })
-    .eq('id', trackId);
+  // Get full URL for audio file
+  const audioUrl = getMediaUrl(track.audio_url);
+
+  if (!audioUrl) {
+    throw new Error('Could not resolve audio URL');
+  }
+
+  // Ensure environment variables are set
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  // Run ML mood detection
+  const result = await detectTrackMood(
+    trackId,
+    audioUrl,
+    process.env.NEXT_PUBLIC_SUPABASE_URL as string,
+    process.env.SUPABASE_SERVICE_ROLE_KEY as string
+  );
+
+  if (!result.success) {
+    throw new Error(result.error || 'Mood detection failed');
+  }
+
+  // Update track with detected mood and features
+  await updateTrackMood(supabase, trackId, result);
 
   return {
-    mood,
-    confidence: 0.85,
-    method: 'rule-based',
+    primaryMood: result.prediction.primaryMood,
+    confidence: result.prediction.confidence,
+    moodTags: result.moodTags,
+    activityTags: result.activityTags,
+    energyLevel: result.prediction.energyLevel,
+    valence: result.prediction.valence,
+    danceability: result.prediction.danceability,
+    acousticness: result.prediction.acousticness,
+    instrumentalness: result.prediction.instrumentalness,
+    tempo: result.prediction.audioFeatures.tempo,
+    processingTimeMs: result.processingTimeMs,
+    method: 'ml-audio-analysis',
   };
 }
 
 /**
- * Process energy analysis for a track
+ * Process energy analysis for a track using ML audio analysis
  */
 async function processEnergyAnalysis(trackId: string, supabase: any) {
   // Fetch track details
   const { data: track } = await supabase
     .from('tracks')
-    .select('id, title, audio_url, bpm')
+    .select('id, title, audio_url')
     .eq('id', trackId)
     .single();
 
@@ -169,33 +184,50 @@ async function processEnergyAnalysis(trackId: string, supabase: any) {
     throw new Error('Track not found');
   }
 
-  // Placeholder: In production, analyze audio features
-  // For now, calculate based on BPM
-  const bpm = track.bpm || 120;
-  let energyLevel = 0.5;
+  if (!track.audio_url) {
+    throw new Error('Track has no audio URL');
+  }
 
-  if (bpm < 80) {
-    energyLevel = 0.2;
-  } else if (bpm < 100) {
-    energyLevel = 0.4;
-  } else if (bpm < 120) {
-    energyLevel = 0.6;
-  } else if (bpm < 140) {
-    energyLevel = 0.8;
-  } else {
-    energyLevel = 0.95;
+  // Get full URL for audio file
+  const audioUrl = getMediaUrl(track.audio_url);
+
+  if (!audioUrl) {
+    throw new Error('Could not resolve audio URL');
+  }
+
+  // Ensure environment variables are set
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  // Run ML mood detection (which includes energy analysis)
+  const result = await detectTrackMood(
+    trackId,
+    audioUrl,
+    process.env.NEXT_PUBLIC_SUPABASE_URL as string,
+    process.env.SUPABASE_SERVICE_ROLE_KEY as string
+  );
+
+  if (!result.success) {
+    throw new Error(result.error || 'Energy analysis failed');
   }
 
   // Update track with energy level
   await supabase
     .from('tracks')
-    .update({ energy_level: energyLevel })
+    .update({
+      energy_level: result.prediction.energyLevel,
+      tempo_bpm: Math.round(result.prediction.audioFeatures.tempo),
+      last_metadata_update: new Date().toISOString()
+    })
     .eq('id', trackId);
 
   return {
-    energy_level: energyLevel,
-    confidence: 0.8,
-    method: 'bpm-based',
+    energy_level: result.prediction.energyLevel,
+    tempo: result.prediction.audioFeatures.tempo,
+    confidence: result.prediction.confidence,
+    processingTimeMs: result.processingTimeMs,
+    method: 'ml-audio-analysis',
   };
 }
 
