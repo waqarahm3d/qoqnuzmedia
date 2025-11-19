@@ -7,8 +7,6 @@
  * - Perceptual features (loudness, brightness)
  */
 
-import * as tf from '@tensorflow/tfjs-node';
-
 // Audio feature types
 export interface AudioFeatures {
   // Spectral features
@@ -50,6 +48,7 @@ export interface MoodPrediction {
 
 /**
  * Analyze audio buffer and extract features
+ * Optimized for low CPU usage - uses statistical analysis instead of FFT
  */
 export async function extractAudioFeatures(
   audioBuffer: ArrayBuffer | Buffer
@@ -57,28 +56,141 @@ export async function extractAudioFeatures(
   // Convert to Float32Array for processing
   const audioData = await decodeAudioBuffer(audioBuffer);
 
-  // Calculate frame-based features
-  const frameSize = 2048;
-  const hopSize = 1024;
-  const frames: number[][] = [];
+  // Sample the audio to reduce processing (analyze ~10 seconds max)
+  const sampleRate = 44100;
+  const maxSamples = sampleRate * 10; // 10 seconds
+  const step = Math.max(1, Math.floor(audioData.length / maxSamples));
+  const sampledData = new Float32Array(Math.ceil(audioData.length / step));
 
-  for (let i = 0; i < audioData.length - frameSize; i += hopSize) {
-    frames.push(Array.from(audioData.slice(i, i + frameSize)));
+  for (let i = 0, j = 0; i < audioData.length; i += step, j++) {
+    sampledData[j] = audioData[i];
   }
 
-  // Extract features from each frame
-  const frameFeatures = frames.map(frame => extractFrameFeatures(frame));
+  // Calculate basic statistics (fast operations)
+  const features = calculateBasicFeatures(sampledData);
 
-  // Aggregate features across all frames
-  const aggregated = aggregateFeatures(frameFeatures);
-
-  // Estimate tempo using onset detection
-  const tempo = estimateTempo(audioData, 44100);
+  // Estimate tempo using simple zero-crossing method
+  const tempo = estimateTempoSimple(audioData, sampleRate);
 
   return {
-    ...aggregated,
+    ...features,
     tempo
   };
+}
+
+/**
+ * Calculate basic audio features using simple statistics
+ * Much faster than FFT-based analysis
+ */
+function calculateBasicFeatures(samples: Float32Array): Omit<AudioFeatures, 'tempo'> {
+  const n = samples.length;
+
+  // RMS Energy
+  let sumSquares = 0;
+  let sum = 0;
+  let zeroCrossings = 0;
+  let maxAbs = 0;
+  let minAbs = Infinity;
+
+  for (let i = 0; i < n; i++) {
+    const abs = Math.abs(samples[i]);
+    sumSquares += samples[i] * samples[i];
+    sum += abs;
+    if (abs > maxAbs) maxAbs = abs;
+    if (abs > 0.01 && abs < minAbs) minAbs = abs;
+
+    if (i > 0 && ((samples[i] >= 0) !== (samples[i - 1] >= 0))) {
+      zeroCrossings++;
+    }
+  }
+
+  const rms = Math.sqrt(sumSquares / n);
+  const meanAbs = sum / n;
+  const zcr = zeroCrossings / n;
+
+  // Energy normalized to 0-1
+  const energy = Math.min(1, rms * 5);
+
+  // Brightness estimation from zero crossing rate
+  // Higher ZCR = more high frequency content = brighter
+  const brightness = Math.min(1, zcr * 10);
+
+  // Spectral characteristics estimated from statistics
+  const spectralCentroid = brightness * 100; // Approximate
+  const spectralRolloff = brightness * 0.85;
+  const spectralFlatness = 1 - (rms / (meanAbs + 0.0001)); // Noise vs tone
+  const spectralSpread = brightness * 50;
+
+  // Dynamic range
+  const dynamicRange = maxAbs > 0 && minAbs < Infinity && minAbs > 0
+    ? 20 * Math.log10(maxAbs / minAbs)
+    : 20;
+
+  // Loudness approximation
+  const loudness = -23 + (energy * 23);
+
+  // Roughness from ZCR variance (approximate)
+  const roughness = Math.min(1, zcr * 5);
+
+  return {
+    spectralCentroid,
+    spectralRolloff,
+    spectralFlatness,
+    spectralSpread,
+    rms,
+    energy,
+    loudness,
+    zeroCrossingRate: zcr,
+    brightness,
+    roughness,
+    dynamicRange,
+    averageEnergy: energy
+  };
+}
+
+/**
+ * Simple tempo estimation using zero-crossing peaks
+ * Much faster than autocorrelation
+ */
+function estimateTempoSimple(samples: Float32Array, sampleRate: number): number {
+  // Downsample for speed
+  const windowSize = 1024;
+  const hopSize = 512;
+  const energyEnvelope: number[] = [];
+
+  for (let i = 0; i < samples.length - windowSize; i += hopSize) {
+    let energy = 0;
+    for (let j = 0; j < windowSize; j++) {
+      energy += samples[i + j] * samples[i + j];
+    }
+    energyEnvelope.push(energy);
+  }
+
+  // Find peaks in energy envelope
+  const peaks: number[] = [];
+  for (let i = 1; i < energyEnvelope.length - 1; i++) {
+    if (energyEnvelope[i] > energyEnvelope[i - 1] &&
+        energyEnvelope[i] > energyEnvelope[i + 1] &&
+        energyEnvelope[i] > 0.1) {
+      peaks.push(i);
+    }
+  }
+
+  // Calculate average time between peaks
+  if (peaks.length < 2) return 120; // Default
+
+  let totalInterval = 0;
+  for (let i = 1; i < Math.min(peaks.length, 20); i++) {
+    totalInterval += peaks[i] - peaks[i - 1];
+  }
+  const avgInterval = totalInterval / (Math.min(peaks.length, 20) - 1);
+
+  // Convert to BPM
+  const secondsPerBeat = (avgInterval * hopSize) / sampleRate;
+  const bpm = 60 / secondsPerBeat;
+
+  // Clamp to reasonable range
+  return Math.max(60, Math.min(200, bpm));
 }
 
 /**
@@ -113,195 +225,6 @@ async function decodeAudioBuffer(buffer: ArrayBuffer | Buffer): Promise<Float32A
   }
 
   return samples;
-}
-
-/**
- * Extract features from a single frame
- */
-function extractFrameFeatures(frame: number[]): Record<string, number> {
-  const n = frame.length;
-
-  // RMS Energy
-  const rms = Math.sqrt(frame.reduce((sum, x) => sum + x * x, 0) / n);
-
-  // Zero Crossing Rate
-  let zcr = 0;
-  for (let i = 1; i < n; i++) {
-    if ((frame[i] >= 0) !== (frame[i - 1] >= 0)) {
-      zcr++;
-    }
-  }
-  zcr /= n;
-
-  // FFT for spectral features (simplified using TensorFlow.js)
-  const fftResult = computeFFT(frame);
-  const magnitudes = fftResult.map(x => Math.sqrt(x.re * x.re + x.im * x.im));
-
-  // Spectral Centroid (brightness)
-  let weightedSum = 0;
-  let totalMag = 0;
-  for (let i = 0; i < magnitudes.length; i++) {
-    weightedSum += i * magnitudes[i];
-    totalMag += magnitudes[i];
-  }
-  const spectralCentroid = totalMag > 0 ? weightedSum / totalMag : 0;
-
-  // Spectral Rolloff (85% energy threshold)
-  const threshold = totalMag * 0.85;
-  let cumSum = 0;
-  let rolloffBin = 0;
-  for (let i = 0; i < magnitudes.length; i++) {
-    cumSum += magnitudes[i];
-    if (cumSum >= threshold) {
-      rolloffBin = i;
-      break;
-    }
-  }
-  const spectralRolloff = rolloffBin / magnitudes.length;
-
-  // Spectral Flatness (geometric mean / arithmetic mean)
-  const logSum = magnitudes.reduce((sum, x) => sum + Math.log(x + 1e-10), 0);
-  const geometricMean = Math.exp(logSum / magnitudes.length);
-  const arithmeticMean = totalMag / magnitudes.length;
-  const spectralFlatness = arithmeticMean > 0 ? geometricMean / arithmeticMean : 0;
-
-  // Spectral Spread (variance around centroid)
-  let spreadSum = 0;
-  for (let i = 0; i < magnitudes.length; i++) {
-    spreadSum += Math.pow(i - spectralCentroid, 2) * magnitudes[i];
-  }
-  const spectralSpread = totalMag > 0 ? Math.sqrt(spreadSum / totalMag) : 0;
-
-  return {
-    rms,
-    zcr,
-    spectralCentroid,
-    spectralRolloff,
-    spectralFlatness,
-    spectralSpread
-  };
-}
-
-/**
- * Simple FFT computation
- */
-function computeFFT(signal: number[]): Array<{ re: number; im: number }> {
-  const n = signal.length;
-  const result: Array<{ re: number; im: number }> = [];
-
-  // Simple DFT (for production, use FFT library)
-  for (let k = 0; k < n / 2; k++) {
-    let re = 0;
-    let im = 0;
-    for (let t = 0; t < n; t++) {
-      const angle = (2 * Math.PI * k * t) / n;
-      re += signal[t] * Math.cos(angle);
-      im -= signal[t] * Math.sin(angle);
-    }
-    result.push({ re, im });
-  }
-
-  return result;
-}
-
-/**
- * Aggregate frame features into track-level features
- */
-function aggregateFeatures(
-  frameFeatures: Record<string, number>[]
-): Omit<AudioFeatures, 'tempo'> {
-  const keys = Object.keys(frameFeatures[0]);
-  const aggregated: Record<string, number> = {};
-
-  // Calculate mean for each feature
-  for (const key of keys) {
-    const values = frameFeatures.map(f => f[key]);
-    aggregated[key] = values.reduce((a, b) => a + b, 0) / values.length;
-  }
-
-  // Calculate dynamic range from RMS
-  const rmsValues = frameFeatures.map(f => f.rms);
-  const maxRms = Math.max(...rmsValues);
-  const minRms = Math.min(...rmsValues.filter(x => x > 0));
-  const dynamicRange = maxRms > 0 && minRms > 0
-    ? 20 * Math.log10(maxRms / minRms)
-    : 0;
-
-  // Normalize energy to 0-1
-  const energy = Math.min(1, aggregated.rms * 3);
-
-  // Calculate brightness from spectral centroid
-  const brightness = Math.min(1, aggregated.spectralCentroid / 100);
-
-  // Estimate loudness (simplified LUFS-like measure)
-  const loudness = -23 + (energy * 23); // Range: -23 to 0 LUFS approx
-
-  // Estimate roughness from spectral flatness (inverse)
-  const roughness = 1 - aggregated.spectralFlatness;
-
-  return {
-    spectralCentroid: aggregated.spectralCentroid,
-    spectralRolloff: aggregated.spectralRolloff,
-    spectralFlatness: aggregated.spectralFlatness,
-    spectralSpread: aggregated.spectralSpread,
-    rms: aggregated.rms,
-    energy,
-    loudness,
-    zeroCrossingRate: aggregated.zcr,
-    brightness,
-    roughness,
-    dynamicRange,
-    averageEnergy: energy
-  };
-}
-
-/**
- * Estimate tempo using onset detection
- */
-function estimateTempo(samples: Float32Array, sampleRate: number): number {
-  // Simple onset detection using energy envelope
-  const frameSize = 1024;
-  const hopSize = 512;
-  const energyEnvelope: number[] = [];
-
-  for (let i = 0; i < samples.length - frameSize; i += hopSize) {
-    let energy = 0;
-    for (let j = 0; j < frameSize; j++) {
-      energy += samples[i + j] * samples[i + j];
-    }
-    energyEnvelope.push(energy);
-  }
-
-  // Compute difference (onset strength)
-  const onsetStrength: number[] = [];
-  for (let i = 1; i < energyEnvelope.length; i++) {
-    const diff = energyEnvelope[i] - energyEnvelope[i - 1];
-    onsetStrength.push(diff > 0 ? diff : 0);
-  }
-
-  // Autocorrelation for tempo estimation
-  const maxLag = Math.floor((60 / 60) * sampleRate / hopSize); // Min 60 BPM
-  const minLag = Math.floor((60 / 200) * sampleRate / hopSize); // Max 200 BPM
-
-  let bestLag = minLag;
-  let bestCorr = -Infinity;
-
-  for (let lag = minLag; lag <= maxLag; lag++) {
-    let corr = 0;
-    for (let i = 0; i < onsetStrength.length - lag; i++) {
-      corr += onsetStrength[i] * onsetStrength[i + lag];
-    }
-    if (corr > bestCorr) {
-      bestCorr = corr;
-      bestLag = lag;
-    }
-  }
-
-  // Convert lag to BPM
-  const tempo = (60 * sampleRate) / (bestLag * hopSize);
-
-  // Clamp to reasonable range
-  return Math.max(60, Math.min(200, tempo));
 }
 
 /**
