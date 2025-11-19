@@ -71,8 +71,7 @@ function ModernCard({
 
 // Now Playing Panel Component
 function NowPlayingPanel() {
-  const { currentTrack, isPlaying, togglePlayPause, playNext, playPrevious, progress, duration, volume, setVolume } = usePlayer();
-  const [isExpanded, setIsExpanded] = useState(true);
+  const { currentTrack, isPlaying, togglePlayPause, skipForward, skipBackward, currentTime, duration, volume, setVolume } = usePlayer();
 
   if (!currentTrack) {
     return (
@@ -86,7 +85,7 @@ function NowPlayingPanel() {
     );
   }
 
-  const progressPercent = duration > 0 ? (progress / duration) * 100 : 0;
+  const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
     <div className="h-full flex flex-col p-4">
@@ -152,7 +151,7 @@ function NowPlayingPanel() {
           />
         </div>
         <div className="flex justify-between text-xs text-white/40 mt-1">
-          <span>{formatTime(progress)}</span>
+          <span>{formatTime(currentTime)}</span>
           <span>{formatTime(duration)}</span>
         </div>
       </div>
@@ -163,7 +162,7 @@ function NowPlayingPanel() {
           <ShuffleIcon size={18} />
         </button>
         <button
-          onClick={playPrevious}
+          onClick={skipBackward}
           className="p-2 text-white/80 hover:text-white transition-colors"
         >
           <SkipBackIcon size={24} />
@@ -179,7 +178,7 @@ function NowPlayingPanel() {
           )}
         </button>
         <button
-          onClick={playNext}
+          onClick={skipForward}
           className="p-2 text-white/80 hover:text-white transition-colors"
         >
           <SkipForwardIcon size={24} />
