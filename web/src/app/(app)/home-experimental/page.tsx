@@ -227,38 +227,50 @@ function FloatingBubbles({
 
   return (
     <>
-      {bubbles.map((bubble) => (
-        <button
-          key={bubble.id}
-          onClick={(e) => handleBubbleClick(bubble, e)}
-          className="absolute rounded-full flex items-center justify-center font-medium transition-shadow duration-200 select-none"
-          style={{
-            left: bubble.x,
-            top: bubble.y,
-            width: bubble.radius * 2,
-            height: bubble.radius * 2,
-            transform: 'translate(-50%, -50%)',
-            background: bubble.isSelected
-              ? `radial-gradient(circle at 30% 30%, ${bubble.color}, ${bubble.color}cc)`
-              : `radial-gradient(circle at 30% 30%, ${bubble.color}cc, ${bubble.color}88)`,
-            boxShadow: bubble.isSelected
-              ? `0 0 30px ${bubble.color}80, 0 8px 32px ${bubble.color}40, inset 0 -4px 12px ${bubble.color}40`
-              : `0 4px 20px ${bubble.color}40, inset 0 -4px 12px ${bubble.color}20`,
-            border: bubble.isSelected ? `3px solid white` : '2px solid transparent',
-            fontSize: bubble.radius < 35 ? '9px' : bubble.radius < 45 ? '11px' : '13px',
-            color: 'white',
-            textShadow: '0 1px 3px rgba(0,0,0,0.5)',
-            cursor: 'pointer',
-            zIndex: bubble.isSelected ? 10 : 1,
-          }}
-          aria-label={`Select ${bubble.name} genre`}
-          aria-pressed={bubble.isSelected}
-        >
-          <span className="px-1 text-center leading-tight truncate">
-            {bubble.name}
-          </span>
-        </button>
-      ))}
+      {bubbles.map((bubble) => {
+        // Selected bubbles are 1.5x larger with zoom effect
+        const displayRadius = bubble.isSelected ? bubble.radius * 1.5 : bubble.radius;
+        const scale = bubble.isSelected ? 1.2 : 1;
+
+        return (
+          <button
+            key={bubble.id}
+            onClick={(e) => handleBubbleClick(bubble, e)}
+            className="absolute rounded-full flex items-center justify-center font-medium select-none"
+            style={{
+              left: bubble.x,
+              top: bubble.y,
+              width: displayRadius * 2,
+              height: displayRadius * 2,
+              transform: `translate(-50%, -50%) scale(${scale})`,
+              transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, width 0.3s ease, height 0.3s ease',
+              background: bubble.isSelected
+                ? `radial-gradient(circle at 30% 30%, ${bubble.color}, ${bubble.color}dd)`
+                : `radial-gradient(circle at 30% 30%, ${bubble.color}cc, ${bubble.color}88)`,
+              boxShadow: bubble.isSelected
+                ? `0 0 60px ${bubble.color}, 0 0 100px ${bubble.color}80, 0 0 140px ${bubble.color}40, 0 8px 32px rgba(0,0,0,0.4), inset 0 -4px 20px ${bubble.color}60`
+                : `0 4px 20px ${bubble.color}40, inset 0 -4px 12px ${bubble.color}20`,
+              border: bubble.isSelected ? `4px solid white` : '2px solid transparent',
+              fontSize: bubble.isSelected
+                ? (bubble.radius < 35 ? '12px' : bubble.radius < 45 ? '14px' : '16px')
+                : (bubble.radius < 35 ? '9px' : bubble.radius < 45 ? '11px' : '13px'),
+              fontWeight: bubble.isSelected ? '600' : '500',
+              color: 'white',
+              textShadow: bubble.isSelected
+                ? '0 2px 8px rgba(0,0,0,0.8), 0 0 20px rgba(255,255,255,0.3)'
+                : '0 1px 3px rgba(0,0,0,0.5)',
+              cursor: 'pointer',
+              zIndex: bubble.isSelected ? 20 : 1,
+            }}
+            aria-label={`Select ${bubble.name} genre`}
+            aria-pressed={bubble.isSelected}
+          >
+            <span className="px-2 text-center leading-tight truncate">
+              {bubble.name}
+            </span>
+          </button>
+        );
+      })}
     </>
   );
 }
