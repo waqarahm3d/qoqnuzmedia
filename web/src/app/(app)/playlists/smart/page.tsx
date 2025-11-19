@@ -100,13 +100,56 @@ export default function SmartPlaylistsPage() {
     fetchPlaylists();
   }, []);
 
-  const viewPlaylist = (type: string) => {
+  const [generating, setGenerating] = useState<string | null>(null);
+
+  const viewPlaylist = async (type: string) => {
+    // If we already have the playlist data, show it
     const playlistData = playlists[type];
-    if (playlistData) {
+    if (playlistData && playlistData.tracks.length > 0) {
       setActivePlaylist({
         type,
         data: playlistData,
       });
+      return;
+    }
+
+    // Otherwise, generate it on-demand
+    setGenerating(type);
+    try {
+      const response = await fetch(`/api/playlists/smart?type=${type}`);
+      if (response.ok) {
+        const data = await response.json();
+        const playlist = data.playlist || data;
+        const result: SmartPlaylistResult = {
+          tracks: playlist.tracks || [],
+          metadata: playlist.metadata || {
+            algorithm: type,
+            generatedAt: new Date().toISOString(),
+            trackCount: playlist.tracks?.length || 0,
+            criteria: {},
+          },
+        };
+
+        // Update playlists state
+        setPlaylists(prev => ({
+          ...prev,
+          [type]: result,
+        }));
+
+        // Show the playlist
+        setActivePlaylist({
+          type,
+          data: result,
+        });
+      } else {
+        console.error('Failed to generate playlist:', response.status);
+        alert('Failed to generate playlist. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error generating playlist:', error);
+      alert('Error generating playlist. Please try again.');
+    } finally {
+      setGenerating(null);
     }
   };
 
@@ -157,11 +200,23 @@ export default function SmartPlaylistsPage() {
                     )}
                   </div>
 
-                  {/* Play Button */}
+                  {/* View Button */}
                   <button
-                    className="px-4 py-2 bg-primary hover:bg-[#ff5c2e] text-black font-semibold rounded-full transition-all duration-200 hover:scale-105 flex items-center gap-2"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      viewPlaylist(playlist.type);
+                    }}
+                    disabled={generating === playlist.type}
+                    className="px-4 py-2 bg-primary hover:bg-[#ff5c2e] text-black font-semibold rounded-full transition-all duration-200 hover:scale-105 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <span>View</span>
+                    {generating === playlist.type ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
+                        <span>Loading...</span>
+                      </>
+                    ) : (
+                      <span>View</span>
+                    )}
                   </button>
                 </div>
               </div>
