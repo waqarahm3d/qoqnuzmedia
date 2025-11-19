@@ -8,6 +8,9 @@ import {
   generateDiscovery,
 } from '@/lib/smart-playlists/algorithms';
 
+// Force dynamic rendering since we use cookies for auth
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/playlists/smart?type=daily_mix|new_for_you|forgotten_favorites|discovery
  * Generate a smart playlist for the authenticated user
