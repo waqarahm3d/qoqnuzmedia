@@ -33,7 +33,17 @@ export const MobilePlayer = ({ isExpanded, onExpand, onCollapse }: MobilePlayerP
   const [showQueue, setShowQueue] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
   const playerRef = useRef<HTMLDivElement>(null);
+
+  // Handle animation state
+  useEffect(() => {
+    if (isExpanded) {
+      setIsAnimating(true);
+      const timer = setTimeout(() => setIsAnimating(false), 400);
+      return () => clearTimeout(timer);
+    }
+  }, [isExpanded]);
 
   // Handle swipe down to collapse
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -72,7 +82,7 @@ export const MobilePlayer = ({ isExpanded, onExpand, onCollapse }: MobilePlayerP
     return (
       <div
         onClick={onExpand}
-        className="fixed bottom-16 left-0 right-0 bg-gradient-to-r from-gray-900 to-black border-t border-white/10 z-50 cursor-pointer active:scale-[0.98] transition-transform"
+        className="fixed bottom-16 left-0 right-0 bg-gradient-to-r from-gray-900 to-black border-t border-white/10 z-50 cursor-pointer active:scale-[0.98] transition-all duration-300 ease-out animate-slide-up"
       >
         {/* Progress bar at top */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gray-700">
@@ -165,7 +175,14 @@ export const MobilePlayer = ({ isExpanded, onExpand, onCollapse }: MobilePlayerP
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      className="fixed inset-0 bg-gradient-to-b from-gray-900 via-black to-black z-[100] flex flex-col overflow-y-auto"
+      className={`
+        fixed inset-0 bg-gradient-to-b from-gray-900 via-black to-black z-[100] flex flex-col overflow-y-auto
+        transform transition-all duration-300 ease-out
+        ${isAnimating ? 'animate-expand-up' : ''}
+      `}
+      style={{
+        animation: isAnimating ? 'expandUp 0.35s ease-out forwards' : 'none',
+      }}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-4 flex-shrink-0">
@@ -196,7 +213,12 @@ export const MobilePlayer = ({ isExpanded, onExpand, onCollapse }: MobilePlayerP
 
       {/* Album Art */}
       <div className="flex-1 flex items-center justify-center px-6 py-8">
-        <div className="relative w-full max-w-sm aspect-square rounded-lg overflow-hidden shadow-2xl">
+        <div
+          className="relative w-full max-w-sm aspect-square rounded-lg overflow-hidden shadow-2xl transition-all duration-500 ease-out"
+          style={{
+            animation: isAnimating ? 'scaleIn 0.4s ease-out forwards' : 'none',
+          }}
+        >
           {currentTrack.image ? (
             <Image
               src={currentTrack.image}
@@ -216,7 +238,13 @@ export const MobilePlayer = ({ isExpanded, onExpand, onCollapse }: MobilePlayerP
       </div>
 
       {/* Track Info */}
-      <div className="px-6 pb-4 flex-shrink-0">
+      <div
+        className="px-6 pb-4 flex-shrink-0"
+        style={{
+          animation: isAnimating ? 'fadeSlideUp 0.4s ease-out 0.15s forwards' : 'none',
+          opacity: isAnimating ? 0 : 1,
+        }}
+      >
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl font-bold text-white truncate mb-1">
@@ -276,7 +304,13 @@ export const MobilePlayer = ({ isExpanded, onExpand, onCollapse }: MobilePlayerP
       </div>
 
       {/* Main Controls */}
-      <div className="px-6 py-4 flex-shrink-0">
+      <div
+        className="px-6 py-4 flex-shrink-0"
+        style={{
+          animation: isAnimating ? 'fadeSlideUp 0.4s ease-out 0.25s forwards' : 'none',
+          opacity: isAnimating ? 0 : 1,
+        }}
+      >
         <div className="flex items-center justify-between max-w-sm mx-auto">
           {/* Shuffle */}
           <button
