@@ -324,7 +324,7 @@ function AlbumModal({
     artist_id: album?.artist_id || '',
     description: album?.description || '',
     release_date: album?.release_date || new Date().toISOString().split('T')[0],
-    genres: album?.genres || [] as string[],
+    genres: [] as string[],
     album_type: 'album',
   });
   const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -335,12 +335,54 @@ function AlbumModal({
     preselectedTracks
   );
   const [genres, setGenres] = useState<Genre[]>([]);
+  const [albumTracks, setAlbumTracks] = useState<string[]>([]);
 
   useEffect(() => {
     fetchArtists();
     fetchTracks();
     fetchGenres();
+    if (album) {
+      fetchAlbumGenres();
+      fetchAlbumTracks();
+    }
   }, []);
+
+  // Fetch genre IDs for this album from junction table
+  const fetchAlbumGenres = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('album_genres')
+        .select('genre_id')
+        .eq('album_id', album?.id);
+
+      if (!error && data) {
+        setFormData(prev => ({
+          ...prev,
+          genres: data.map(g => g.genre_id)
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to fetch album genres:', error);
+    }
+  };
+
+  // Fetch existing tracks for this album
+  const fetchAlbumTracks = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('tracks')
+        .select('id')
+        .eq('album_id', album?.id);
+
+      if (!error && data) {
+        const trackIds = data.map(t => t.id);
+        setSelectedTracks(trackIds);
+        setAlbumTracks(trackIds);
+      }
+    } catch (error) {
+      console.error('Failed to fetch album tracks:', error);
+    }
+  };
 
   const fetchArtists = async () => {
     try {
@@ -434,6 +476,8 @@ function AlbumModal({
       submitData.append('description', formData.description);
       submitData.append('release_date', formData.release_date);
       submitData.append('album_type', formData.album_type);
+      submitData.append('genres', JSON.stringify(formData.genres));
+      submitData.append('tracks', JSON.stringify(selectedTracks));
       if (coverFile) submitData.append('cover', coverFile);
 
       const response = await fetch(url, {

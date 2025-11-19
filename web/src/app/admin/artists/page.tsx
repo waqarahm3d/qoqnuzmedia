@@ -309,7 +309,7 @@ function ArtistModal({ artist, onClose, onSuccess }: ArtistModalProps) {
     name: artist?.name || '',
     bio: artist?.bio || '',
     verified: artist?.verified || false,
-    genres: artist?.genres || [] as string[],
+    genres: [] as string[],
   });
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -318,7 +318,29 @@ function ArtistModal({ artist, onClose, onSuccess }: ArtistModalProps) {
 
   useEffect(() => {
     fetchGenres();
+    if (artist) {
+      fetchArtistGenres();
+    }
   }, []);
+
+  // Fetch genre IDs for this artist from junction table
+  const fetchArtistGenres = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('artist_genres')
+        .select('genre_id')
+        .eq('artist_id', artist?.id);
+
+      if (!error && data) {
+        setFormData(prev => ({
+          ...prev,
+          genres: data.map(g => g.genre_id)
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to fetch artist genres:', error);
+    }
+  };
 
   const fetchGenres = async () => {
     try {
@@ -364,6 +386,7 @@ function ArtistModal({ artist, onClose, onSuccess }: ArtistModalProps) {
       submitData.append('name', formData.name);
       submitData.append('bio', formData.bio);
       submitData.append('verified', formData.verified.toString());
+      submitData.append('genres', JSON.stringify(formData.genres));
       if (avatarFile) submitData.append('avatar', avatarFile);
       if (coverFile) submitData.append('cover', coverFile);
 

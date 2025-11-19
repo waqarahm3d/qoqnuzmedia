@@ -69,6 +69,7 @@ export async function POST(request: NextRequest) {
     const name = formData.get('name') as string;
     const bio = formData.get('bio') as string;
     const verified = formData.get('verified') === 'true';
+    const genresJson = formData.get('genres') as string;
     const avatarFile = formData.get('avatar') as File | null;
     const coverFile = formData.get('cover') as File | null;
 
@@ -77,6 +78,22 @@ export async function POST(request: NextRequest) {
         { error: 'Artist name is required' },
         { status: 400 }
       );
+    }
+
+    // Parse genres
+    const genreIds: string[] = genresJson ? JSON.parse(genresJson) : [];
+
+    // Get genre names from IDs
+    let genreNames: string[] = [];
+    if (genreIds.length > 0) {
+      const { data: genresData } = await supabase
+        .from('genres')
+        .select('id, name')
+        .in('id', genreIds);
+
+      if (genresData) {
+        genreNames = genresData.map(g => g.name);
+      }
     }
 
     // Upload avatar if provided
@@ -127,11 +144,24 @@ export async function POST(request: NextRequest) {
         avatar_url,
         cover_image_url,
         verified: verified || false,
+        genres: genreNames,
       })
       .select()
       .single();
 
     if (error) throw error;
+
+    // Insert into artist_genres junction table
+    if (genreIds.length > 0 && artist) {
+      const artistGenresData = genreIds.map(genreId => ({
+        artist_id: artist.id,
+        genre_id: genreId,
+      }));
+
+      await supabase
+        .from('artist_genres')
+        .insert(artistGenresData);
+    }
 
     return NextResponse.json({ artist }, { status: 201 });
   } catch (error: any) {

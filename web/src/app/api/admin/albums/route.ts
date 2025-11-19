@@ -79,6 +79,8 @@ export async function POST(request: NextRequest) {
     const description = formData.get('description') as string;
     const release_date = formData.get('release_date') as string;
     const album_type = formData.get('album_type') as string;
+    const genresJson = formData.get('genres') as string;
+    const tracksJson = formData.get('tracks') as string;
     const coverFile = formData.get('cover') as File | null;
 
     if (!artist_id || !title) {
@@ -86,6 +88,23 @@ export async function POST(request: NextRequest) {
         { error: 'Artist ID and title are required' },
         { status: 400 }
       );
+    }
+
+    // Parse genres and tracks
+    const genreIds: string[] = genresJson ? JSON.parse(genresJson) : [];
+    const trackIds: string[] = tracksJson ? JSON.parse(tracksJson) : [];
+
+    // Get genre names from IDs
+    let genreNames: string[] = [];
+    if (genreIds.length > 0) {
+      const { data: genresData } = await supabase
+        .from('genres')
+        .select('id, name')
+        .in('id', genreIds);
+
+      if (genresData) {
+        genreNames = genresData.map(g => g.name);
+      }
     }
 
     // Upload cover image if provided
@@ -117,6 +136,8 @@ export async function POST(request: NextRequest) {
         cover_art_url,
         release_date: release_date || new Date().toISOString(),
         album_type: album_type || 'album',
+        genres: genreNames,
+        total_tracks: trackIds.length,
       })
       .select(`
         *,
@@ -125,6 +146,26 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) throw error;
+
+    // Insert into album_genres junction table
+    if (genreIds.length > 0 && album) {
+      const albumGenresData = genreIds.map(genreId => ({
+        album_id: album.id,
+        genre_id: genreId,
+      }));
+
+      await supabase
+        .from('album_genres')
+        .insert(albumGenresData);
+    }
+
+    // Assign tracks to this album
+    if (trackIds.length > 0 && album) {
+      await supabase
+        .from('tracks')
+        .update({ album_id: album.id })
+        .in('id', trackIds);
+    }
 
     return NextResponse.json({ album }, { status: 201 });
   } catch (error: any) {

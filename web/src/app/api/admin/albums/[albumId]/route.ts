@@ -64,16 +64,24 @@ export async function PUT(
   try {
     const formData = await request.formData();
     const title = formData.get('title') as string;
+    const artist_id = formData.get('artist_id') as string;
     const description = formData.get('description') as string;
     const release_date = formData.get('release_date') as string;
     const album_type = formData.get('album_type') as string;
+    const genresJson = formData.get('genres') as string;
+    const tracksJson = formData.get('tracks') as string;
     const coverFile = formData.get('cover') as File | null;
 
     const updateData: any = {};
     if (title !== undefined) updateData.title = title;
+    if (artist_id !== undefined && artist_id) updateData.artist_id = artist_id;
     if (description !== undefined) updateData.description = description;
     if (release_date !== undefined) updateData.release_date = release_date;
     if (album_type !== undefined) updateData.album_type = album_type;
+
+    // Parse genres and tracks
+    const genreIds: string[] = genresJson ? JSON.parse(genresJson) : [];
+    const trackIds: string[] = tracksJson ? JSON.parse(tracksJson) : [];
 
     // Upload cover image if provided
     if (coverFile && coverFile.size > 0) {
@@ -94,6 +102,44 @@ export async function PUT(
       updateData.cover_art_url = filePath;
     }
 
+    // If genres are provided, get genre names and update both TEXT[] and junction table
+    if (genreIds.length > 0) {
+      // Fetch genre names
+      const { data: genresData } = await supabase
+        .from('genres')
+        .select('id, name')
+        .in('id', genreIds);
+
+      if (genresData) {
+        updateData.genres = genresData.map(g => g.name);
+      }
+
+      // Update album_genres junction table
+      // First delete existing
+      await supabase
+        .from('album_genres')
+        .delete()
+        .eq('album_id', albumId);
+
+      // Then insert new
+      const albumGenresData = genreIds.map(genreId => ({
+        album_id: albumId,
+        genre_id: genreId,
+      }));
+
+      await supabase
+        .from('album_genres')
+        .insert(albumGenresData);
+    } else {
+      // Clear genres if empty array provided
+      updateData.genres = [];
+      await supabase
+        .from('album_genres')
+        .delete()
+        .eq('album_id', albumId);
+    }
+
+    // Update the album
     const { data: album, error } = await supabase
       .from('albums')
       .update(updateData)
@@ -108,6 +154,21 @@ export async function PUT(
 
     if (!album) {
       return NextResponse.json({ error: 'Album not found' }, { status: 404 });
+    }
+
+    // Handle track assignments
+    if (trackIds.length > 0) {
+      // Update tracks to reference this album
+      await supabase
+        .from('tracks')
+        .update({ album_id: albumId })
+        .in('id', trackIds);
+
+      // Update total_tracks count
+      await supabase
+        .from('albums')
+        .update({ total_tracks: trackIds.length })
+        .eq('id', albumId);
     }
 
     return NextResponse.json({ album });

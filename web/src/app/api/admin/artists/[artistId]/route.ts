@@ -66,6 +66,7 @@ export async function PUT(
     const name = formData.get('name') as string;
     const bio = formData.get('bio') as string;
     const verified = formData.get('verified') === 'true';
+    const genresJson = formData.get('genres') as string;
     const avatarFile = formData.get('avatar') as File | null;
     const coverFile = formData.get('cover') as File | null;
 
@@ -73,6 +74,9 @@ export async function PUT(
     if (name !== undefined) updateData.name = name;
     if (bio !== undefined) updateData.bio = bio;
     if (verified !== undefined) updateData.verified = verified;
+
+    // Parse genres
+    const genreIds: string[] = genresJson ? JSON.parse(genresJson) : [];
 
     // Upload avatar if provided
     if (avatarFile && avatarFile.size > 0) {
@@ -110,6 +114,43 @@ export async function PUT(
       const buffer = Buffer.from(await coverFile.arrayBuffer());
       await uploadToR2(filePath, buffer, coverFile.type);
       updateData.cover_image_url = filePath;
+    }
+
+    // Handle genres - update both TEXT[] and junction table
+    if (genreIds.length > 0) {
+      // Fetch genre names
+      const { data: genresData } = await supabase
+        .from('genres')
+        .select('id, name')
+        .in('id', genreIds);
+
+      if (genresData) {
+        updateData.genres = genresData.map(g => g.name);
+      }
+
+      // Update artist_genres junction table
+      // First delete existing
+      await supabase
+        .from('artist_genres')
+        .delete()
+        .eq('artist_id', artistId);
+
+      // Then insert new
+      const artistGenresData = genreIds.map(genreId => ({
+        artist_id: artistId,
+        genre_id: genreId,
+      }));
+
+      await supabase
+        .from('artist_genres')
+        .insert(artistGenresData);
+    } else {
+      // Clear genres if empty array provided
+      updateData.genres = [];
+      await supabase
+        .from('artist_genres')
+        .delete()
+        .eq('artist_id', artistId);
     }
 
     const { data: artist, error } = await supabase
