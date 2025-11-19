@@ -1,8 +1,9 @@
 'use client';
 
-import { createContext, useContext, useState, useRef, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, useRef, ReactNode, useEffect, useCallback } from 'react';
 import * as api from '@/lib/api/client';
 import { getMediaUrl } from '@/lib/media-utils';
+import { useWebAudioPlayer } from '@/lib/hooks';
 
 interface Track {
   id: string;
@@ -29,6 +30,14 @@ interface PlayerContextType {
   queue: Track[];
   showStillListeningPrompt: boolean;
   showOverlay: boolean;
+  isLoading: boolean;
+  isBuffering: boolean;
+  error: string | null;
+  // Visualization methods
+  getFrequencyData: () => Uint8Array | null;
+  getWaveformData: () => Uint8Array | null;
+  getAverageFrequency: () => number;
+  // Control methods
   playTrack: (track: Track, skipQueueUpdate?: boolean) => void;
   pause: () => void;
   resume: () => void;
@@ -51,14 +60,18 @@ interface PlayerContextType {
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
 
 export function PlayerProvider({ children }: { children: ReactNode }) {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Use Web Audio API player hook
+  const [audioState, audioControls, audioRef] = useWebAudioPlayer({
+    initialVolume: 80,
+    fftSize: 256,
+    enableVisualization: true,
+    onEnded: () => handleTrackEnd(),
+    onError: (e) => {
+      console.error('Audio playback error:', e);
+    },
+  });
 
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [volume, setVolumeState] = useState(80);
-  const [isMuted, setIsMuted] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [shuffle, setShuffle] = useState(false);
   const [repeat, setRepeat] = useState<'off' | 'all' | 'one'>('off');
@@ -69,41 +82,17 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [playbackStartTime, setPlaybackStartTime] = useState<number | null>(null);
   const stillListeningTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Initialize audio element
-  useEffect(() => {
-    audioRef.current = new Audio();
-
-    const audio = audioRef.current;
-
-    audio.addEventListener('timeupdate', () => {
-      setCurrentTime(audio.currentTime);
-    });
-
-    audio.addEventListener('durationchange', () => {
-      setDuration(audio.duration);
-    });
-
-    audio.addEventListener('ended', () => {
-      handleTrackEnd();
-    });
-
-    audio.addEventListener('error', (e) => {
-      console.error('Audio playback error:', e);
-      setIsPlaying(false);
-    });
-
-    return () => {
-      audio.pause();
-      audio.src = '';
-    };
-  }, []);
-
-  // Update volume
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = isMuted ? 0 : volume / 100;
-    }
-  }, [volume, isMuted]);
+  // Extract state from Web Audio hook
+  const {
+    isPlaying,
+    currentTime,
+    duration,
+    volume,
+    isMuted,
+    isLoading,
+    isBuffering,
+    error
+  } = audioState;
 
   // Check if track is liked
   useEffect(() => {
@@ -128,8 +117,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
           if (elapsedTime >= threeHours) {
             // Pause and show prompt
-            audioRef.current?.pause();
-            setIsPlaying(false);
+            audioControls.pause();
             setShowStillListeningPrompt(true);
 
             // Clear the timer
@@ -154,52 +142,67 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         stillListeningTimerRef.current = null;
       }
     };
-  }, [isPlaying, playbackStartTime]);
+  }, [isPlaying, playbackStartTime, audioControls]);
 
-  const handleTrackEnd = () => {
+  const handleTrackEnd = useCallback(() => {
     if (repeat === 'one') {
-      audioRef.current?.play();
+      audioControls.play();
       return;
     }
 
     if (repeat === 'all' && queueIndex === queue.length - 1) {
-      playTrack(queue[0], true); // Skip queue update when repeating
-      setQueueIndex(0);
+      // Play first track - we need to call playTrackInternal
+      const firstTrack = queue[0];
+      if (firstTrack) {
+        setQueueIndex(0);
+        setCurrentTrack(firstTrack);
+        api.getStreamUrl(firstTrack.id).then(({ url }) => {
+          audioControls.loadTrack(url);
+          audioControls.play();
+          api.trackPlay(firstTrack.id);
+        });
+      }
       return;
     }
 
     if (queueIndex < queue.length - 1) {
-      skipForward();
-    } else {
-      setIsPlaying(false);
+      // Move to next track
+      const nextIndex = queueIndex + 1;
+      const nextTrack = queue[nextIndex];
+      if (nextTrack) {
+        setQueueIndex(nextIndex);
+        setCurrentTrack(nextTrack);
+        api.getStreamUrl(nextTrack.id).then(({ url }) => {
+          audioControls.loadTrack(url);
+          audioControls.play();
+          api.trackPlay(nextTrack.id);
+        });
+      }
     }
-  };
+  }, [repeat, queueIndex, queue, audioControls]);
 
-  const playTrack = async (track: Track, skipQueueUpdate = false) => {
+  const playTrack = useCallback(async (track: Track, skipQueueUpdate = false) => {
     try {
       setCurrentTrack(track);
 
       // Get streaming URL from backend
       const { url } = await api.getStreamUrl(track.id);
 
-      if (audioRef.current) {
-        audioRef.current.src = url;
-        await audioRef.current.play();
-        setIsPlaying(true);
+      // Load and play using Web Audio controls
+      audioControls.loadTrack(url);
+      await audioControls.play();
 
-        // Track play in history
-        api.trackPlay(track.id);
+      // Track play in history
+      api.trackPlay(track.id);
 
-        // Auto-queue related tracks if queue is empty or has only current track
-        if (!skipQueueUpdate && queue.length <= 1) {
-          fetchAndQueueRelatedTracks(track);
-        }
+      // Auto-queue related tracks if queue is empty or has only current track
+      if (!skipQueueUpdate && queue.length <= 1) {
+        fetchAndQueueRelatedTracks(track);
       }
     } catch (error) {
       console.error('Error playing track:', error);
-      setIsPlaying(false);
     }
-  };
+  }, [audioControls, queue.length]);
 
   const fetchAndQueueRelatedTracks = async (track: Track) => {
     try {
@@ -226,43 +229,29 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const pause = () => {
-    audioRef.current?.pause();
-    setIsPlaying(false);
-  };
+  const pause = useCallback(() => {
+    audioControls.pause();
+  }, [audioControls]);
 
-  const resume = () => {
-    audioRef.current?.play();
-    setIsPlaying(true);
-  };
+  const resume = useCallback(() => {
+    audioControls.play();
+  }, [audioControls]);
 
-  const togglePlayPause = () => {
-    if (isPlaying) {
-      pause();
-    } else {
-      resume();
-    }
-  };
+  const togglePlayPause = useCallback(() => {
+    audioControls.toggle();
+  }, [audioControls]);
 
-  const seek = (time: number) => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = time;
-      setCurrentTime(time);
-    }
-  };
+  const seek = useCallback((time: number) => {
+    audioControls.seek(time);
+  }, [audioControls]);
 
-  const setVolume = (newVolume: number) => {
-    setVolumeState(newVolume);
-    if (newVolume === 0) {
-      setIsMuted(true);
-    } else {
-      setIsMuted(false);
-    }
-  };
+  const setVolume = useCallback((newVolume: number) => {
+    audioControls.setVolume(newVolume);
+  }, [audioControls]);
 
-  const toggleMute = () => {
-    setIsMuted(!isMuted);
-  };
+  const toggleMute = useCallback(() => {
+    audioControls.toggleMute();
+  }, [audioControls]);
 
   const toggleLike = async () => {
     if (!currentTrack) return;
@@ -291,7 +280,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setRepeat(states[nextIndex]);
   };
 
-  const skipForward = () => {
+  const skipForward = useCallback(() => {
     if (queue.length === 0) return;
 
     const nextIndex = shuffle
@@ -300,9 +289,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
     setQueueIndex(nextIndex);
     playTrack(queue[nextIndex], true); // Skip queue update when navigating queue
-  };
+  }, [queue, shuffle, queueIndex, playTrack]);
 
-  const skipBackward = () => {
+  const skipBackward = useCallback(() => {
     if (currentTime > 3) {
       // If more than 3 seconds into track, restart it
       seek(0);
@@ -312,7 +301,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       setQueueIndex(prevIndex);
       playTrack(queue[prevIndex], true); // Skip queue update when navigating queue
     }
-  };
+  }, [currentTime, queueIndex, queue, seek, playTrack]);
 
   const addToQueue = (track: Track) => {
     setQueue([...queue, track]);
@@ -326,12 +315,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const confirmStillListening = () => {
+  const confirmStillListening = useCallback(() => {
     // Reset the timer and resume playback
     setPlaybackStartTime(Date.now());
     setShowStillListeningPrompt(false);
     resume();
-  };
+  }, [resume]);
 
   const openOverlay = () => {
     setShowOverlay(true);
@@ -356,6 +345,14 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         queue,
         showStillListeningPrompt,
         showOverlay,
+        isLoading,
+        isBuffering,
+        error,
+        // Visualization methods from Web Audio API
+        getFrequencyData: audioControls.getFrequencyData,
+        getWaveformData: audioControls.getWaveformData,
+        getAverageFrequency: audioControls.getAverageFrequency,
+        // Control methods
         playTrack,
         pause,
         resume,
