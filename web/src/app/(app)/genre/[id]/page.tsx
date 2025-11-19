@@ -262,8 +262,7 @@ export default function GenrePage() {
                     subtitle="Artist"
                     image={getMediaUrl(artist.avatar_url)}
                     href={`/artist/${artist.id}`}
-                    aspectRatio="square"
-                    imageClassName="rounded-full"
+                    type="circle"
                   />
                 ))}
               </div>
@@ -282,7 +281,6 @@ export default function GenrePage() {
                     subtitle={album.artists?.name || 'Unknown Artist'}
                     image={getMediaUrl(album.cover_art_url)}
                     href={`/album/${album.id}`}
-                    aspectRatio="square"
                   />
                 ))}
               </div>
