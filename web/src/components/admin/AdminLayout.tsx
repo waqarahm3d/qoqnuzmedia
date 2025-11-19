@@ -24,6 +24,7 @@ import {
   AutomationIcon,
   FeaturedIcon,
   ImageIcon,
+  MoodIcon,
 } from '@/components/icons/admin-icons';
 
 interface AdminLayoutProps {
@@ -62,6 +63,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { name: 'Dashboard', href: '/admin', Icon: DashboardIcon },
     { name: 'Analytics', href: '/admin/analytics', Icon: AnalyticsIcon },
     { name: 'Automation', href: '/admin/automation', Icon: AutomationIcon },
+    { name: 'Mood Analysis', href: '/admin/mood-analysis', Icon: MoodIcon },
     { name: 'Artists', href: '/admin/artists', Icon: MicrophoneIcon },
     { name: 'Albums', href: '/admin/albums', Icon: DiscIcon },
     { name: 'Tracks', href: '/admin/tracks', Icon: MusicIcon },
