@@ -110,7 +110,15 @@ export async function detectTrackMood(
  * Fetch audio file from URL
  */
 async function fetchAudioFile(url: string): Promise<ArrayBuffer> {
-  const response = await fetch(url);
+  // If URL is relative, prepend the app base URL
+  let fullUrl = url;
+  if (url.startsWith('/')) {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+    fullUrl = `${baseUrl}${url}`;
+  }
+
+  const response = await fetch(fullUrl);
   if (!response.ok) {
     throw new Error(`Failed to fetch audio: ${response.status} ${response.statusText}`);
   }
