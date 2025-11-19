@@ -60,12 +60,15 @@ interface PlayerContextType {
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
 
 export function PlayerProvider({ children }: { children: ReactNode }) {
+  // Ref to hold the latest handleTrackEnd function
+  const handleTrackEndRef = useRef<() => void>(() => {});
+
   // Use Web Audio API player hook
   const [audioState, audioControls, audioRef] = useWebAudioPlayer({
     initialVolume: 80,
     fftSize: 256,
     enableVisualization: true,
-    onEnded: () => handleTrackEnd(),
+    onEnded: () => handleTrackEndRef.current(),
     onError: (e) => {
       console.error('Audio playback error:', e);
     },
@@ -144,7 +147,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     };
   }, [isPlaying, playbackStartTime, audioControls]);
 
-  const handleTrackEnd = useCallback(() => {
+  const handleTrackEnd = useCallback(async () => {
     if (repeat === 'one') {
       audioControls.play();
       return;
@@ -178,8 +181,48 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
           api.trackPlay(nextTrack.id);
         });
       }
+    } else if (queue.length > 0) {
+      // At the end of queue with repeat off - fetch more related tracks
+      const lastTrack = queue[queue.length - 1];
+      if (lastTrack) {
+        try {
+          const response = await fetch(`/api/tracks/${lastTrack.id}/related?limit=20`);
+          if (response.ok) {
+            const data = await response.json();
+            const relatedTracks = data.tracks.map((t: any) => ({
+              id: t.id,
+              title: t.title,
+              artist: t.artists.name,
+              artistId: t.artist_id,
+              album: t.albums?.title || 'Single',
+              albumId: t.album_id,
+              image: getMediaUrl(t.albums?.cover_art_url || t.cover_art_url),
+              duration: t.duration_ms,
+            }));
+
+            if (relatedTracks.length > 0) {
+              // Add related tracks to queue and play the first one
+              setQueue([...queue, ...relatedTracks]);
+              const nextIndex = queue.length;
+              setQueueIndex(nextIndex);
+              setCurrentTrack(relatedTracks[0]);
+              const { url } = await api.getStreamUrl(relatedTracks[0].id);
+              audioControls.loadTrack(url);
+              audioControls.play();
+              api.trackPlay(relatedTracks[0].id);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching related tracks:', error);
+        }
+      }
     }
   }, [repeat, queueIndex, queue, audioControls]);
+
+  // Keep the ref updated with latest handleTrackEnd
+  useEffect(() => {
+    handleTrackEndRef.current = handleTrackEnd;
+  }, [handleTrackEnd]);
 
   const playTrack = useCallback(async (track: Track, skipQueueUpdate = false) => {
     try {

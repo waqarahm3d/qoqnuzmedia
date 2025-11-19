@@ -31,10 +31,29 @@ export const MobilePlayer = ({ isExpanded, onExpand, onCollapse }: MobilePlayerP
   } = usePlayer();
 
   const [showQueue, setShowQueue] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const playerRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+
+    if (showMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showMenu]);
 
   // Handle animation state
   useEffect(() => {
@@ -197,13 +216,78 @@ export const MobilePlayer = ({ isExpanded, onExpand, onCollapse }: MobilePlayerP
 
         <div className="text-sm font-medium">Now Playing</div>
 
-        <button className="w-10 h-10 flex items-center justify-center -mr-2">
-          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-            <circle cx="12" cy="5" r="2" />
-            <circle cx="12" cy="12" r="2" />
-            <circle cx="12" cy="19" r="2" />
-          </svg>
-        </button>
+        <div className="relative" ref={menuRef}>
+          <button
+            onClick={() => setShowMenu(!showMenu)}
+            className="w-10 h-10 flex items-center justify-center -mr-2"
+          >
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <circle cx="12" cy="5" r="2" />
+              <circle cx="12" cy="12" r="2" />
+              <circle cx="12" cy="19" r="2" />
+            </svg>
+          </button>
+
+          {/* Dropdown Menu */}
+          {showMenu && (
+            <div className="absolute right-0 top-full mt-2 w-48 bg-gray-800 rounded-lg shadow-xl border border-white/10 overflow-hidden z-50">
+              <button
+                onClick={() => {
+                  // Share functionality
+                  if (navigator.share) {
+                    navigator.share({
+                      title: currentTrack.title,
+                      text: `Listen to ${currentTrack.title} by ${currentTrack.artist}`,
+                      url: window.location.href,
+                    });
+                  }
+                  setShowMenu(false);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/10 transition-colors"
+              >
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <circle cx="18" cy="5" r="3" />
+                  <circle cx="6" cy="12" r="3" />
+                  <circle cx="18" cy="19" r="3" />
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                </svg>
+                <span className="text-sm">Share</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowQueue(true);
+                  setShowMenu(false);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/10 transition-colors"
+              >
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M21 15V6" />
+                  <path d="M18.5 18a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+                  <path d="M12 12H3" />
+                  <path d="M16 6H3" />
+                  <path d="M12 18H3" />
+                </svg>
+                <span className="text-sm">Queue</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  // Lyrics functionality - to be implemented
+                  setShowMenu(false);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/10 transition-colors"
+              >
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                </svg>
+                <span className="text-sm">Lyrics</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Swipe Indicator */}
@@ -375,41 +459,8 @@ export const MobilePlayer = ({ isExpanded, onExpand, onCollapse }: MobilePlayerP
         </div>
       </div>
 
-      {/* Bottom Actions */}
-      <div className="px-6 pb-8 flex items-center justify-around flex-shrink-0">
-        <button className="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <circle cx="18" cy="5" r="3" />
-            <circle cx="6" cy="12" r="3" />
-            <circle cx="18" cy="19" r="3" />
-            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-          </svg>
-          <span className="text-xs">Share</span>
-        </button>
-
-        <button
-          onClick={() => setShowQueue(!showQueue)}
-          className="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path d="M21 15V6" />
-            <path d="M18.5 18a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
-            <path d="M12 12H3" />
-            <path d="M16 6H3" />
-            <path d="M12 18H3" />
-          </svg>
-          <span className="text-xs">Queue</span>
-        </button>
-
-        <button className="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-          </svg>
-          <span className="text-xs">Lyrics</span>
-        </button>
-      </div>
+      {/* Spacer for bottom padding */}
+      <div className="pb-8 flex-shrink-0" />
 
       {/* Queue Overlay */}
       {showQueue && (
