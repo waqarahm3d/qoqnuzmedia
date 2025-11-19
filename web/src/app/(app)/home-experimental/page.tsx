@@ -547,17 +547,26 @@ export default function HomeExperimentalPage() {
           <div className="h-full flex flex-col">
             {generatorStep === 'genres' ? (
               <>
-                {/* Genre Selection Step */}
-                <div className="text-center py-8 px-8">
-                  <h2 className="text-3xl font-bold text-white mb-2">Playlist Generator</h2>
-                  <p className="text-white/60">Tap bubbles to select your favorite genres</p>
+                {/* Mobile: Full screen bubbles experience */}
+                {/* Desktop: Contained view */}
+
+                {/* Header - fixed on mobile */}
+                <div className="text-center py-6 px-4 md:py-8 md:px-8 relative z-30 bg-gradient-to-b from-black/80 to-transparent md:bg-transparent">
+                  <h2 className="text-2xl md:text-3xl font-bold text-white mb-1 md:mb-2">Playlist Generator</h2>
+                  <p className="text-white/60 text-sm md:text-base">Tap bubbles to select your favorite genres</p>
                 </div>
 
-                {/* Floating Bubbles Container */}
+                {/* Floating Bubbles Container - Full screen on mobile */}
                 <div
                   ref={bubbleContainerRef}
-                  className="flex-1 relative mx-8 mb-8 rounded-2xl overflow-hidden"
-                  style={{ background: 'rgba(0,0,0,0.3)', minHeight: '400px' }}
+                  className="flex-1 relative overflow-hidden
+                    fixed inset-0 md:relative md:inset-auto
+                    md:mx-8 md:mb-8 md:rounded-2xl
+                    touch-pan-y"
+                  style={{
+                    background: 'rgba(0,0,0,0.3)',
+                    minHeight: '400px',
+                  }}
                 >
                   <FloatingBubbles
                     genres={genres}
@@ -567,18 +576,21 @@ export default function HomeExperimentalPage() {
                   />
                 </div>
 
-                {/* Action Button */}
-                <div className="text-center pb-8 px-8">
+                {/* Action Button - fixed at bottom on mobile */}
+                <div className="text-center py-6 px-4 md:pb-8 md:px-8
+                  fixed bottom-0 left-0 right-0 md:relative
+                  bg-gradient-to-t from-black/90 via-black/60 to-transparent md:bg-transparent
+                  z-30">
                   <button
                     onClick={() => setGeneratorStep('recommendations')}
                     disabled={selectedGenres.length === 0}
-                    className="px-8 py-3 text-white font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 transition-transform"
+                    className="px-8 py-3 text-white font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 transition-transform shadow-2xl"
                     style={{ background: `linear-gradient(135deg, ${COLORS.accent}, ${COLORS.primary})` }}
                   >
                     Generate Playlist →
                   </button>
                   {selectedGenres.length > 0 && (
-                    <p className="text-sm text-white/40 mt-3">{selectedGenres.length} genres selected</p>
+                    <p className="text-sm text-white/40 mt-2 md:mt-3">{selectedGenres.length} genres selected</p>
                   )}
                 </div>
               </>
