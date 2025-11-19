@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -21,6 +21,8 @@ export const DesktopPlayer = ({ onExpand }: DesktopPlayerProps) => {
     shuffle,
     repeat,
     queue,
+    isLoading,
+    error,
     togglePlayPause,
     seek,
     setVolume,
@@ -30,9 +32,79 @@ export const DesktopPlayer = ({ onExpand }: DesktopPlayerProps) => {
     toggleRepeat,
     skipForward,
     skipBackward,
+    playTrack,
   } = usePlayer();
 
   const [showQueue, setShowQueue] = useState(false);
+
+  // Keyboard shortcuts for desktop
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    // Don't trigger if user is typing in an input
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      return;
+    }
+
+    switch (e.code) {
+      case 'Space':
+        e.preventDefault();
+        togglePlayPause();
+        break;
+      case 'ArrowLeft':
+        e.preventDefault();
+        if (e.shiftKey) {
+          skipBackward();
+        } else {
+          seek(Math.max(0, currentTime - 5));
+        }
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        if (e.shiftKey) {
+          skipForward();
+        } else {
+          seek(Math.min(duration, currentTime + 5));
+        }
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setVolume(Math.min(100, volume + 5));
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        setVolume(Math.max(0, volume - 5));
+        break;
+      case 'KeyM':
+        e.preventDefault();
+        toggleMute();
+        break;
+      case 'KeyL':
+        e.preventDefault();
+        toggleLike();
+        break;
+      case 'KeyS':
+        e.preventDefault();
+        toggleShuffle();
+        break;
+      case 'KeyR':
+        e.preventDefault();
+        toggleRepeat();
+        break;
+    }
+  }, [currentTime, duration, volume, togglePlayPause, seek, setVolume, toggleMute, toggleLike, toggleShuffle, toggleRepeat, skipForward, skipBackward]);
+
+  useEffect(() => {
+    if (currentTrack) {
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [currentTrack, handleKeyDown]);
+
+  // Retry playback on error
+  const handleRetry = () => {
+    if (currentTrack) {
+      playTrack(currentTrack, true);
+    }
+  };
 
   const formatTime = (seconds: number) => {
     if (!seconds || isNaN(seconds)) return '0:00';
@@ -163,11 +235,22 @@ export const DesktopPlayer = ({ onExpand }: DesktopPlayerProps) => {
 
             {/* Play/Pause */}
             <button
-              onClick={togglePlayPause}
-              className="w-8 h-8 bg-white rounded-full flex items-center justify-center hover:scale-105 transition-transform"
-              title={isPlaying ? 'Pause' : 'Play'}
+              onClick={error ? handleRetry : togglePlayPause}
+              className={`w-8 h-8 rounded-full flex items-center justify-center hover:scale-105 transition-all duration-200 ${
+                error ? 'bg-red-500' : 'bg-white'
+              }`}
+              title={error ? 'Retry' : isPlaying ? 'Pause' : 'Play'}
             >
-              {isPlaying ? (
+              {isLoading ? (
+                <svg className="w-4 h-4 animate-spin text-black" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+              ) : error ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                  <path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" />
+                </svg>
+              ) : isPlaying ? (
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="black">
                   <rect x="6" y="4" width="4" height="16" />
                   <rect x="14" y="4" width="4" height="16" />

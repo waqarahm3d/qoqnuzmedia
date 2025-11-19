@@ -21,6 +21,8 @@ export const MobilePlayer = ({ isExpanded, onExpand, onCollapse }: MobilePlayerP
     shuffle,
     repeat,
     queue,
+    isLoading,
+    error,
     togglePlayPause,
     seek,
     toggleLike,
@@ -28,7 +30,15 @@ export const MobilePlayer = ({ isExpanded, onExpand, onCollapse }: MobilePlayerP
     toggleRepeat,
     skipForward,
     skipBackward,
+    playTrack,
   } = usePlayer();
+
+  // Retry playback on error
+  const handleRetry = () => {
+    if (currentTrack) {
+      playTrack(currentTrack, true);
+    }
+  };
 
   const [showQueue, setShowQueue] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -169,11 +179,20 @@ export const MobilePlayer = ({ isExpanded, onExpand, onCollapse }: MobilePlayerP
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                togglePlayPause();
+                error ? handleRetry() : togglePlayPause();
               }}
-              className="text-white active:scale-90 transition-transform"
+              className={`active:scale-90 transition-transform ${error ? 'text-red-500' : 'text-white'}`}
             >
-              {isPlaying ? (
+              {isLoading ? (
+                <svg className="w-8 h-8 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+              ) : error ? (
+                <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" />
+                </svg>
+              ) : isPlaying ? (
                 <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
                   <rect x="6" y="4" width="4" height="16" />
                   <rect x="14" y="4" width="4" height="16" />
@@ -411,10 +430,21 @@ export const MobilePlayer = ({ isExpanded, onExpand, onCollapse }: MobilePlayerP
 
             {/* Play/Pause */}
             <button
-              onClick={togglePlayPause}
-              className="w-16 h-16 bg-white rounded-full flex items-center justify-center active:scale-95 transition-transform shadow-lg"
+              onClick={error ? handleRetry : togglePlayPause}
+              className={`w-16 h-16 rounded-full flex items-center justify-center active:scale-95 transition-all duration-200 shadow-lg ${
+                error ? 'bg-red-500' : 'bg-white'
+              }`}
             >
-              {isPlaying ? (
+              {isLoading ? (
+                <svg className="w-7 h-7 animate-spin text-black" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+              ) : error ? (
+                <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" />
+                </svg>
+              ) : isPlaying ? (
                 <svg className="w-7 h-7 text-black" fill="currentColor" viewBox="0 0 24 24">
                   <rect x="6" y="4" width="4" height="16" />
                   <rect x="14" y="4" width="4" height="16" />
