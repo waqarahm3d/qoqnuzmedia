@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getMediaUrl } from '@/lib/media-utils';
 import { MusicIcon } from '@/components/icons';
+import { getGenres } from '@/lib/api/client';
 
 interface Genre {
   id: string;
@@ -176,11 +177,8 @@ export default function GenreExplorePage() {
 
   const fetchGenres = async () => {
     try {
-      const response = await fetch('/api/genres');
-      if (response.ok) {
-        const data = await response.json();
-        setGenres(data.genres || data || []);
-      }
+      const data = await getGenres();
+      setGenres(data || []);
     } catch (error) {
       console.error('Failed to fetch genres:', error);
     } finally {
