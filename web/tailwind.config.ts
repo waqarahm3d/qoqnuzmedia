@@ -34,6 +34,34 @@ const config: Config = {
           '0%, 100%': { height: '4px' },
           '50%': { height: '16px' },
         },
+        // Genre chip animations
+        'chip-glow': {
+          '0%, 100%': { boxShadow: '0 0 5px var(--chip-color), 0 0 10px var(--chip-color)' },
+          '50%': { boxShadow: '0 0 20px var(--chip-color), 0 0 40px var(--chip-color), 0 0 60px var(--chip-color)' },
+        },
+        'chip-shimmer': {
+          '0%': { backgroundPosition: '-200% center' },
+          '100%': { backgroundPosition: '200% center' },
+        },
+        'chip-bounce': {
+          '0%, 100%': { transform: 'scale(1) translateY(0)' },
+          '25%': { transform: 'scale(1.05) translateY(-2px)' },
+          '50%': { transform: 'scale(1.1) translateY(-4px)' },
+          '75%': { transform: 'scale(1.05) translateY(-2px)' },
+        },
+        'chip-pulse': {
+          '0%, 100%': { opacity: '1', transform: 'scale(1)' },
+          '50%': { opacity: '0.8', transform: 'scale(1.02)' },
+        },
+        'chip-float': {
+          '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
+          '25%': { transform: 'translateY(-3px) rotate(1deg)' },
+          '75%': { transform: 'translateY(-3px) rotate(-1deg)' },
+        },
+        'border-dance': {
+          '0%, 100%': { borderColor: 'var(--chip-color)' },
+          '50%': { borderColor: 'var(--chip-color-light)' },
+        },
       },
       animation: {
         'slide-up': 'slide-up 0.3s ease-out',
@@ -42,6 +70,13 @@ const config: Config = {
         'soundwave-2': 'soundwave 0.5s ease-in-out 0.1s infinite',
         'soundwave-3': 'soundwave 0.5s ease-in-out 0.2s infinite',
         'soundwave-4': 'soundwave 0.5s ease-in-out 0.3s infinite',
+        // Genre chip animations
+        'chip-glow': 'chip-glow 2s ease-in-out infinite',
+        'chip-shimmer': 'chip-shimmer 3s ease-in-out infinite',
+        'chip-bounce': 'chip-bounce 0.6s ease-in-out',
+        'chip-pulse': 'chip-pulse 2s ease-in-out infinite',
+        'chip-float': 'chip-float 3s ease-in-out infinite',
+        'border-dance': 'border-dance 1.5s ease-in-out infinite',
       },
     },
   },
