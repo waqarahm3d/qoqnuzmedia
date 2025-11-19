@@ -1,14 +1,95 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { getMediaUrl } from '@/lib/media-utils';
 import { useAlbums, useArtists, usePlaylists, useTracks, useGenres } from '@/lib/hooks/useMusic';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
-import { PlayIcon, PauseIcon, SkipBackIcon, SkipForwardIcon, ShuffleIcon, RepeatIcon, HeartIcon } from '@/components/icons';
+import { PlayIcon, PauseIcon, SkipBackIcon, SkipForwardIcon, HeartIcon } from '@/components/icons';
 
-// UGEM-style Music Player - Dark theme with purple/pink accents
-// Based on Dribbble shot 6981278
+// Bubble-based Playlist Generator with Force-Directed Layout
+// Based on detailed design specifications
+
+// Color palette from specs
+const COLORS = {
+  primary: '#2427BA',      // Deep blue/purple
+  secondary: '#148784',    // Turquoise
+  accent: '#FB4E2F',       // Coral/orange
+  background: '#0D0D1A',
+  surface: '#1A1A2E',
+};
+
+// Genre bubble component with animations
+interface GenreBubbleProps {
+  genre: any;
+  isSelected: boolean;
+  onClick: () => void;
+  position: { x: number; y: number };
+  size: number;
+  color: string;
+}
+
+function GenreBubble({ genre, isSelected, onClick, position, size, color }: GenreBubbleProps) {
+  const [isHovered, setIsHovered] = useState(false);
+  const [showRipple, setShowRipple] = useState(false);
+
+  const handleClick = () => {
+    setShowRipple(true);
+    setTimeout(() => setShowRipple(false), 600);
+    onClick();
+  };
+
+  return (
+    <button
+      onClick={handleClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="absolute rounded-full flex items-center justify-center font-medium transition-all duration-300 overflow-hidden"
+      style={{
+        left: `${position.x}%`,
+        top: `${position.y}%`,
+        width: `${size}px`,
+        height: `${size}px`,
+        transform: `translate(-50%, -50%) scale(${isHovered ? 1.15 : isSelected ? 1.1 : 1})`,
+        background: isSelected
+          ? `radial-gradient(circle at 30% 30%, ${color}ee, ${color}aa)`
+          : `radial-gradient(circle at 30% 30%, ${color}99, ${color}66)`,
+        boxShadow: isHovered
+          ? `0 0 30px ${color}80, 0 10px 40px ${color}40`
+          : isSelected
+            ? `0 0 20px ${color}60, inset 0 0 20px ${color}40`
+            : `0 4px 20px ${color}30`,
+        border: isSelected ? `3px solid ${color}` : '2px solid transparent',
+        fontSize: size < 70 ? '10px' : size < 90 ? '12px' : '14px',
+        color: 'white',
+        textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+        zIndex: isHovered || isSelected ? 10 : 1,
+      }}
+      aria-label={`Select ${genre.name} genre`}
+      aria-pressed={isSelected}
+    >
+      {/* Ripple effect on click */}
+      {showRipple && (
+        <span
+          className="absolute inset-0 rounded-full animate-ping"
+          style={{ background: `${color}40` }}
+        />
+      )}
+
+      {/* Selected indicator glow */}
+      {isSelected && (
+        <span
+          className="absolute inset-0 rounded-full animate-pulse"
+          style={{ background: `radial-gradient(circle, ${color}20 0%, transparent 70%)` }}
+        />
+      )}
+
+      <span className="relative z-10 px-2 text-center leading-tight">
+        {genre.name}
+      </span>
+    </button>
+  );
+}
 
 export default function HomeExperimentalPage() {
   const router = useRouter();
@@ -22,9 +103,49 @@ export default function HomeExperimentalPage() {
   // Playlist generator state
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [generatorStep, setGeneratorStep] = useState<'genres' | 'recommendations'>('genres');
-  const [activeTab, setActiveTab] = useState<'discover' | 'library' | 'generator'>('discover');
+  const [activeView, setActiveView] = useState<'home' | 'generator' | 'favorites' | 'settings'>('home');
 
   const loading = albumsLoading || artistsLoading || playlistsLoading || tracksLoading || genresLoading;
+
+  // Generate bubble positions using force-directed simulation
+  const bubbleData = useMemo(() => {
+    if (!genres || genres.length === 0) return [];
+
+    const colors = [COLORS.primary, COLORS.secondary, COLORS.accent, '#6B46C1', '#D53F8C', '#38B2AC'];
+
+    // Calculate positions in a circular/organic pattern
+    const centerX = 50;
+    const centerY = 50;
+    const maxRadius = 35;
+
+    return genres.map((genre: any, index: number) => {
+      // Assign popularity based on index for demo (in real app, use actual data)
+      const popularity = 100 - (index * 5) + Math.random() * 10;
+
+      // Size based on popularity (40-100px range)
+      const size = Math.max(50, Math.min(100, popularity * 0.8 + 30));
+
+      // Calculate position using golden angle for even distribution
+      const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+      const angle = index * goldenAngle;
+      const radius = maxRadius * Math.sqrt(index / genres.length);
+
+      // Add some randomness for organic feel
+      const jitterX = (Math.random() - 0.5) * 8;
+      const jitterY = (Math.random() - 0.5) * 8;
+
+      const x = centerX + radius * Math.cos(angle) + jitterX;
+      const y = centerY + radius * Math.sin(angle) + jitterY;
+
+      return {
+        ...genre,
+        position: { x: Math.max(10, Math.min(90, x)), y: Math.max(15, Math.min(85, y)) },
+        size,
+        color: genre.color || colors[index % colors.length],
+        popularity,
+      };
+    });
+  }, [genres]);
 
   const toggleGenreSelection = (genreId: string) => {
     setSelectedGenres(prev =>
@@ -68,427 +189,413 @@ export default function HomeExperimentalPage() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
-
   // Get recommendations based on selected genres
   const recommendations = tracks.filter((track: any) => {
     if (selectedGenres.length === 0) return true;
-    // Simple filter - in real app would be more sophisticated
-    return true;
+    return true; // In real app, filter by selected genres
   }).slice(0, 12);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0D0D1A' }}>
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: COLORS.background }}>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2" style={{ borderColor: COLORS.accent }}></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen" style={{ background: 'linear-gradient(180deg, #1A1A2E 0%, #0D0D1A 100%)' }}>
-      <div className="flex h-screen">
-        {/* Left Sidebar - Navigation */}
-        <aside className="w-72 flex-shrink-0 p-6 flex flex-col border-r border-white/5">
-          {/* Logo */}
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-white">
-              Qoqnuz<span className="text-purple-500">.</span>
-            </h1>
+    <div className="min-h-screen flex" style={{ background: `linear-gradient(135deg, ${COLORS.surface} 0%, ${COLORS.background} 100%)` }}>
+      {/* Left Sidebar - Icon Navigation */}
+      <aside className="w-20 flex-shrink-0 flex flex-col items-center py-8 border-r border-white/5">
+        {/* Logo */}
+        <div className="mb-12">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center"
+            style={{ background: `linear-gradient(135deg, ${COLORS.accent}, ${COLORS.primary})` }}
+          >
+            <span className="text-white font-bold text-lg">Q</span>
           </div>
+        </div>
 
-          {/* Navigation Tabs */}
-          <nav className="space-y-2 mb-8">
-            {[
-              { id: 'discover', label: 'Discover', icon: '🎵' },
-              { id: 'library', label: 'Library', icon: '📚' },
-              { id: 'generator', label: 'Playlist Generator', icon: '✨' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-300 ${
-                  activeTab === tab.id
-                    ? 'bg-gradient-to-r from-purple-600/30 to-pink-600/30 text-white'
-                    : 'text-white/60 hover:text-white hover:bg-white/5'
-                }`}
+        {/* Navigation Icons */}
+        <nav className="flex-1 flex flex-col items-center gap-2">
+          {[
+            { id: 'home', icon: (
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+            ), label: 'Home' },
+            { id: 'generator', icon: (
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"/>
+                <circle cx="12" cy="12" r="6"/>
+                <circle cx="12" cy="12" r="2"/>
+              </svg>
+            ), label: 'Generator' },
+            { id: 'favorites', icon: (
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+              </svg>
+            ), label: 'Favorites' },
+            { id: 'settings', icon: (
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+              </svg>
+            ), label: 'Settings' },
+          ].map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveView(item.id as any)}
+              className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                activeView === item.id
+                  ? 'text-white'
+                  : 'text-white/40 hover:text-white/80'
+              }`}
+              style={{
+                background: activeView === item.id
+                  ? `linear-gradient(135deg, ${COLORS.primary}80, ${COLORS.secondary}80)`
+                  : 'transparent',
+              }}
+              aria-label={item.label}
+            >
+              {item.icon}
+            </button>
+          ))}
+        </nav>
+
+        {/* User Profile */}
+        <div className="mt-auto">
+          <button className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-white/60">
+              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto">
+        {activeView === 'home' && (
+          <div className="p-8">
+            {/* Hero Section */}
+            <section className="mb-10">
+              <div
+                className="relative rounded-3xl overflow-hidden p-8 min-h-[280px]"
+                style={{
+                  background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.secondary} 50%, ${COLORS.accent}80 100%)`
+                }}
               >
-                <span>{tab.icon}</span>
-                <span className="font-medium">{tab.label}</span>
-              </button>
-            ))}
-          </nav>
-
-          {/* Playlists */}
-          <div className="flex-1 overflow-y-auto">
-            <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3 px-4">
-              Your Playlists
-            </h3>
-            <div className="space-y-1">
-              {playlists.slice(0, 6).map((playlist: any) => (
-                <button
-                  key={playlist.id}
-                  onClick={() => router.push(`/playlist/${playlist.id}`)}
-                  className="w-full text-left px-4 py-2 text-sm text-white/60 hover:text-white hover:bg-white/5 rounded-lg transition-all truncate"
-                >
-                  {playlist.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Mini Player */}
-          {currentTrack && (
-            <div className="mt-4 p-4 rounded-2xl" style={{ background: 'rgba(139, 92, 246, 0.1)' }}>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                  {currentTrack.image ? (
-                    <img src={currentTrack.image} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-purple-600 to-pink-500" />
-                  )}
+                <div className="relative z-10 max-w-md">
+                  <h1 className="text-4xl font-bold text-white mb-4 leading-tight">
+                    All in your hands,<br />choose music
+                  </h1>
+                  <p className="text-white/80 mb-6">
+                    Create personalized playlists by selecting your favorite genres. Our algorithm will do the rest.
+                  </p>
+                  <button
+                    onClick={() => setActiveView('generator')}
+                    className="px-6 py-3 bg-white font-semibold rounded-full hover:scale-105 transition-transform"
+                    style={{ color: COLORS.primary }}
+                  >
+                    Start Creating
+                  </button>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">{currentTrack.title}</p>
-                  <p className="text-xs text-white/60 truncate">{currentTrack.artist}</p>
-                </div>
-              </div>
-              <div className="flex items-center justify-center gap-4">
-                <button onClick={skipBackward} className="text-white/60 hover:text-white">
-                  <SkipBackIcon size={18} />
-                </button>
-                <button
-                  onClick={togglePlayPause}
-                  className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center"
-                >
-                  {isPlaying ? <PauseIcon size={18} className="text-white" /> : <PlayIcon size={18} className="text-white ml-0.5" />}
-                </button>
-                <button onClick={skipForward} className="text-white/60 hover:text-white">
-                  <SkipForwardIcon size={18} />
-                </button>
-              </div>
-            </div>
-          )}
-        </aside>
 
-        {/* Main Content */}
-        <main className="flex-1 overflow-y-auto p-8">
-          {activeTab === 'discover' && (
-            <>
-              {/* Hero Section */}
-              <section className="mb-10">
-                <div className="relative rounded-3xl overflow-hidden p-8" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)' }}>
-                  <div className="relative z-10">
-                    <p className="text-white/80 text-sm mb-2">FEATURED PLAYLIST</p>
-                    <h2 className="text-4xl font-bold text-white mb-4">Today's Top Hits</h2>
-                    <p className="text-white/80 mb-6 max-w-md">
-                      The hottest tracks right now. Updated daily with the best new music.
-                    </p>
-                    <button className="px-6 py-3 bg-white text-purple-600 font-semibold rounded-full hover:scale-105 transition-transform">
-                      Play Now
-                    </button>
+                {/* Decorative illustration - abstract music bubbles */}
+                <div className="absolute right-8 top-1/2 -translate-y-1/2 hidden lg:block">
+                  <div className="relative w-64 h-64">
+                    <div className="absolute w-20 h-20 rounded-full animate-pulse" style={{ background: `${COLORS.accent}80`, top: '10%', right: '20%' }} />
+                    <div className="absolute w-16 h-16 rounded-full animate-pulse" style={{ background: `${COLORS.secondary}80`, top: '50%', right: '10%', animationDelay: '0.5s' }} />
+                    <div className="absolute w-12 h-12 rounded-full animate-pulse" style={{ background: `${COLORS.primary}80`, bottom: '20%', right: '30%', animationDelay: '1s' }} />
+                    <div className="absolute w-8 h-8 rounded-full animate-pulse" style={{ background: 'white', opacity: 0.3, top: '30%', right: '50%', animationDelay: '1.5s' }} />
                   </div>
-                  {/* Decorative circles */}
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-                  <div className="absolute bottom-0 right-20 w-32 h-32 bg-white/10 rounded-full translate-y-1/2" />
                 </div>
-              </section>
+              </div>
+            </section>
 
-              {/* Browse Genres */}
-              <section className="mb-10">
-                <h2 className="text-xl font-bold text-white mb-4">Browse by Genre</h2>
-                <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
-                  {genres.map((genre: any) => (
-                    <button
+            {/* Trending Tracks */}
+            <section className="mb-10">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-white">Trending Now</h2>
+                <button className="text-sm hover:opacity-80 transition-opacity" style={{ color: COLORS.secondary }}>
+                  See all
+                </button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {tracks.slice(0, 8).map((track: any, index: number) => (
+                  <button
+                    key={track.id}
+                    onClick={() => handlePlayTrack(track)}
+                    className="flex items-center gap-4 p-4 rounded-xl hover:bg-white/5 transition-all group text-left"
+                    style={{ background: 'rgba(255,255,255,0.02)' }}
+                  >
+                    <span className="w-6 text-center text-sm text-white/40 font-medium">
+                      {index + 1}
+                    </span>
+                    <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 relative">
+                      {track.albums?.cover_art_url ? (
+                        <img src={getMediaUrl(track.albums.cover_art_url)} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.accent})` }} />
+                      )}
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <PlayIcon size={16} className="text-white" />
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-medium truncate ${currentTrack?.id === track.id ? 'text-white' : 'text-white'}`}
+                         style={{ color: currentTrack?.id === track.id ? COLORS.accent : undefined }}>
+                        {track.title}
+                      </p>
+                      <p className="text-xs text-white/50 truncate">{track.artists?.name}</p>
+                    </div>
+                    <span className="text-xs text-white/40">{formatTime(track.duration_ms || 0)}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            {/* Popular Albums */}
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-white">Popular Albums</h2>
+                <button className="text-sm hover:opacity-80 transition-opacity" style={{ color: COLORS.secondary }}>
+                  See all
+                </button>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                {albums.slice(0, 6).map((album: any) => (
+                  <button
+                    key={album.id}
+                    onClick={() => router.push(`/album/${album.id}`)}
+                    className="group text-left"
+                  >
+                    <div className="relative aspect-square rounded-xl overflow-hidden mb-3">
+                      {album.cover_art_url ? (
+                        <img
+                          src={getMediaUrl(album.cover_art_url)}
+                          alt={album.title}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                      ) : (
+                        <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.accent})` }} />
+                      )}
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: COLORS.accent }}>
+                          <PlayIcon size={20} className="text-white ml-1" />
+                        </div>
+                      </div>
+                    </div>
+                    <h3 className="font-medium text-sm text-white truncate">{album.title}</h3>
+                    <p className="text-xs text-white/50 truncate">{album.artists?.name}</p>
+                  </button>
+                ))}
+              </div>
+            </section>
+          </div>
+        )}
+
+        {activeView === 'generator' && (
+          <div className="h-full flex flex-col">
+            {generatorStep === 'genres' ? (
+              <>
+                {/* Genre Selection Step */}
+                <div className="text-center py-8 px-8">
+                  <h2 className="text-3xl font-bold text-white mb-2">Playlist Generator</h2>
+                  <p className="text-white/60">Select genres to create your perfect playlist</p>
+                </div>
+
+                {/* Bubble Interface */}
+                <div className="flex-1 relative min-h-[400px] mx-8 mb-8 rounded-2xl overflow-hidden" style={{ background: 'rgba(0,0,0,0.3)' }}>
+                  {bubbleData.map((genre: any) => (
+                    <GenreBubble
                       key={genre.id}
-                      onClick={() => router.push(`/genre/${genre.id}`)}
-                      className="flex-shrink-0 px-6 py-3 rounded-full font-medium text-sm text-white transition-all duration-300 hover:scale-105"
-                      style={{
-                        background: `linear-gradient(135deg, ${genre.color || '#8B5CF6'}90, ${genre.color || '#EC4899'}70)`,
-                      }}
-                    >
-                      {genre.name}
-                    </button>
+                      genre={genre}
+                      isSelected={selectedGenres.includes(genre.id)}
+                      onClick={() => toggleGenreSelection(genre.id)}
+                      position={genre.position}
+                      size={genre.size}
+                      color={genre.color}
+                    />
                   ))}
                 </div>
-              </section>
 
-              {/* Trending Tracks */}
-              <section className="mb-10">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold text-white">Trending Now</h2>
-                  <button className="text-sm text-purple-400 hover:text-purple-300">See all</button>
+                {/* Action Button */}
+                <div className="text-center pb-8 px-8">
+                  <button
+                    onClick={() => setGeneratorStep('recommendations')}
+                    disabled={selectedGenres.length === 0}
+                    className="px-8 py-3 text-white font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 transition-transform"
+                    style={{ background: `linear-gradient(135deg, ${COLORS.accent}, ${COLORS.primary})` }}
+                  >
+                    Generate Playlist →
+                  </button>
+                  {selectedGenres.length > 0 && (
+                    <p className="text-sm text-white/40 mt-3">{selectedGenres.length} genres selected</p>
+                  )}
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {tracks.slice(0, 8).map((track: any, index: number) => (
+              </>
+            ) : (
+              <div className="p-8">
+                {/* Recommendations Step */}
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-white mb-1">Your Playlist</h2>
+                    <p className="text-white/60 text-sm">Based on your selected genres</p>
+                  </div>
+                  <button
+                    onClick={() => setGeneratorStep('genres')}
+                    className="text-sm hover:opacity-80 transition-opacity"
+                    style={{ color: COLORS.secondary }}
+                  >
+                    ← Change genres
+                  </button>
+                </div>
+
+                <div className="space-y-2 mb-6">
+                  {recommendations.map((track: any, index: number) => (
                     <button
                       key={track.id}
                       onClick={() => handlePlayTrack(track)}
-                      className="flex items-center gap-4 p-4 rounded-xl hover:bg-white/5 transition-all group text-left"
+                      className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-white/5 transition-all group text-left"
                       style={{ background: 'rgba(255,255,255,0.02)' }}
                     >
-                      <span className="w-6 text-center text-sm text-white/40 font-medium">
-                        {index + 1}
-                      </span>
-                      <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 relative">
+                      <span className="w-6 text-center text-sm text-white/40">{index + 1}</span>
+                      <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 relative">
                         {track.albums?.cover_art_url ? (
                           <img src={getMediaUrl(track.albums.cover_art_url)} alt="" className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-purple-600 to-pink-500" />
+                          <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.accent})` }} />
                         )}
-                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <PlayIcon size={16} className="text-white" />
-                        </div>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-medium truncate ${currentTrack?.id === track.id ? 'text-purple-400' : 'text-white'}`}>
-                          {track.title}
-                        </p>
+                        <p className="text-sm font-medium text-white truncate">{track.title}</p>
                         <p className="text-xs text-white/50 truncate">{track.artists?.name}</p>
                       </div>
+                      <button className="p-2 text-white/40 hover:opacity-80 transition-colors" style={{ color: COLORS.accent }}>
+                        <HeartIcon size={18} />
+                      </button>
                       <span className="text-xs text-white/40">{formatTime(track.duration_ms || 0)}</span>
                     </button>
                   ))}
                 </div>
-              </section>
 
-              {/* Popular Albums */}
-              <section className="mb-10">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold text-white">Popular Albums</h2>
-                  <button className="text-sm text-purple-400 hover:text-purple-300">See all</button>
+                <div className="text-center">
+                  <button
+                    className="px-8 py-3 text-white font-semibold rounded-full hover:scale-105 transition-transform"
+                    style={{ background: `linear-gradient(135deg, ${COLORS.accent}, ${COLORS.primary})` }}
+                  >
+                    Save as Playlist
+                  </button>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                  {albums.slice(0, 6).map((album: any) => (
-                    <button
-                      key={album.id}
-                      onClick={() => router.push(`/album/${album.id}`)}
-                      className="group text-left"
-                    >
-                      <div className="relative aspect-square rounded-xl overflow-hidden mb-3">
-                        {album.cover_art_url ? (
-                          <img
-                            src={getMediaUrl(album.cover_art_url)}
-                            alt={album.title}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-purple-600 to-pink-500" />
-                        )}
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <div className="w-12 h-12 rounded-full bg-purple-500 flex items-center justify-center">
-                            <PlayIcon size={20} className="text-white ml-1" />
-                          </div>
-                        </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeView === 'favorites' && (
+          <div className="p-8">
+            <h2 className="text-2xl font-bold text-white mb-6">Your Favorites</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {playlists.map((playlist: any) => (
+                <button
+                  key={playlist.id}
+                  onClick={() => router.push(`/playlist/${playlist.id}`)}
+                  className="group text-left"
+                >
+                  <div className="relative aspect-square rounded-xl overflow-hidden mb-3" style={{ background: `${COLORS.primary}40` }}>
+                    {playlist.cover_image_url ? (
+                      <img
+                        src={getMediaUrl(playlist.cover_image_url)}
+                        alt={playlist.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-white/30">
+                          <path d="M9 18V5l12-2v13"/>
+                          <circle cx="6" cy="18" r="3"/>
+                          <circle cx="18" cy="16" r="3"/>
+                        </svg>
                       </div>
-                      <h3 className="font-medium text-sm text-white truncate">{album.title}</h3>
-                      <p className="text-xs text-white/50 truncate">{album.artists?.name}</p>
-                    </button>
-                  ))}
-                </div>
-              </section>
-            </>
-          )}
-
-          {activeTab === 'generator' && (
-            <div className="max-w-2xl mx-auto">
-              {generatorStep === 'genres' ? (
-                <>
-                  {/* Genre Selection Step */}
-                  <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold text-white mb-2">Create Your Playlist</h2>
-                    <p className="text-white/60">Choose genres that match your mood</p>
-                  </div>
-
-                  <div className="flex flex-wrap gap-3 justify-center mb-8">
-                    {genres.map((genre: any) => (
-                      <button
-                        key={genre.id}
-                        onClick={() => toggleGenreSelection(genre.id)}
-                        className={`px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-300 ${
-                          selectedGenres.includes(genre.id)
-                            ? 'text-white scale-105'
-                            : 'text-white/70 hover:text-white'
-                        }`}
-                        style={{
-                          background: selectedGenres.includes(genre.id)
-                            ? `linear-gradient(135deg, ${genre.color || '#8B5CF6'}, ${genre.color || '#EC4899'})`
-                            : 'rgba(255,255,255,0.05)',
-                          border: selectedGenres.includes(genre.id) ? 'none' : '1px solid rgba(255,255,255,0.1)',
-                        }}
-                      >
-                        {genre.name}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="text-center">
-                    <button
-                      onClick={() => setGeneratorStep('recommendations')}
-                      disabled={selectedGenres.length === 0}
-                      className="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 transition-transform"
-                    >
-                      Get Recommendations →
-                    </button>
-                    {selectedGenres.length > 0 && (
-                      <p className="text-sm text-white/40 mt-3">{selectedGenres.length} genres selected</p>
                     )}
                   </div>
-                </>
+                  <h3 className="font-medium text-sm text-white truncate">{playlist.name}</h3>
+                  <p className="text-xs text-white/50">Playlist</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeView === 'settings' && (
+          <div className="p-8">
+            <h2 className="text-2xl font-bold text-white mb-6">Settings</h2>
+            <p className="text-white/60">Settings panel coming soon...</p>
+          </div>
+        )}
+      </main>
+
+      {/* Now Playing Mini Bar (at bottom when track is playing) */}
+      {currentTrack && (
+        <div
+          className="fixed bottom-0 left-20 right-0 h-20 flex items-center px-6 border-t border-white/5"
+          style={{ background: `linear-gradient(to right, ${COLORS.surface}, ${COLORS.background})` }}
+        >
+          {/* Track Info */}
+          <div className="flex items-center gap-4 flex-1">
+            <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0">
+              {currentTrack.image ? (
+                <img src={currentTrack.image} alt="" className="w-full h-full object-cover" />
               ) : (
-                <>
-                  {/* Recommendations Step */}
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <h2 className="text-2xl font-bold text-white mb-1">Your Recommendations</h2>
-                      <p className="text-white/60 text-sm">Based on your selected genres</p>
-                    </div>
-                    <button
-                      onClick={() => setGeneratorStep('genres')}
-                      className="text-sm text-purple-400 hover:text-purple-300"
-                    >
-                      ← Change genres
-                    </button>
-                  </div>
-
-                  <div className="space-y-2">
-                    {recommendations.map((track: any, index: number) => (
-                      <button
-                        key={track.id}
-                        onClick={() => handlePlayTrack(track)}
-                        className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-white/5 transition-all group text-left"
-                        style={{ background: 'rgba(255,255,255,0.02)' }}
-                      >
-                        <span className="w-6 text-center text-sm text-white/40">{index + 1}</span>
-                        <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 relative">
-                          {track.albums?.cover_art_url ? (
-                            <img src={getMediaUrl(track.albums.cover_art_url)} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-purple-600 to-pink-500" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-white truncate">{track.title}</p>
-                          <p className="text-xs text-white/50 truncate">{track.artists?.name}</p>
-                        </div>
-                        <button className="p-2 text-white/40 hover:text-pink-400 transition-colors">
-                          <HeartIcon size={18} />
-                        </button>
-                        <span className="text-xs text-white/40">{formatTime(track.duration_ms || 0)}</span>
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="mt-6 text-center">
-                    <button className="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-full hover:scale-105 transition-transform">
-                      Save as Playlist
-                    </button>
-                  </div>
-                </>
+                <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.accent})` }} />
               )}
             </div>
-          )}
-
-          {activeTab === 'library' && (
-            <>
-              <h2 className="text-2xl font-bold text-white mb-6">Your Library</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {playlists.map((playlist: any) => (
-                  <button
-                    key={playlist.id}
-                    onClick={() => router.push(`/playlist/${playlist.id}`)}
-                    className="group text-left"
-                  >
-                    <div className="relative aspect-square rounded-xl overflow-hidden mb-3" style={{ background: 'rgba(139, 92, 246, 0.2)' }}>
-                      {playlist.cover_image_url ? (
-                        <img
-                          src={getMediaUrl(playlist.cover_image_url)}
-                          alt={playlist.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <span className="text-4xl">🎵</span>
-                        </div>
-                      )}
-                    </div>
-                    <h3 className="font-medium text-sm text-white truncate">{playlist.name}</h3>
-                    <p className="text-xs text-white/50">Playlist</p>
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </main>
-
-        {/* Right Panel - Now Playing */}
-        <aside className="w-80 flex-shrink-0 p-6 border-l border-white/5 hidden xl:flex flex-col">
-          <h2 className="text-sm font-semibold text-white/60 mb-6">Now Playing</h2>
-
-          {currentTrack ? (
-            <>
-              {/* Album Art */}
-              <div className="relative aspect-square rounded-2xl overflow-hidden mb-6">
-                {currentTrack.image ? (
-                  <img src={currentTrack.image} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-purple-600 to-pink-500" />
-                )}
-              </div>
-
-              {/* Track Info */}
-              <div className="text-center mb-6">
-                <h3 className="font-bold text-lg text-white truncate">{currentTrack.title}</h3>
-                <p className="text-sm text-white/60 truncate">{currentTrack.artist}</p>
-              </div>
-
-              {/* Progress */}
-              <div className="mb-6">
-                <div className="h-1 rounded-full bg-white/10 overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
-                    style={{ width: `${progressPercent}%` }}
-                  />
-                </div>
-                <div className="flex justify-between text-xs text-white/40 mt-2">
-                  <span>{formatTime(currentTime)}</span>
-                  <span>{formatTime(duration)}</span>
-                </div>
-              </div>
-
-              {/* Controls */}
-              <div className="flex items-center justify-center gap-6">
-                <button className="text-white/40 hover:text-white transition-colors">
-                  <ShuffleIcon size={18} />
-                </button>
-                <button onClick={skipBackward} className="text-white/60 hover:text-white transition-colors">
-                  <SkipBackIcon size={24} />
-                </button>
-                <button
-                  onClick={togglePlayPause}
-                  className="w-14 h-14 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center hover:scale-105 transition-transform"
-                >
-                  {isPlaying ? <PauseIcon size={24} className="text-white" /> : <PlayIcon size={24} className="text-white ml-1" />}
-                </button>
-                <button onClick={skipForward} className="text-white/60 hover:text-white transition-colors">
-                  <SkipForwardIcon size={24} />
-                </button>
-                <button className="text-white/40 hover:text-white transition-colors">
-                  <RepeatIcon size={18} />
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-center">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-600/20 to-pink-500/20 flex items-center justify-center mb-4">
-                <span className="text-3xl opacity-50">🎵</span>
-              </div>
-              <p className="text-white/50 text-sm">No track playing</p>
-              <p className="text-white/30 text-xs mt-1">Select a song to start</p>
+            <div className="min-w-0">
+              <p className="font-medium text-white truncate">{currentTrack.title}</p>
+              <p className="text-sm text-white/60 truncate">{currentTrack.artist}</p>
             </div>
-          )}
-        </aside>
-      </div>
+            <button className="p-2 text-white/40 hover:opacity-80 transition-colors ml-2">
+              <HeartIcon size={20} />
+            </button>
+          </div>
+
+          {/* Controls */}
+          <div className="flex items-center gap-6">
+            <button onClick={skipBackward} className="text-white/60 hover:text-white transition-colors">
+              <SkipBackIcon size={20} />
+            </button>
+            <button
+              onClick={togglePlayPause}
+              className="w-10 h-10 rounded-full flex items-center justify-center"
+              style={{ background: COLORS.accent }}
+            >
+              {isPlaying ? <PauseIcon size={20} className="text-white" /> : <PlayIcon size={20} className="text-white ml-0.5" />}
+            </button>
+            <button onClick={skipForward} className="text-white/60 hover:text-white transition-colors">
+              <SkipForwardIcon size={20} />
+            </button>
+          </div>
+
+          {/* Progress */}
+          <div className="flex-1 flex items-center gap-3 ml-6">
+            <span className="text-xs text-white/40 w-10">{formatTime(currentTime)}</span>
+            <div className="flex-1 h-1 rounded-full bg-white/10 overflow-hidden">
+              <div
+                className="h-full rounded-full"
+                style={{
+                  width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%`,
+                  background: `linear-gradient(to right, ${COLORS.accent}, ${COLORS.secondary})`
+                }}
+              />
+            </div>
+            <span className="text-xs text-white/40 w-10">{formatTime(duration)}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
