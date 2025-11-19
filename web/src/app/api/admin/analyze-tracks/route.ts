@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { batchDetectMoods, getTracksNeedingMoodDetection } from '@/lib/ml';
 import { requireAdmin } from '@/lib/auth/admin-middleware';
 
+// Force dynamic rendering since we use cookies
+export const dynamic = 'force-dynamic';
+
 /**
  * POST /api/admin/analyze-tracks
  * Batch analyze tracks for mood detection
