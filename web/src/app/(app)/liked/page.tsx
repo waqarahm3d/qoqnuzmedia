@@ -14,7 +14,7 @@ export default function LikedSongsPage() {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const router = useRouter();
-  const { playTrack } = usePlayer();
+  const { playTrack, currentTrack, isPlaying } = usePlayer();
 
   useEffect(() => {
     if (!user) {
@@ -87,16 +87,13 @@ export default function LikedSongsPage() {
               return (
                 <TrackRow
                   key={track.id}
-                  number={index + 1}
                   title={track.title}
                   artist={track.artists?.name || 'Unknown Artist'}
-                  album={track.albums?.title || 'Single'}
                   image={getMediaUrl(track.albums?.cover_art_url)}
-                  duration={formatDuration(track.duration_ms)}
                   trackId={track.id}
                   artistId={track.artist_id}
-                  albumId={track.album_id}
                   showImage={true}
+                  isPlaying={currentTrack?.id === track.id && isPlaying}
                   onPlay={() => {
                     playTrack({
                       id: track.id,
@@ -109,7 +106,6 @@ export default function LikedSongsPage() {
                       duration: track.duration_ms || 0,
                     });
                   }}
-                  onLike={() => {}}
                 />
               );
             })}

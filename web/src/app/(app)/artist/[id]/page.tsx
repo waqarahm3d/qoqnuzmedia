@@ -17,7 +17,7 @@ export default function ArtistPage() {
   const [loading, setLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
   const [showEmbedModal, setShowEmbedModal] = useState(false);
-  const { playTrack } = usePlayer();
+  const { playTrack, currentTrack, isPlaying } = usePlayer();
 
   useEffect(() => {
     fetchArtist();
@@ -191,16 +191,14 @@ export default function ArtistPage() {
               {artist.tracks.map((track: any, index: number) => (
                 <div key={track.id} className="group">
                   <TrackRow
-                    number={index + 1}
                     title={track.title}
                     artist={artist.name}
-                    album={track.albums?.title || 'Single'}
-                    duration={formatDuration(track.duration_ms || 0)}
                     image={getMediaUrl(track.albums?.cover_art_url)}
                     showImage={true}
-                    showAlbum={true}
+                    trackId={track.id}
+                    artistId={artist.id}
+                    isPlaying={currentTrack?.id === track.id && isPlaying}
                     onPlay={() => handlePlayTrack(track)}
-                    onLike={() => console.log('Like track:', track.id)}
                   />
                 </div>
               ))}

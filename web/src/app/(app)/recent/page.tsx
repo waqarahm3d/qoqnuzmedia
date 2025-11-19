@@ -9,7 +9,7 @@ import { getMediaUrl } from '@/lib/media-utils';
 export default function RecentPage() {
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const { playTrack } = usePlayer();
+  const { playTrack, currentTrack, isPlaying } = usePlayer();
 
   useEffect(() => {
     fetchHistory();
@@ -65,18 +65,14 @@ export default function RecentPage() {
             return (
               <TrackRow
                 key={`${track.id}-${index}`}
-                number={index + 1}
                 title={track.title}
                 artist={track.artists?.name || track.artist || 'Unknown Artist'}
-                album={track.albums?.title || track.album || 'Unknown Album'}
-                duration={track.duration_ms ? `${Math.floor(track.duration_ms / 60000)}:${String(Math.floor((track.duration_ms % 60000) / 1000)).padStart(2, '0')}` : '0:00'}
                 image={getMediaUrl(track.albums?.cover_art_url || track.image)}
                 showImage={true}
                 trackId={track.id}
                 artistId={track.artist_id || track.artists?.id}
-                albumId={track.album_id || track.albums?.id}
+                isPlaying={currentTrack?.id === track.id && isPlaying}
                 onPlay={() => handlePlayTrack(track)}
-                onLike={() => {}}
               />
             );
           })}

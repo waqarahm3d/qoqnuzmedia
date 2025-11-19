@@ -19,7 +19,7 @@ export default function PlaylistPage() {
   const [isLiked, setIsLiked] = useState(false);
   const [showEmbedModal, setShowEmbedModal] = useState(false);
   const [showCollaborators, setShowCollaborators] = useState(false);
-  const { playTrack, setQueue } = usePlayer();
+  const { playTrack, setQueue, currentTrack, isPlaying } = usePlayer();
   const { user } = useAuth();
 
   useEffect(() => {
@@ -251,15 +251,14 @@ export default function PlaylistPage() {
               return (
                 <TrackRow
                   key={`${track.id}-${index}`}
-                  number={index + 1}
                   title={track.title}
                   artist={track.artists?.name || 'Unknown Artist'}
-                  album={track.albums?.title || 'Unknown Album'}
-                  duration={formatDuration(track.duration_ms || 0)}
                   image={getMediaUrl(track.albums?.cover_art_url)}
                   showImage={true}
+                  trackId={track.id}
+                  artistId={track.artist_id || track.artists?.id}
+                  isPlaying={currentTrack?.id === track.id && isPlaying}
                   onPlay={() => handlePlayTrack(item)}
-                  onLike={() => console.log('Like track:', track.id)}
                 />
               );
             })}

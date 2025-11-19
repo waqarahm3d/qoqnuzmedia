@@ -19,7 +19,7 @@ function SearchContent() {
 
   const { results, loading } = useSearch(query, activeTab === 'all' ? undefined : activeTab);
   const { genres } = useGenres();
-  const { playTrack, setQueue } = usePlayer();
+  const { playTrack, setQueue, currentTrack, isPlaying } = usePlayer();
 
   useEffect(() => {
     setSearchQuery(query);
@@ -118,12 +118,12 @@ function SearchContent() {
                     <TrackRow
                       title={track.title}
                       artist={track.artists?.name || 'Unknown Artist'}
-                      album={track.albums?.title || 'Unknown Album'}
-                      duration={track.duration_ms ? `${Math.floor(track.duration_ms / 60000)}:${String(Math.floor((track.duration_ms % 60000) / 1000)).padStart(2, '0')}` : '0:00'}
                       image={getMediaUrl(track.albums?.cover_art_url)}
                       showImage={true}
+                      trackId={track.id}
+                      artistId={track.artist_id || track.artists?.id}
+                      isPlaying={currentTrack?.id === track.id && isPlaying}
                       onPlay={() => handlePlayTrack(track)}
-                      onLike={() => console.log('Like track:', track.id)}
                     />
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-white/40 bg-white/5 px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                       Track
