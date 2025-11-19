@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/supabase';
 import { batchDetectMoods, getTracksNeedingMoodDetection } from '@/lib/ml';
+import { requireAdmin } from '@/lib/auth/admin-middleware';
 
 /**
  * POST /api/admin/analyze-tracks
@@ -10,24 +10,10 @@ import { batchDetectMoods, getTracksNeedingMoodDetection } from '@/lib/ml';
 export async function POST(request: NextRequest) {
   try {
     // Check admin authentication
-    const supabase = await createServerSupabaseClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const { response, supabase } = await requireAdmin(request);
+    if (response) return response;
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check if user is admin
-    const adminSupabase = createAdminSupabaseClient();
-    const { data: adminUser } = await adminSupabase
-      .from('admin_users')
-      .select('id')
-      .eq('user_id', user.id)
-      .single();
-
-    if (!adminUser) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
-    }
+    const adminSupabase = supabase;
 
     // Parse request body
     const body = await request.json().catch(() => ({}));
@@ -84,24 +70,10 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // Check admin authentication
-    const supabase = await createServerSupabaseClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const { response, supabase } = await requireAdmin(request);
+    if (response) return response;
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check if user is admin
-    const adminSupabase = createAdminSupabaseClient();
-    const { data: adminUser } = await adminSupabase
-      .from('admin_users')
-      .select('id')
-      .eq('user_id', user.id)
-      .single();
-
-    if (!adminUser) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
-    }
+    const adminSupabase = supabase;
 
     // Get counts
     const { count: totalTracks } = await adminSupabase
