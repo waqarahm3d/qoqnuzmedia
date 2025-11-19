@@ -6,6 +6,7 @@ import { TrackRow } from '@/components/ui/TrackRow';
 import { useRouter } from 'next/navigation';
 import { getMediaUrl } from '@/lib/media-utils';
 import { MusicIcon, SparklesIcon, HeartFilledIcon, DiscoverIcon } from '@/components/icons';
+import { usePlayer } from '@/lib/contexts/PlayerContext';
 
 const formatDuration = (ms: number) => {
   const minutes = Math.floor(ms / 60000);
@@ -31,6 +32,36 @@ export default function SmartPlaylistsPage() {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const { playTrack, setQueue, currentTrack, isPlaying } = usePlayer();
+
+  // Format track for player and play it
+  const handlePlayTrack = (track: any, allTracks: any[]) => {
+    const formattedTrack = {
+      id: track.id,
+      title: track.title,
+      artist: track.artists?.name || track.artist || 'Unknown Artist',
+      artistId: track.artists?.id || track.artist_id,
+      album: track.albums?.title || track.album || 'Unknown Album',
+      albumId: track.albums?.id || track.album_id,
+      image: getMediaUrl(track.albums?.cover_art_url || track.cover_art_url),
+      duration: track.duration_ms || 0,
+    };
+
+    // Set the full playlist as queue for continuous playback
+    const formattedQueue = allTracks.map((t: any) => ({
+      id: t.id,
+      title: t.title,
+      artist: t.artists?.name || t.artist || 'Unknown Artist',
+      artistId: t.artists?.id || t.artist_id,
+      album: t.albums?.title || t.album || 'Unknown Album',
+      albumId: t.albums?.id || t.album_id,
+      image: getMediaUrl(t.albums?.cover_art_url || t.cover_art_url),
+      duration: t.duration_ms || 0,
+    }));
+
+    setQueue(formattedQueue);
+    playTrack(formattedTrack, true);
+  };
 
   const smartPlaylists = [
     {
@@ -251,20 +282,17 @@ export default function SmartPlaylistsPage() {
           <div className="bg-surface/20 rounded-lg overflow-hidden">
             {activePlaylist.data.tracks.length > 0 ? (
               <div className="divide-y divide-white/5">
-                {activePlaylist.data.tracks.map((track: any, index: number) => (
+                {activePlaylist.data.tracks.map((track: any) => (
                   <TrackRow
                     key={track.id}
-                    number={index + 1}
                     title={track.title}
                     artist={track.artists?.name || track.artist || 'Unknown Artist'}
-                    album={track.albums?.title || track.album || 'Unknown Album'}
-                    duration={formatDuration(track.duration_ms || 0)}
                     image={getMediaUrl(track.albums?.cover_art_url || track.cover_art_url)}
                     showImage={true}
-                    showAlbum={true}
                     trackId={track.id}
                     artistId={track.artists?.id || track.artist_id}
-                    albumId={track.albums?.id || track.album_id}
+                    isPlaying={currentTrack?.id === track.id && isPlaying}
+                    onPlay={() => handlePlayTrack(track, activePlaylist.data!.tracks)}
                   />
                 ))}
               </div>

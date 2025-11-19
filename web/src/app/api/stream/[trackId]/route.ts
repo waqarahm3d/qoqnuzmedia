@@ -11,6 +11,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/supabase';
 import { getTrackStreamUrl } from '@/lib/r2';
 
+// Force dynamic rendering since we use database calls
+export const dynamic = 'force-dynamic';
+
 // Type definition for track query result
 interface TrackWithArtist {
   id: string;

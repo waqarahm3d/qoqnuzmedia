@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { apiSuccess, apiServerError, apiValidationError } from '@/lib/api-response';
 import { generateBPMPlaylist } from '@/lib/smart-playlists/algorithms';
 
+// Force dynamic rendering since we use database calls
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/discovery/bpm?target=160&range=10
  * Get tracks by BPM (perfect for running/workouts)

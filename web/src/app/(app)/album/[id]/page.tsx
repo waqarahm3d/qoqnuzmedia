@@ -16,7 +16,7 @@ export default function AlbumPage() {
   const [loading, setLoading] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
   const [showEmbedModal, setShowEmbedModal] = useState(false);
-  const { playTrack, setQueue } = usePlayer();
+  const { playTrack, setQueue, currentTrack, isPlaying } = usePlayer();
 
   useEffect(() => {
     fetchAlbum();
@@ -219,18 +219,18 @@ export default function AlbumPage() {
         {/* Track List */}
         {album.tracks && album.tracks.length > 0 ? (
           <div className="space-y-1">
-            <TrackListHeader showAlbum={false} />
-            {album.tracks.map((track: any, index: number) => (
+            <TrackListHeader />
+            {album.tracks.map((track: any) => (
               <TrackRow
                 key={track.id}
-                number={index + 1}
                 title={track.title}
                 artist={track.artists?.name || album.artists?.name || 'Unknown Artist'}
-                duration={formatDuration(track.duration_ms || 0)}
+                image={getMediaUrl(album.cover_art_url)}
                 showImage={false}
-                showAlbum={false}
+                trackId={track.id}
+                artistId={track.artists?.id || album.artists?.id}
+                isPlaying={currentTrack?.id === track.id && isPlaying}
                 onPlay={() => handlePlayTrack(track)}
-                onLike={() => console.log('Like track:', track.id)}
               />
             ))}
           </div>

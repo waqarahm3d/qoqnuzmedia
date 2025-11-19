@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { PlayIcon, HeartIcon, HeartFilledIcon, MoreIcon, ClockIcon } from '../icons';
+import { PlayIcon, HeartIcon, HeartFilledIcon, MoreIcon } from '../icons';
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { SignupPrompt } from './SignupPrompt';
@@ -33,12 +33,11 @@ export const TrackRow = ({
   isLiked = false,
   onPlay,
   onLike,
-  showImage = false,
+  showImage = true,
   trackId,
   artistId,
 }: TrackRowProps) => {
   const { user } = useAuth();
-  const [isHovered, setIsHovered] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -60,7 +59,8 @@ export const TrackRow = ({
     };
   }, [showMenu]);
 
-  const handleLike = () => {
+  const handleLike = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!user) {
       setShowSignupPrompt(true);
       return;
@@ -68,7 +68,8 @@ export const TrackRow = ({
     onLike?.();
   };
 
-  const handleShare = async () => {
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (trackId) {
       const url = `${window.location.origin}/track/${trackId}`;
       if (navigator.share) {
@@ -79,138 +80,114 @@ export const TrackRow = ({
             url: url,
           });
         } catch (err) {
-          // User cancelled or error
+          // User cancelled
         }
       } else {
-        // Fallback: copy to clipboard
         navigator.clipboard.writeText(url);
-        alert('Link copied to clipboard!');
+        alert('Link copied!');
       }
     }
     setShowMenu(false);
   };
 
-  const handleAddToPlaylist = () => {
-    // TODO: Open playlist selection modal
-    alert('Add to playlist feature coming soon!');
+  const handleAddToPlaylist = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    alert('Add to playlist coming soon!');
     setShowMenu(false);
+  };
+
+  const handlePlay = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onPlay?.();
   };
 
   return (
     <>
       <div
-        className={`flex items-center gap-3 px-3 py-2 rounded-md hover:bg-white/5 transition-colors group ${
-          isPlaying ? 'text-primary' : 'text-white/80'
+        onClick={onPlay}
+        className={`flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors cursor-pointer group ${
+          isPlaying ? 'bg-white/5' : ''
         }`}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Play Button / Image */}
-        <div className="relative w-10 h-10 flex-shrink-0">
-          {showImage && image ? (
-            <>
+        {/* Album Art with Play Overlay */}
+        {showImage && (
+          <div className="relative w-12 h-12 flex-shrink-0 rounded overflow-hidden bg-white/5">
+            {image ? (
               <Image
                 src={image}
                 alt={title}
                 fill
-                className="object-cover rounded"
-                sizes="40px"
+                className="object-cover"
+                sizes="48px"
               />
-              {isHovered && (
-                <button
-                  onClick={onPlay}
-                  className="absolute inset-0 flex items-center justify-center bg-black/60 rounded"
-                >
-                  <PlayIcon size={16} className="text-white" />
-                </button>
-              )}
-            </>
-          ) : (
-            <button
-              onClick={onPlay}
-              className="w-full h-full flex items-center justify-center bg-white/5 rounded hover:bg-white/10 transition-colors"
-            >
-              <PlayIcon size={16} className={isPlaying ? 'text-primary' : 'text-white'} />
-            </button>
-          )}
-        </div>
-
-        {/* Title & Artist */}
-        <div className="flex-1 min-w-0">
-          {trackId ? (
-            <Link
-              href={`/track/${trackId}`}
-              className={`font-medium truncate hover:underline block text-sm ${
-                isPlaying ? 'text-primary' : 'text-white'
-              }`}
-            >
-              {title}
-            </Link>
-          ) : (
-            <div className={`font-medium truncate text-sm ${isPlaying ? 'text-primary' : 'text-white'}`}>
-              {title}
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-white/40">
+                  <path d="M9 18V5l12-2v13" />
+                  <circle cx="6" cy="18" r="3" />
+                  <circle cx="18" cy="16" r="3" />
+                </svg>
+              </div>
+            )}
+            {/* Play overlay */}
+            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <PlayIcon size={20} className="text-white" />
             </div>
-          )}
-          {artistId ? (
-            <Link
-              href={`/artist/${artistId}`}
-              className="text-xs text-white/60 truncate hover:underline block"
-            >
-              {artist}
-            </Link>
-          ) : (
-            <div className="text-xs text-white/60 truncate">{artist}</div>
-          )}
+          </div>
+        )}
+
+        {/* Track Info */}
+        <div className="flex-1 min-w-0">
+          <div className={`font-medium truncate text-sm ${isPlaying ? 'text-primary' : 'text-white'}`}>
+            {title}
+          </div>
+          <div className="text-xs text-white/60 truncate">{artist}</div>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-2">
-          {/* Like Button */}
+        {/* Actions - stop propagation to prevent playing */}
+        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+          {/* Like */}
           <button
             onClick={handleLike}
-            className="p-1.5 opacity-0 group-hover:opacity-100 transition-opacity hover:text-primary"
+            className="p-2 rounded-full opacity-0 group-hover:opacity-100 hover:bg-white/10 transition-all"
           >
             {isLiked ? (
               <HeartFilledIcon size={16} className="text-primary" />
             ) : (
-              <HeartIcon size={16} />
+              <HeartIcon size={16} className="text-white/60 hover:text-white" />
             )}
           </button>
 
           {/* More Menu */}
           <div className="relative" ref={menuRef}>
             <button
-              onClick={() => setShowMenu(!showMenu)}
-              className="p-1.5 opacity-0 group-hover:opacity-100 transition-opacity hover:text-white"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowMenu(!showMenu);
+              }}
+              className="p-2 rounded-full opacity-0 group-hover:opacity-100 hover:bg-white/10 transition-all"
             >
-              <MoreIcon size={16} />
+              <MoreIcon size={16} className="text-white/60 hover:text-white" />
             </button>
 
             {showMenu && (
-              <div className="absolute right-0 top-full mt-1 w-48 bg-gray-800 rounded-lg shadow-xl z-50 py-1 overflow-hidden">
+              <div className="absolute right-0 top-full mt-1 w-44 bg-gray-800 rounded-lg shadow-xl z-50 py-1">
                 {user && (
                   <button
                     onClick={handleAddToPlaylist}
-                    className="w-full px-4 py-2.5 text-left text-sm text-white hover:bg-white/10 transition-colors flex items-center gap-3"
+                    className="w-full px-3 py-2 text-left text-sm text-white hover:bg-white/10 flex items-center gap-2"
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M12 5v14M5 12h14" />
                     </svg>
                     Add to playlist
                   </button>
                 )}
                 <button
-                  onClick={handleLike}
-                  className="w-full px-4 py-2.5 text-left text-sm text-white hover:bg-white/10 transition-colors flex items-center gap-3"
-                >
-                  <HeartIcon size={16} />
-                  {isLiked ? 'Remove from Liked' : 'Like'}
-                </button>
-                <button
                   onClick={handleShare}
-                  className="w-full px-4 py-2.5 text-left text-sm text-white hover:bg-white/10 transition-colors flex items-center gap-3"
+                  className="w-full px-3 py-2 text-left text-sm text-white hover:bg-white/10 flex items-center gap-2"
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <circle cx="18" cy="5" r="3" />
                     <circle cx="6" cy="12" r="3" />
                     <circle cx="18" cy="19" r="3" />
@@ -222,24 +199,22 @@ export const TrackRow = ({
                 {trackId && (
                   <Link
                     href={`/track/${trackId}`}
-                    onClick={() => setShowMenu(false)}
-                    className="w-full px-4 py-2.5 text-left text-sm text-white hover:bg-white/10 transition-colors flex items-center gap-3"
+                    className="w-full px-3 py-2 text-left text-sm text-white hover:bg-white/10 flex items-center gap-2"
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M9 18V5l12-2v13" />
-                      <circle cx="6" cy="18" r="3" />
-                      <circle cx="18" cy="16" r="3" />
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="16" x2="12" y2="12" />
+                      <line x1="12" y1="8" x2="12.01" y2="8" />
                     </svg>
-                    View track
+                    View details
                   </Link>
                 )}
                 {artistId && (
                   <Link
                     href={`/artist/${artistId}`}
-                    onClick={() => setShowMenu(false)}
-                    className="w-full px-4 py-2.5 text-left text-sm text-white hover:bg-white/10 transition-colors flex items-center gap-3"
+                    className="w-full px-3 py-2 text-left text-sm text-white hover:bg-white/10 flex items-center gap-2"
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                       <circle cx="12" cy="7" r="4" />
                     </svg>
@@ -252,7 +227,6 @@ export const TrackRow = ({
         </div>
       </div>
 
-      {/* Signup Prompt Modal */}
       <SignupPrompt
         isOpen={showSignupPrompt}
         onClose={() => setShowSignupPrompt(false)}
@@ -262,11 +236,11 @@ export const TrackRow = ({
   );
 };
 
-// Track List Header Component (simplified)
-export const TrackListHeader = ({ showAlbum = true }: { showAlbum?: boolean }) => {
+// Simplified header
+export const TrackListHeader = () => {
   return (
-    <div className="flex items-center gap-3 px-3 py-2 border-b border-white/10 text-xs text-white/60 uppercase tracking-wider">
-      <div className="w-10 flex-shrink-0"></div>
+    <div className="flex items-center gap-3 px-3 py-2 border-b border-white/10 text-xs text-white/40 uppercase tracking-wider">
+      <div className="w-12 flex-shrink-0"></div>
       <div className="flex-1">Title</div>
       <div className="w-20"></div>
     </div>

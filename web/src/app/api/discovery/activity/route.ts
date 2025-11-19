@@ -3,6 +3,9 @@ import { apiSuccess, apiServerError, apiValidationError } from '@/lib/api-respon
 import { generateActivityPlaylist } from '@/lib/smart-playlists/algorithms';
 import { createServerSupabaseClient } from '@/lib/supabase';
 
+// Force dynamic rendering since we use database calls
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/discovery/activity?activity=workout|running|study|sleep|party|driving|cooking|meditation
  * Get tracks by activity

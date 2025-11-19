@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { getMediaUrl } from '@/lib/media-utils';
 import { SparklesIcon, MusicIcon } from '@/components/icons';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { usePlayer } from '@/lib/contexts/PlayerContext';
 
 const formatDuration = (ms: number) => {
   const minutes = Math.floor(ms / 60000);
@@ -28,6 +29,7 @@ export default function ActivityBrowsePage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  const { playTrack, setQueue, currentTrack, isPlaying } = usePlayer();
   const activity = params.activity as string;
   const [tracks, setTracks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,6 +37,35 @@ export default function ActivityBrowsePage() {
 
   const info = activityInfo[activity] || { icon: MusicIcon, title: activity, description: 'Browse tracks by activity' };
   const IconComponent = info.icon;
+
+  // Format track for player and play it
+  const handlePlayTrack = (track: any) => {
+    const formattedTrack = {
+      id: track.id,
+      title: track.title,
+      artist: track.artists?.name || track.artist || 'Unknown Artist',
+      artistId: track.artists?.id || track.artist_id,
+      album: track.albums?.title || track.album || 'Unknown Album',
+      albumId: track.albums?.id || track.album_id,
+      image: getMediaUrl(track.albums?.cover_art_url || track.cover_art_url),
+      duration: track.duration_ms || 0,
+    };
+
+    // Set the full list as queue for continuous playback
+    const formattedQueue = tracks.map((t: any) => ({
+      id: t.id,
+      title: t.title,
+      artist: t.artists?.name || t.artist || 'Unknown Artist',
+      artistId: t.artists?.id || t.artist_id,
+      album: t.albums?.title || t.album || 'Unknown Album',
+      albumId: t.albums?.id || t.album_id,
+      image: getMediaUrl(t.albums?.cover_art_url || t.cover_art_url),
+      duration: t.duration_ms || 0,
+    }));
+
+    setQueue(formattedQueue);
+    playTrack(formattedTrack, true);
+  };
 
   useEffect(() => {
     if (!user) {
@@ -107,20 +138,17 @@ export default function ActivityBrowsePage() {
       ) : tracks.length > 0 ? (
         <div className="bg-surface/20 rounded-lg overflow-hidden">
           <div className="divide-y divide-white/5">
-            {tracks.map((track: any, index: number) => (
+            {tracks.map((track: any) => (
               <TrackRow
                 key={track.id}
-                number={index + 1}
                 title={track.title}
                 artist={track.artists?.name || track.artist || 'Unknown Artist'}
-                album={track.albums?.title || track.album || 'Unknown Album'}
-                duration={formatDuration(track.duration_ms || 0)}
                 image={getMediaUrl(track.albums?.cover_art_url || track.cover_art_url)}
                 showImage={true}
-                showAlbum={true}
                 trackId={track.id}
                 artistId={track.artists?.id || track.artist_id}
-                albumId={track.albums?.id || track.album_id}
+                isPlaying={currentTrack?.id === track.id && isPlaying}
+                onPlay={() => handlePlayTrack(track)}
               />
             ))}
           </div>

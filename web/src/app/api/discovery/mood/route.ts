@@ -3,6 +3,9 @@ import { apiSuccess, apiServerError, apiValidationError } from '@/lib/api-respon
 import { generateMoodPlaylist } from '@/lib/smart-playlists/algorithms';
 import { createServerSupabaseClient } from '@/lib/supabase';
 
+// Force dynamic rendering since we use database calls
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/discovery/mood?mood=happy|sad|energetic|chill|focused|romantic|angry|peaceful
  * Get tracks by mood
