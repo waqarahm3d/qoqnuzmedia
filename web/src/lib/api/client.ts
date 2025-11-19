@@ -446,6 +446,7 @@ export async function getGenres() {
   const { data, error } = await supabase
     .from('genres')
     .select('*')
+    .eq('is_active', true)
     .order('name');
 
   if (error) throw error;
