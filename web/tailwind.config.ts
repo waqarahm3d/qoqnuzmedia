@@ -77,6 +77,7 @@ const config: Config = {
         'chip-pulse': 'chip-pulse 2s ease-in-out infinite',
         'chip-float': 'chip-float 3s ease-in-out infinite',
         'border-dance': 'border-dance 1.5s ease-in-out infinite',
+        'spin-slow': 'spin 20s linear infinite',
       },
     },
   },
