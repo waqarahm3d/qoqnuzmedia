@@ -50,7 +50,7 @@ export async function generateDailyMix(userId: string, limit: number = 50): Prom
       track_id,
       tracks (
         id, title, artist_id, genres, mood_tags,
-        artists (id, name)
+        artists!tracks_artist_id_fkey (id, name)
       )
     `)
     .eq('user_id', userId)
@@ -103,7 +103,7 @@ export async function generateDailyMix(userId: string, limit: number = 50): Prom
     .from('tracks')
     .select(`
       *,
-      artists (id, name)
+      artists!tracks_artist_id_fkey (id, name)
     `)
     .not('id', 'in', `(${Array.from(playedTrackIds).join(',')})`)
     .limit(limit);
@@ -194,7 +194,7 @@ export async function generateNewForYou(userId: string, limit: number = 50): Pro
     // Fallback: newest tracks overall
     const { data: newTracks } = await supabase
       .from('tracks')
-      .select('*, artists (id, name)')
+      .select('*, artists!tracks_artist_id_fkey (id, name)')
       .order('created_at', { ascending: false })
       .limit(limit);
 
@@ -221,7 +221,7 @@ export async function generateNewForYou(userId: string, limit: number = 50): Pro
   // Find new tracks in favorite genres, exclude already played
   const { data: newTracks } = await supabase
     .from('tracks')
-    .select('*, artists (id, name)')
+    .select('*, artists!tracks_artist_id_fkey (id, name)')
     .overlaps('genres', genres)
     .gte('created_at', new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString()) // Last 14 days
     .order('created_at', { ascending: false })
@@ -256,7 +256,7 @@ export async function generateForgottenFavorites(userId: string, limit: number =
       track_id,
       tracks (
         *,
-        artists (id, name)
+        artists!tracks_artist_id_fkey (id, name)
       )
     `)
     .eq('user_id', userId);
@@ -343,7 +343,7 @@ export async function generateDiscovery(userId: string, limit: number = 50): Pro
       similarity_score,
       similar_tracks:similar_track_id (
         *,
-        artists (id, name)
+        artists!tracks_artist_id_fkey (id, name)
       )
     `)
     .in('track_id', topTrackIds)
@@ -401,9 +401,10 @@ export async function generateMoodPlaylist(mood: string, limit: number = 50): Pr
 
   // Build query based on filters
   // Use overlaps - matches tracks with ANY of the tags
+  // Use explicit relationship hint for artists since there's also a junction table
   let query = supabase
     .from('tracks')
-    .select('*, artists (id, name), albums (id, title, cover_art_url)')
+    .select('*, artists!tracks_artist_id_fkey (id, name), albums (id, title, cover_art_url)')
     .overlaps('mood_tags', searchTags);
 
   // Apply filters from preset (only if preset exists)
@@ -480,9 +481,10 @@ export async function generateActivityPlaylist(activity: string, limit: number =
   }
 
   // Build query - use overlaps to match ANY tag
+  // Use explicit relationship hint for artists since there's also a junction table
   let query = supabase
     .from('tracks')
-    .select('*, artists (id, name), albums (id, title, cover_art_url)')
+    .select('*, artists!tracks_artist_id_fkey (id, name), albums (id, title, cover_art_url)')
     .overlaps('activity_tags', activityPreset.tags);
 
   // Apply filters
@@ -527,7 +529,7 @@ export async function generateBPMPlaylist(targetBPM: number, range: number = 10,
 
   const { data: tracks } = await supabase
     .from('tracks')
-    .select('*, artists (id, name)')
+    .select('*, artists!tracks_artist_id_fkey (id, name)')
     .not('tempo_bpm', 'is', null)
     .gte('tempo_bpm', minBPM)
     .lte('tempo_bpm', maxBPM)
@@ -558,7 +560,7 @@ async function generatePopularMix(limit: number = 50): Promise<GenerationResult>
 
   const { data: tracks } = await supabase
     .from('tracks')
-    .select('*, artists (id, name)')
+    .select('*, artists!tracks_artist_id_fkey (id, name)')
     .order('popularity', { ascending: false })
     .limit(limit);
 
