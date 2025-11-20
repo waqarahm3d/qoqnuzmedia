@@ -624,3 +624,592 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 */
+
+/**
+ * ============================================
+ * NEW PLAYLIST ALGORITHMS
+ * ============================================
+ */
+
+/**
+ * Trending Now - Most played tracks in the last 7 days
+ */
+export async function generateTrendingNow(limit: number = 50): Promise<GenerationResult> {
+  const supabase = await createServerSupabaseClient();
+
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+  // Get play counts from last 7 days
+  const { data: recentPlays } = await supabase
+    .from('play_history')
+    .select('track_id')
+    .gte('played_at', sevenDaysAgo);
+
+  if (!recentPlays || recentPlays.length === 0) {
+    return generatePopularMix(limit);
+  }
+
+  // Count plays per track
+  const playCountMap = new Map<string, number>();
+  recentPlays.forEach(({ track_id }) => {
+    playCountMap.set(track_id, (playCountMap.get(track_id) || 0) + 1);
+  });
+
+  // Sort by play count
+  const topTrackIds = Array.from(playCountMap.entries())
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, limit)
+    .map(([id]) => id);
+
+  if (topTrackIds.length === 0) {
+    return generatePopularMix(limit);
+  }
+
+  // Fetch track details
+  const { data: tracks } = await supabase
+    .from('tracks')
+    .select('*, artists!tracks_artist_id_fkey (id, name), albums (id, title, cover_art_url)')
+    .in('id', topTrackIds);
+
+  // Sort tracks by play count
+  const sortedTracks = (tracks || []).sort((a, b) => {
+    return (playCountMap.get(b.id) || 0) - (playCountMap.get(a.id) || 0);
+  });
+
+  return {
+    tracks: sortedTracks,
+    metadata: {
+      algorithm: 'trending_now',
+      generatedAt: new Date().toISOString(),
+      trackCount: sortedTracks.length,
+      criteria: {
+        periodDays: 7,
+        totalPlays: recentPlays.length,
+      },
+    },
+  };
+}
+
+/**
+ * Recently Added - Newest tracks on the platform
+ */
+export async function generateRecentlyAdded(limit: number = 50): Promise<GenerationResult> {
+  const supabase = await createServerSupabaseClient();
+
+  const { data: tracks } = await supabase
+    .from('tracks')
+    .select('*, artists!tracks_artist_id_fkey (id, name), albums (id, title, cover_art_url)')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  return {
+    tracks: tracks || [],
+    metadata: {
+      algorithm: 'recently_added',
+      generatedAt: new Date().toISOString(),
+      trackCount: tracks?.length || 0,
+      criteria: {
+        sortBy: 'created_at',
+      },
+    },
+  };
+}
+
+/**
+ * Genre Mix - Deep dive into a specific genre
+ */
+export async function generateGenreMix(genre: string, limit: number = 50): Promise<GenerationResult> {
+  const supabase = await createServerSupabaseClient();
+
+  const { data: tracks } = await supabase
+    .from('tracks')
+    .select('*, artists!tracks_artist_id_fkey (id, name), albums (id, title, cover_art_url)')
+    .contains('genres', [genre])
+    .order('play_count', { ascending: false, nullsFirst: false })
+    .limit(limit * 2);
+
+  // Shuffle to add variety
+  const shuffled = (tracks || []).sort(() => Math.random() - 0.5).slice(0, limit);
+
+  return {
+    tracks: shuffled,
+    metadata: {
+      algorithm: 'genre_mix',
+      generatedAt: new Date().toISOString(),
+      trackCount: shuffled.length,
+      criteria: {
+        genre,
+      },
+    },
+  };
+}
+
+/**
+ * Decade Mix - Tracks from a specific decade/era
+ */
+export async function generateDecadeMix(decade: number, limit: number = 50): Promise<GenerationResult> {
+  const supabase = await createServerSupabaseClient();
+
+  const startYear = decade;
+  const endYear = decade + 9;
+
+  // Try release_date first, fallback to created_at for newer uploads
+  const { data: tracks } = await supabase
+    .from('tracks')
+    .select('*, artists!tracks_artist_id_fkey (id, name), albums (id, title, cover_art_url)')
+    .or(`release_date.gte.${startYear}-01-01,release_date.lte.${endYear}-12-31`)
+    .order('play_count', { ascending: false, nullsFirst: false })
+    .limit(limit * 2);
+
+  // Shuffle for variety
+  const shuffled = (tracks || []).sort(() => Math.random() - 0.5).slice(0, limit);
+
+  return {
+    tracks: shuffled,
+    metadata: {
+      algorithm: 'decade_mix',
+      generatedAt: new Date().toISOString(),
+      trackCount: shuffled.length,
+      criteria: {
+        decade,
+        yearRange: `${startYear}-${endYear}`,
+      },
+    },
+  };
+}
+
+/**
+ * Artist Radio - Generate playlist based on a seed artist
+ * Finds tracks from the artist and similar artists
+ */
+export async function generateArtistRadio(artistId: string, limit: number = 50): Promise<GenerationResult> {
+  const supabase = await createServerSupabaseClient();
+
+  // Get seed artist info and their tracks
+  const { data: artistData } = await supabase
+    .from('artists')
+    .select('id, name, genres')
+    .eq('id', artistId)
+    .single();
+
+  if (!artistData) {
+    return {
+      tracks: [],
+      metadata: {
+        algorithm: 'artist_radio',
+        generatedAt: new Date().toISOString(),
+        trackCount: 0,
+        criteria: { error: 'Artist not found' },
+      },
+    };
+  }
+
+  // Get tracks from the seed artist (up to 30%)
+  const { data: artistTracks } = await supabase
+    .from('tracks')
+    .select('*, artists!tracks_artist_id_fkey (id, name), albums (id, title, cover_art_url)')
+    .eq('artist_id', artistId)
+    .order('play_count', { ascending: false, nullsFirst: false })
+    .limit(Math.ceil(limit * 0.3));
+
+  // Find similar artists by genre overlap
+  const artistGenres = artistData.genres || [];
+  let similarArtistTracks: any[] = [];
+
+  if (artistGenres.length > 0) {
+    // Get artists with similar genres
+    const { data: similarArtists } = await supabase
+      .from('artists')
+      .select('id')
+      .neq('id', artistId)
+      .overlaps('genres', artistGenres)
+      .limit(20);
+
+    if (similarArtists && similarArtists.length > 0) {
+      const similarArtistIds = similarArtists.map(a => a.id);
+
+      // Get tracks from similar artists
+      const { data: simTracks } = await supabase
+        .from('tracks')
+        .select('*, artists!tracks_artist_id_fkey (id, name), albums (id, title, cover_art_url)')
+        .in('artist_id', similarArtistIds)
+        .order('play_count', { ascending: false, nullsFirst: false })
+        .limit(limit);
+
+      similarArtistTracks = simTracks || [];
+    }
+  }
+
+  // Also get tracks with similar genres
+  let genreMatches: any[] = [];
+  if (artistGenres.length > 0) {
+    const { data: genreTracks } = await supabase
+      .from('tracks')
+      .select('*, artists!tracks_artist_id_fkey (id, name), albums (id, title, cover_art_url)')
+      .neq('artist_id', artistId)
+      .overlaps('genres', artistGenres)
+      .order('play_count', { ascending: false, nullsFirst: false })
+      .limit(limit);
+
+    genreMatches = genreTracks || [];
+  }
+
+  // Combine and deduplicate
+  const trackMap = new Map<string, any>();
+
+  // Add artist's own tracks first
+  (artistTracks || []).forEach(t => trackMap.set(t.id, { ...t, _priority: 3 }));
+
+  // Add similar artist tracks
+  similarArtistTracks.forEach(t => {
+    if (!trackMap.has(t.id)) {
+      trackMap.set(t.id, { ...t, _priority: 2 });
+    }
+  });
+
+  // Add genre matches
+  genreMatches.forEach(t => {
+    if (!trackMap.has(t.id)) {
+      trackMap.set(t.id, { ...t, _priority: 1 });
+    }
+  });
+
+  // Sort by priority then shuffle within priority groups
+  const allTracks = Array.from(trackMap.values())
+    .sort((a, b) => b._priority - a._priority)
+    .slice(0, limit);
+
+  // Apply variety shuffle
+  const shuffled = shuffleWithVariety(allTracks).map(({ _priority, ...t }) => t);
+
+  return {
+    tracks: shuffled,
+    metadata: {
+      algorithm: 'artist_radio',
+      generatedAt: new Date().toISOString(),
+      trackCount: shuffled.length,
+      criteria: {
+        seedArtist: artistData.name,
+        seedArtistId: artistId,
+        artistGenres,
+        artistTracksIncluded: artistTracks?.length || 0,
+        similarArtistTracksFound: similarArtistTracks.length,
+      },
+    },
+  };
+}
+
+/**
+ * Track Radio - Generate playlist based on a seed track
+ * Finds similar tracks by genre, mood, tempo, and energy
+ */
+export async function generateTrackRadio(trackId: string, limit: number = 50): Promise<GenerationResult> {
+  const supabase = await createServerSupabaseClient();
+
+  // Get seed track info
+  const { data: seedTrack } = await supabase
+    .from('tracks')
+    .select('*, artists!tracks_artist_id_fkey (id, name)')
+    .eq('id', trackId)
+    .single();
+
+  if (!seedTrack) {
+    return {
+      tracks: [],
+      metadata: {
+        algorithm: 'track_radio',
+        generatedAt: new Date().toISOString(),
+        trackCount: 0,
+        criteria: { error: 'Track not found' },
+      },
+    };
+  }
+
+  // First, check if we have pre-computed similarities
+  const { data: precomputedSimilar } = await supabase
+    .from('track_similarities')
+    .select(`
+      similar_track_id,
+      similarity_score,
+      similar_tracks:similar_track_id (
+        *,
+        artists!tracks_artist_id_fkey (id, name),
+        albums (id, title, cover_art_url)
+      )
+    `)
+    .eq('track_id', trackId)
+    .order('similarity_score', { ascending: false })
+    .limit(limit);
+
+  if (precomputedSimilar && precomputedSimilar.length >= limit / 2) {
+    const tracks = precomputedSimilar
+      .map((s: any) => s.similar_tracks)
+      .filter(Boolean);
+
+    return {
+      tracks,
+      metadata: {
+        algorithm: 'track_radio',
+        generatedAt: new Date().toISOString(),
+        trackCount: tracks.length,
+        criteria: {
+          seedTrack: seedTrack.title,
+          seedTrackId: trackId,
+          source: 'precomputed_similarities',
+        },
+      },
+    };
+  }
+
+  // Fallback: compute similarity on-the-fly
+  const genres = seedTrack.genres || [];
+  const moodTags = seedTrack.mood_tags || [];
+  const tempo = seedTrack.tempo_bpm;
+  const energy = seedTrack.energy_level;
+  const valence = seedTrack.valence;
+
+  // Build query for similar tracks
+  let query = supabase
+    .from('tracks')
+    .select('*, artists!tracks_artist_id_fkey (id, name), albums (id, title, cover_art_url)')
+    .neq('id', trackId);
+
+  // Get tracks and score them
+  const { data: candidateTracks } = await query.limit(500);
+
+  if (!candidateTracks || candidateTracks.length === 0) {
+    return generatePopularMix(limit);
+  }
+
+  // Score each track by similarity
+  const scoredTracks = candidateTracks.map(track => {
+    let score = 0;
+
+    // Genre match (max 40 points)
+    if (track.genres && genres.length > 0) {
+      const genreOverlap = track.genres.filter((g: string) => genres.includes(g)).length;
+      score += (genreOverlap / Math.max(genres.length, 1)) * 40;
+    }
+
+    // Mood match (max 20 points)
+    if (track.mood_tags && moodTags.length > 0) {
+      const moodOverlap = track.mood_tags.filter((m: string) => moodTags.includes(m)).length;
+      score += (moodOverlap / Math.max(moodTags.length, 1)) * 20;
+    }
+
+    // Tempo similarity (max 15 points)
+    if (tempo && track.tempo_bpm) {
+      const tempoDiff = Math.abs(tempo - track.tempo_bpm);
+      if (tempoDiff <= 10) score += 15;
+      else if (tempoDiff <= 20) score += 10;
+      else if (tempoDiff <= 30) score += 5;
+    }
+
+    // Energy similarity (max 15 points)
+    if (energy && track.energy_level) {
+      const energyDiff = Math.abs(energy - track.energy_level);
+      score += Math.max(0, 15 - energyDiff * 3);
+    }
+
+    // Valence similarity (max 10 points)
+    if (valence && track.valence) {
+      const valenceDiff = Math.abs(valence - track.valence);
+      score += Math.max(0, 10 - valenceDiff * 2);
+    }
+
+    // Same artist bonus (small)
+    if (track.artist_id === seedTrack.artist_id) {
+      score += 5;
+    }
+
+    return { ...track, _score: score };
+  });
+
+  // Sort by score and take top tracks
+  const selectedTracks = scoredTracks
+    .sort((a, b) => b._score - a._score)
+    .slice(0, limit);
+
+  // Apply variety shuffle
+  const shuffled = shuffleWithVariety(selectedTracks).map(({ _score, ...t }) => t);
+
+  return {
+    tracks: shuffled,
+    metadata: {
+      algorithm: 'track_radio',
+      generatedAt: new Date().toISOString(),
+      trackCount: shuffled.length,
+      criteria: {
+        seedTrack: seedTrack.title,
+        seedTrackId: trackId,
+        seedGenres: genres,
+        seedMoods: moodTags,
+        seedTempo: tempo,
+        seedEnergy: energy,
+        source: 'computed_similarity',
+      },
+    },
+  };
+}
+
+/**
+ * Compute and store track similarities for a track
+ * This populates the track_similarities table
+ */
+export async function computeTrackSimilarities(trackId: string): Promise<{ computed: number; stored: number }> {
+  const supabase = await createServerSupabaseClient();
+
+  // Get seed track
+  const { data: seedTrack } = await supabase
+    .from('tracks')
+    .select('*')
+    .eq('id', trackId)
+    .single();
+
+  if (!seedTrack) {
+    throw new Error('Track not found');
+  }
+
+  const genres = seedTrack.genres || [];
+  const moodTags = seedTrack.mood_tags || [];
+  const tempo = seedTrack.tempo_bpm;
+  const energy = seedTrack.energy_level;
+  const valence = seedTrack.valence;
+
+  // Get all other tracks
+  const { data: allTracks } = await supabase
+    .from('tracks')
+    .select('id, genres, mood_tags, tempo_bpm, energy_level, valence, artist_id')
+    .neq('id', trackId);
+
+  if (!allTracks || allTracks.length === 0) {
+    return { computed: 0, stored: 0 };
+  }
+
+  // Compute similarities
+  const similarities: Array<{
+    track_id: string;
+    similar_track_id: string;
+    similarity_score: number;
+    genre_score: number;
+    mood_score: number;
+    audio_score: number;
+  }> = [];
+
+  allTracks.forEach(track => {
+    let genreScore = 0;
+    let moodScore = 0;
+    let audioScore = 0;
+
+    // Genre score (0-1)
+    if (track.genres && genres.length > 0) {
+      const overlap = track.genres.filter((g: string) => genres.includes(g)).length;
+      genreScore = overlap / Math.max(genres.length, track.genres.length);
+    }
+
+    // Mood score (0-1)
+    if (track.mood_tags && moodTags.length > 0) {
+      const overlap = track.mood_tags.filter((m: string) => moodTags.includes(m)).length;
+      moodScore = overlap / Math.max(moodTags.length, track.mood_tags.length);
+    }
+
+    // Audio features score (0-1)
+    let audioFactors = 0;
+    let audioTotal = 0;
+
+    if (tempo && track.tempo_bpm) {
+      const tempoDiff = Math.abs(tempo - track.tempo_bpm);
+      audioTotal += Math.max(0, 1 - tempoDiff / 50);
+      audioFactors++;
+    }
+
+    if (energy && track.energy_level) {
+      audioTotal += Math.max(0, 1 - Math.abs(energy - track.energy_level) / 10);
+      audioFactors++;
+    }
+
+    if (valence && track.valence) {
+      audioTotal += Math.max(0, 1 - Math.abs(valence - track.valence) / 10);
+      audioFactors++;
+    }
+
+    if (audioFactors > 0) {
+      audioScore = audioTotal / audioFactors;
+    }
+
+    // Combined score (weighted average)
+    const totalScore = genreScore * 0.4 + moodScore * 0.3 + audioScore * 0.3;
+
+    // Only store if similarity is above threshold
+    if (totalScore >= 0.3) {
+      similarities.push({
+        track_id: trackId,
+        similar_track_id: track.id,
+        similarity_score: Math.round(totalScore * 1000) / 1000,
+        genre_score: Math.round(genreScore * 1000) / 1000,
+        mood_score: Math.round(moodScore * 1000) / 1000,
+        audio_score: Math.round(audioScore * 1000) / 1000,
+      });
+    }
+  });
+
+  // Sort by score and take top 100
+  const topSimilarities = similarities
+    .sort((a, b) => b.similarity_score - a.similarity_score)
+    .slice(0, 100);
+
+  // Delete old similarities for this track
+  await supabase
+    .from('track_similarities')
+    .delete()
+    .eq('track_id', trackId);
+
+  // Insert new similarities
+  if (topSimilarities.length > 0) {
+    const { error } = await supabase
+      .from('track_similarities')
+      .insert(topSimilarities);
+
+    if (error) {
+      console.error('Error storing similarities:', error);
+    }
+  }
+
+  return {
+    computed: allTracks.length,
+    stored: topSimilarities.length,
+  };
+}
+
+/**
+ * Compute similarities for all tracks (batch job)
+ */
+export async function computeAllTrackSimilarities(): Promise<{ totalTracks: number; processed: number }> {
+  const supabase = await createServerSupabaseClient();
+
+  // Get all track IDs
+  const { data: tracks } = await supabase
+    .from('tracks')
+    .select('id')
+    .order('created_at', { ascending: false });
+
+  if (!tracks || tracks.length === 0) {
+    return { totalTracks: 0, processed: 0 };
+  }
+
+  let processed = 0;
+  for (const track of tracks) {
+    try {
+      await computeTrackSimilarities(track.id);
+      processed++;
+      console.log(`[Similarity] Processed ${processed}/${tracks.length}: ${track.id}`);
+    } catch (error) {
+      console.error(`[Similarity] Error processing ${track.id}:`, error);
+    }
+  }
+
+  return {
+    totalTracks: tracks.length,
+    processed,
+  };
+}
