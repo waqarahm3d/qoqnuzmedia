@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Qoqnuz Music',
+    title: 'Qoqnuz',
   },
   formatDetection: {
     telephone: false,
