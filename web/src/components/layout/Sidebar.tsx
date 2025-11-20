@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import {
   HomeIcon,
   SearchIcon,
@@ -13,6 +14,13 @@ import {
   DownloadIcon,
 } from '../icons';
 import { usePlaylists } from '@/lib/hooks/useMusic';
+
+interface CustomPage {
+  id: string;
+  title: string;
+  slug: string;
+  display_in_footer: boolean;
+}
 
 const navItems = [
   { name: 'Home', href: '/home', icon: HomeIcon },
@@ -31,8 +39,29 @@ const libraryItems = [
 export const Sidebar = () => {
   const pathname = usePathname();
   const { playlists, loading } = usePlaylists(10);
+  const [customPages, setCustomPages] = useState<CustomPage[]>([]);
+  const [pagesLoading, setPagesLoading] = useState(true);
 
   const isActive = (href: string) => pathname === href;
+
+  useEffect(() => {
+    fetchCustomPages();
+  }, []);
+
+  const fetchCustomPages = async () => {
+    try {
+      setPagesLoading(true);
+      const response = await fetch('/api/pages');
+      if (response.ok) {
+        const data = await response.json();
+        setCustomPages(data.pages.filter((p: CustomPage) => p.display_in_footer));
+      }
+    } catch (error) {
+      console.error('Failed to fetch custom pages:', error);
+    } finally {
+      setPagesLoading(false);
+    }
+  };
 
   return (
     <aside className="hidden lg:flex lg:flex-col w-64 bg-black p-6 gap-6">
@@ -87,6 +116,23 @@ export const Sidebar = () => {
           )}
         </div>
       </div>
+
+      {/* Custom Pages Section */}
+      {!pagesLoading && customPages.length > 0 && (
+        <div className="border-t border-white/10 pt-6 space-y-2">
+          {customPages.map((page) => (
+            <Link
+              key={page.id}
+              href={`/${page.slug}`}
+              className={`block text-sm transition-colors ${
+                pathname === `/${page.slug}` ? 'text-white' : 'text-white/60 hover:text-white'
+              }`}
+            >
+              {page.title}
+            </Link>
+          ))}
+        </div>
+      )}
 
       {/* Install App Prompt */}
       <div className="border-t border-white/10 pt-6">

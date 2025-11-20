@@ -81,7 +81,7 @@ export const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm">
+    <header className="lg:sticky lg:top-0 z-40 bg-background/95 backdrop-blur-sm">
       <div className="flex items-center justify-between px-4 lg:px-8 py-4">
         {/* Logo - Customizable from admin settings */}
         <Link
