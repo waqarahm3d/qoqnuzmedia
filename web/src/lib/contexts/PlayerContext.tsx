@@ -46,6 +46,8 @@ interface PlayerContextType {
   skipBackward: () => void;
   addToQueue: (track: Track) => void;
   setQueue: (tracks: Track[]) => void;
+  removeFromQueue: (index: number) => void;
+  clearQueue: () => void;
   confirmStillListening: () => void;
   openOverlay: () => void;
   closeOverlay: () => void;
@@ -544,6 +546,29 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setQueue([...queue, track]);
   };
 
+  const removeFromQueue = useCallback((index: number) => {
+    setQueue(prevQueue => {
+      const newQueue = [...prevQueue];
+      newQueue.splice(index, 1);
+      return newQueue;
+    });
+    // Adjust queueIndex if needed
+    if (index < queueIndex) {
+      setQueueIndex(prev => prev - 1);
+    }
+  }, [queueIndex]);
+
+  const clearQueue = useCallback(() => {
+    // Keep only the current track in queue
+    if (currentTrack) {
+      setQueue([currentTrack]);
+      setQueueIndex(0);
+    } else {
+      setQueue([]);
+      setQueueIndex(0);
+    }
+  }, [currentTrack]);
+
   const setQueueWithTracks = (tracks: Track[]) => {
     setQueue(tracks);
     setQueueIndex(0);
@@ -599,6 +624,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         skipBackward,
         addToQueue,
         setQueue: setQueueWithTracks,
+        removeFromQueue,
+        clearQueue,
         confirmStillListening,
         openOverlay,
         closeOverlay,
