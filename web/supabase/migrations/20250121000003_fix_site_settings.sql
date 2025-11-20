@@ -111,7 +111,7 @@ CREATE POLICY "Admins can view all settings"
     ON site_settings FOR SELECT
     USING (
         auth.uid() IN (
-            SELECT user_id FROM admin_users WHERE is_active = true
+            SELECT user_id FROM admin_users
         )
     );
 
@@ -120,7 +120,7 @@ CREATE POLICY "Admins can update settings"
     ON site_settings FOR UPDATE
     USING (
         auth.uid() IN (
-            SELECT user_id FROM admin_users WHERE is_active = true
+            SELECT user_id FROM admin_users
         )
     );
 
@@ -129,7 +129,7 @@ CREATE POLICY "Admins can insert settings"
     ON site_settings FOR INSERT
     WITH CHECK (
         auth.uid() IN (
-            SELECT user_id FROM admin_users WHERE is_active = true
+            SELECT user_id FROM admin_users
         )
     );
 
@@ -138,7 +138,7 @@ CREATE POLICY "Admins can delete settings"
     ON site_settings FOR DELETE
     USING (
         auth.uid() IN (
-            SELECT user_id FROM admin_users WHERE is_active = true
+            SELECT user_id FROM admin_users
         )
     );
 
