@@ -7,6 +7,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { SignupPrompt } from './SignupPrompt';
 import DownloadButton from '../DownloadButton';
+import { useIsDownloaded } from '@/lib/offline';
 
 interface TrackRowProps {
   number?: number;
@@ -39,6 +40,7 @@ export const TrackRow = ({
   artistId,
 }: TrackRowProps) => {
   const { user } = useAuth();
+  const isDownloaded = useIsDownloaded(trackId || '');
   const [showMenu, setShowMenu] = useState(false);
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -151,8 +153,17 @@ export const TrackRow = ({
 
         {/* Track Info */}
         <div className="flex-1 min-w-0">
-          <div className={`font-medium truncate text-sm ${isPlaying ? 'text-primary' : 'text-white'}`}>
-            {title}
+          <div className={`font-medium truncate text-sm ${isPlaying ? 'text-primary' : 'text-white'} flex items-center gap-1.5`}>
+            <span className="truncate">{title}</span>
+            {isDownloaded && (
+              <span className="flex-shrink-0 inline-flex items-center gap-0.5 text-[10px] text-green-400 bg-green-400/10 px-1.5 py-0.5 rounded">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+              </span>
+            )}
           </div>
           <div className="text-xs text-white/60 truncate">{artist}</div>
         </div>

@@ -18,6 +18,7 @@ import {
 } from '../icons';
 import { TrackContextMenu } from './TrackContextMenu';
 import DownloadButton from '../DownloadButton';
+import { useIsDownloaded } from '@/lib/offline';
 
 export const NowPlayingOverlay = () => {
   const {
@@ -43,6 +44,7 @@ export const NowPlayingOverlay = () => {
     closeOverlay,
   } = usePlayer();
 
+  const isDownloaded = useIsDownloaded(currentTrack?.id || '');
   const [showMenu, setShowMenu] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const progressBarRef = useRef<HTMLDivElement>(null);
@@ -125,9 +127,21 @@ export const NowPlayingOverlay = () => {
 
           {/* Track info */}
           <div className="w-full max-w-md lg:max-w-lg mb-8">
-            <h1 className="text-2xl lg:text-3xl font-bold mb-2 text-center truncate">
-              {currentTrack.title}
-            </h1>
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <h1 className="text-2xl lg:text-3xl font-bold text-center truncate">
+                {currentTrack.title}
+              </h1>
+              {isDownloaded && (
+                <span className="flex-shrink-0 inline-flex items-center gap-1 text-xs text-green-400 bg-green-400/10 px-2 py-1 rounded">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  <span>Downloaded</span>
+                </span>
+              )}
+            </div>
             <p className="text-base lg:text-lg text-white/60 text-center truncate">
               {currentTrack.artist}
             </p>

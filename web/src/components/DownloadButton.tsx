@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useIsDownloaded, useDownloadManager } from '@/lib/offline';
+import { useAuth } from '@/lib/auth/AuthContext';
+import { SignupPrompt } from './ui/SignupPrompt';
 
 interface DownloadButtonProps {
   track: {
@@ -42,12 +44,20 @@ export default function DownloadButton({
   showLabel = false,
   className = '',
 }: DownloadButtonProps) {
+  const { user } = useAuth();
   const isDownloaded = useIsDownloaded(track.id);
   const { addToQueue } = useDownloadManager();
   const [isAdding, setIsAdding] = useState(false);
+  const [showSignupPrompt, setShowSignupPrompt] = useState(false);
 
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
+
+    // Check authentication first
+    if (!user) {
+      setShowSignupPrompt(true);
+      return;
+    }
 
     if (isDownloaded || isAdding) return;
 
@@ -81,24 +91,32 @@ export default function DownloadButton({
   }
 
   return (
-    <button
-      onClick={handleClick}
-      className={`${padding} rounded-full bg-white/10 hover:bg-white/20 transition-colors ${
-        isAdding ? 'opacity-50' : ''
-      } ${className}`}
-      title={isAdding ? 'Adding to queue...' : 'Download for offline'}
-      disabled={isAdding}
-    >
-      {isAdding ? (
-        <LoadingIcon size={iconSize} />
-      ) : (
-        <DownloadIcon size={iconSize} />
-      )}
-      {showLabel && (
-        <span className="ml-1.5 text-sm">
-          {isAdding ? 'Adding...' : 'Download'}
-        </span>
-      )}
-    </button>
+    <>
+      <button
+        onClick={handleClick}
+        className={`${padding} rounded-full bg-white/10 hover:bg-white/20 transition-colors ${
+          isAdding ? 'opacity-50' : ''
+        } ${className}`}
+        title={isAdding ? 'Adding to queue...' : 'Download for offline'}
+        disabled={isAdding}
+      >
+        {isAdding ? (
+          <LoadingIcon size={iconSize} />
+        ) : (
+          <DownloadIcon size={iconSize} />
+        )}
+        {showLabel && (
+          <span className="ml-1.5 text-sm">
+            {isAdding ? 'Adding...' : 'Download'}
+          </span>
+        )}
+      </button>
+
+      <SignupPrompt
+        isOpen={showSignupPrompt}
+        onClose={() => setShowSignupPrompt(false)}
+        action="download this track for offline listening"
+      />
+    </>
   );
 }

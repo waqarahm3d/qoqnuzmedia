@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
 import * as api from '@/lib/api/client';
-import { useDownloadManager } from '@/lib/offline';
+import { useDownloadManager, useIsDownloaded } from '@/lib/offline';
 
 interface Track {
   id: string;
@@ -116,6 +116,197 @@ const formatDuration = (ms: number): string => {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+};
+
+// Track item component to use download hook
+const TrackItem = ({
+  track,
+  index,
+  isCurrent,
+  isHovered,
+  isPlaying,
+  showIndex,
+  compact,
+  showAlbum,
+  showDuration,
+  likedTracks,
+  openMenuIndex,
+  onMouseEnter,
+  onMouseLeave,
+  onClick,
+  onMenuToggle,
+  onLike,
+  onShare,
+  onAddToPlaylist,
+  onViewAlbum,
+  onDownload,
+  menuRef,
+}: any) => {
+  const isDownloaded = useIsDownloaded(track.id);
+
+  return (
+    <div
+      className={`
+        group flex items-center gap-3 p-2 rounded-lg cursor-pointer
+        transition-colors duration-150
+        ${isCurrent ? 'bg-primary/10' : 'hover:bg-white/5'}
+        ${compact ? 'py-2' : 'py-3'}
+      `}
+      onClick={() => onClick(track, index)}
+      onMouseEnter={() => onMouseEnter(index)}
+      onMouseLeave={() => onMouseLeave()}
+    >
+      {/* Index / Play indicator */}
+      {showIndex && (
+        <div className="w-8 flex-shrink-0 text-center">
+          {isCurrent && isPlaying ? (
+            <span className="text-primary">
+              <EqualizerIcon />
+            </span>
+          ) : isHovered ? (
+            <span className="text-white">
+              {isCurrent && !isPlaying ? <PlayIcon /> : <PlayIcon />}
+            </span>
+          ) : (
+            <span className={`text-sm ${isCurrent ? 'text-primary' : 'text-white/40'}`}>
+              {index + 1}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Album art */}
+      <div className={`flex-shrink-0 bg-white/10 rounded overflow-hidden ${compact ? 'w-10 h-10' : 'w-12 h-12'}`}>
+        {track.image ? (
+          <img
+            src={track.image}
+            alt={track.album}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-white/20">
+            <MusicNoteIcon />
+          </div>
+        )}
+      </div>
+
+      {/* Track info */}
+      <div className="flex-1 min-w-0">
+        <p className={`font-medium truncate ${isCurrent ? 'text-primary' : 'text-white'} ${compact ? 'text-sm' : ''} flex items-center gap-1.5`}>
+          <span className="truncate">{track.title}</span>
+          {isDownloaded && (
+            <span className="flex-shrink-0 inline-flex items-center gap-0.5 text-[10px] text-green-400 bg-green-400/10 px-1.5 py-0.5 rounded">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+            </span>
+          )}
+        </p>
+        <p className={`text-white/60 truncate ${compact ? 'text-xs' : 'text-sm'}`}>
+          {track.artist}
+          {showAlbum && track.album && (
+            <span className="text-white/40"> &bull; {track.album}</span>
+          )}
+        </p>
+      </div>
+
+      {/* Duration */}
+      {showDuration && (
+        <div className={`flex-shrink-0 text-white/40 ${compact ? 'text-xs' : 'text-sm'}`}>
+          {formatDuration(track.duration)}
+        </div>
+      )}
+
+      {/* More options menu */}
+      <div className="relative flex-shrink-0">
+        <button
+          className={`
+            w-8 h-8 rounded-full flex items-center justify-center
+            text-white/40 hover:text-white hover:bg-white/10
+            transition-all duration-150
+            ${openMenuIndex === index ? 'text-white bg-white/10' : 'opacity-0 group-hover:opacity-100'}
+          `}
+          onClick={(e) => {
+            e.stopPropagation();
+            onMenuToggle(index);
+          }}
+        >
+          <MoreIcon />
+        </button>
+
+        {/* Dropdown menu */}
+        {openMenuIndex === index && (
+          <div
+            ref={menuRef}
+            className="absolute right-0 top-full mt-1 w-48 bg-gray-800 rounded-xl shadow-2xl border border-white/10 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150"
+          >
+            <button
+              onClick={(e) => onLike(track, e)}
+              className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors"
+            >
+              <HeartIcon filled={likedTracks.has(track.id)} />
+              <span className="text-sm">
+                {likedTracks.has(track.id) ? 'Unlike' : 'Like'}
+              </span>
+            </button>
+
+            <button
+              onClick={(e) => onShare(track, e)}
+              className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors"
+            >
+              <ShareIcon />
+              <span className="text-sm">Share</span>
+            </button>
+
+            <button
+              onClick={(e) => onAddToPlaylist(track, e)}
+              className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors"
+            >
+              <PlaylistAddIcon />
+              <span className="text-sm">Add to playlist</span>
+            </button>
+
+            <button
+              onClick={(e) => onDownload(track, e)}
+              className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors"
+            >
+              <DownloadIcon />
+              <span className="text-sm">Download for Offline</span>
+            </button>
+
+            {track.albumId && (
+              <button
+                onClick={(e) => onViewAlbum(track, e)}
+                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors"
+              >
+                <AlbumIcon />
+                <span className="text-sm">View album</span>
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Play/Pause button on hover (alternative to index) */}
+      {!showIndex && (
+        <button
+          className={`
+            flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center
+            transition-all duration-150
+            ${isCurrent ? 'bg-primary text-black' : 'bg-white/10 text-white opacity-0 group-hover:opacity-100'}
+          `}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick(track, index);
+          }}
+        >
+          {isCurrent && isPlaying ? <PauseIcon /> : <PlayIcon />}
+        </button>
+      )}
+    </div>
+  );
 };
 
 export default function SongList({
@@ -300,166 +491,32 @@ export default function SongList({
         style={{ maxHeight }}
       >
         <div className="space-y-1">
-          {displayTracks.map((track, index) => {
-            const isCurrent = isCurrentTrack(track.id);
-            const isHovered = hoveredIndex === index;
-
-            return (
-              <div
-                key={`${track.id}-${index}`}
-                className={`
-                  group flex items-center gap-3 p-2 rounded-lg cursor-pointer
-                  transition-colors duration-150
-                  ${isCurrent ? 'bg-primary/10' : 'hover:bg-white/5'}
-                  ${compact ? 'py-2' : 'py-3'}
-                `}
-                onClick={() => handleTrackClick(track, index)}
-                onMouseEnter={() => setHoveredIndex(index)}
-                onMouseLeave={() => setHoveredIndex(null)}
-              >
-                {/* Index / Play indicator */}
-                {showIndex && (
-                  <div className="w-8 flex-shrink-0 text-center">
-                    {isCurrent && isPlaying ? (
-                      <span className="text-primary">
-                        <EqualizerIcon />
-                      </span>
-                    ) : isHovered ? (
-                      <span className="text-white">
-                        {isCurrent && !isPlaying ? <PlayIcon /> : <PlayIcon />}
-                      </span>
-                    ) : (
-                      <span className={`text-sm ${isCurrent ? 'text-primary' : 'text-white/40'}`}>
-                        {index + 1}
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                {/* Album art */}
-                <div className={`flex-shrink-0 bg-white/10 rounded overflow-hidden ${compact ? 'w-10 h-10' : 'w-12 h-12'}`}>
-                  {track.image ? (
-                    <img
-                      src={track.image}
-                      alt={track.album}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white/20">
-                      <MusicNoteIcon />
-                    </div>
-                  )}
-                </div>
-
-                {/* Track info */}
-                <div className="flex-1 min-w-0">
-                  <p className={`font-medium truncate ${isCurrent ? 'text-primary' : 'text-white'} ${compact ? 'text-sm' : ''}`}>
-                    {track.title}
-                  </p>
-                  <p className={`text-white/60 truncate ${compact ? 'text-xs' : 'text-sm'}`}>
-                    {track.artist}
-                    {showAlbum && track.album && (
-                      <span className="text-white/40"> &bull; {track.album}</span>
-                    )}
-                  </p>
-                </div>
-
-                {/* Duration */}
-                {showDuration && (
-                  <div className={`flex-shrink-0 text-white/40 ${compact ? 'text-xs' : 'text-sm'}`}>
-                    {formatDuration(track.duration)}
-                  </div>
-                )}
-
-                {/* More options menu */}
-                <div className="relative flex-shrink-0">
-                  <button
-                    className={`
-                      w-8 h-8 rounded-full flex items-center justify-center
-                      text-white/40 hover:text-white hover:bg-white/10
-                      transition-all duration-150
-                      ${openMenuIndex === index ? 'text-white bg-white/10' : 'opacity-0 group-hover:opacity-100'}
-                    `}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setOpenMenuIndex(openMenuIndex === index ? null : index);
-                    }}
-                  >
-                    <MoreIcon />
-                  </button>
-
-                  {/* Dropdown menu */}
-                  {openMenuIndex === index && (
-                    <div
-                      ref={menuRef}
-                      className="absolute right-0 top-full mt-1 w-48 bg-gray-800 rounded-xl shadow-2xl border border-white/10 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150"
-                    >
-                      <button
-                        onClick={(e) => handleLike(track, e)}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors"
-                      >
-                        <HeartIcon filled={likedTracks.has(track.id)} />
-                        <span className="text-sm">
-                          {likedTracks.has(track.id) ? 'Unlike' : 'Like'}
-                        </span>
-                      </button>
-
-                      <button
-                        onClick={(e) => handleShare(track, e)}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors"
-                      >
-                        <ShareIcon />
-                        <span className="text-sm">Share</span>
-                      </button>
-
-                      <button
-                        onClick={(e) => handleAddToPlaylist(track, e)}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors"
-                      >
-                        <PlaylistAddIcon />
-                        <span className="text-sm">Add to playlist</span>
-                      </button>
-
-                      <button
-                        onClick={(e) => handleDownload(track, e)}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors"
-                      >
-                        <DownloadIcon />
-                        <span className="text-sm">Download for Offline</span>
-                      </button>
-
-                      {track.albumId && (
-                        <button
-                          onClick={(e) => handleViewAlbum(track, e)}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors"
-                        >
-                          <AlbumIcon />
-                          <span className="text-sm">View album</span>
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Play/Pause button on hover (alternative to index) */}
-                {!showIndex && (
-                  <button
-                    className={`
-                      flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center
-                      transition-all duration-150
-                      ${isCurrent ? 'bg-primary text-black' : 'bg-white/10 text-white opacity-0 group-hover:opacity-100'}
-                    `}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleTrackClick(track, index);
-                    }}
-                  >
-                    {isCurrent && isPlaying ? <PauseIcon /> : <PlayIcon />}
-                  </button>
-                )}
-              </div>
-            );
-          })}
+          {displayTracks.map((track, index) => (
+            <TrackItem
+              key={`${track.id}-${index}`}
+              track={track}
+              index={index}
+              isCurrent={isCurrentTrack(track.id)}
+              isHovered={hoveredIndex === index}
+              isPlaying={isPlaying}
+              showIndex={showIndex}
+              compact={compact}
+              showAlbum={showAlbum}
+              showDuration={showDuration}
+              likedTracks={likedTracks}
+              openMenuIndex={openMenuIndex}
+              onMouseEnter={setHoveredIndex}
+              onMouseLeave={() => setHoveredIndex(null)}
+              onClick={handleTrackClick}
+              onMenuToggle={(idx: number) => setOpenMenuIndex(openMenuIndex === idx ? null : idx)}
+              onLike={handleLike}
+              onShare={handleShare}
+              onAddToPlaylist={handleAddToPlaylist}
+              onViewAlbum={handleViewAlbum}
+              onDownload={handleDownload}
+              menuRef={menuRef}
+            />
+          ))}
         </div>
       </div>
     </div>

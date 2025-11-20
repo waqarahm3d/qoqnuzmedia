@@ -10,6 +10,7 @@ import {
   HeartFilledIcon,
   DiscoverIcon,
   SparklesIcon,
+  DownloadIcon,
 } from '../icons';
 import { usePlaylists } from '@/lib/hooks/useMusic';
 
@@ -24,6 +25,7 @@ const libraryItems = [
   { name: 'Create Playlist', href: '/playlist/create', icon: PlusIcon },
   { name: 'Liked Songs', href: '/liked', icon: HeartFilledIcon },
   { name: 'Smart Playlists', href: '/playlists/smart', icon: SparklesIcon },
+  { name: 'Downloads', href: '/downloads', icon: DownloadIcon },
 ];
 
 export const Sidebar = () => {

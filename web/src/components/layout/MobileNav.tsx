@@ -7,12 +7,14 @@ import {
   SearchIcon,
   LibraryIcon,
   DiscoverIcon,
+  DownloadIcon,
 } from '../icons';
 
 const navItems = [
   { name: 'Home', href: '/home', icon: HomeIcon },
   { name: 'Discover', href: '/discover', icon: DiscoverIcon },
   { name: 'Search', href: '/search', icon: SearchIcon },
+  { name: 'Downloads', href: '/downloads', icon: DownloadIcon },
   { name: 'Library', href: '/library', icon: LibraryIcon },
 ];
 
@@ -23,7 +25,7 @@ export const MobileNav = () => {
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-[#0a0a0a] border-t border-white/10 z-50 pb-safe">
-      <div className="grid grid-cols-4 h-16">
+      <div className="grid grid-cols-5 h-16">
         {navItems.map((item) => (
           <Link
             key={item.name}
