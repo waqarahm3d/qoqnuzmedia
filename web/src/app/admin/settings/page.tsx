@@ -64,7 +64,15 @@ export default function SettingsPage() {
 
       if (Array.isArray(data.settings)) {
         data.settings.forEach((setting: Setting) => {
-          settingsMap[setting.key] = setting;
+          // Convert string booleans to actual booleans
+          let parsedValue = setting.value;
+          if (parsedValue === 'true') parsedValue = true;
+          else if (parsedValue === 'false') parsedValue = false;
+
+          settingsMap[setting.key] = {
+            ...setting,
+            value: parsedValue
+          };
         });
       }
 
@@ -177,6 +185,12 @@ export default function SettingsPage() {
         }
       }
 
+      // Convert booleans to strings for database storage
+      const settingsArray = Object.values(settingsToSave).map(setting => ({
+        ...setting,
+        value: typeof setting.value === 'boolean' ? String(setting.value) : setting.value
+      }));
+
       // Send the updated settings to API
       const response = await fetch('/api/admin/settings', {
         method: 'PUT',
@@ -184,7 +198,7 @@ export default function SettingsPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ settings: Object.values(settingsToSave) }),
+        body: JSON.stringify({ settings: settingsArray }),
       });
 
       if (!response.ok) {
