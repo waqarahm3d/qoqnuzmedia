@@ -58,11 +58,23 @@ export async function getSMTPConfig(): Promise<SMTPConfig | null> {
 
     const config: any = {};
     settings.forEach((setting) => {
-      config[setting.key.replace('smtp_', '')] = setting.value;
+      let value = setting.value;
+      const key = setting.key.replace('smtp_', '');
+
+      // Convert string booleans to actual booleans
+      if (value === 'true') value = true;
+      if (value === 'false') value = false;
+
+      // Convert port to number
+      if (key === 'port' && typeof value === 'string') {
+        value = parseInt(value, 10);
+      }
+
+      config[key] = value;
     });
 
     // Validate required fields
-    if (!config.enabled) {
+    if (config.enabled !== true) {
       console.log('SMTP is disabled in settings');
       return null;
     }
@@ -75,8 +87,8 @@ export async function getSMTPConfig(): Promise<SMTPConfig | null> {
     return {
       enabled: config.enabled,
       host: config.host,
-      port: config.port || 587,
-      secure: config.secure || false,
+      port: typeof config.port === 'number' ? config.port : 587,
+      secure: config.secure === true,
       username: config.username,
       password: config.password,
       from_email: config.from_email,
@@ -101,17 +113,23 @@ async function createTransporter() {
   return nodemailer.createTransport({
     host: config.host,
     port: config.port,
-    secure: config.secure,
+    secure: config.secure, // true for 465, false for other ports
     auth: {
       user: config.username,
       pass: config.password,
     },
+    // For port 587, require TLS upgrade via STARTTLS
+    requireTLS: !config.secure && config.port === 587,
     // Additional options for better reliability
     pool: true,
     maxConnections: 5,
     maxMessages: 100,
     rateDelta: 1000,
     rateLimit: 5,
+    // Timeout settings
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
   });
 }
 
@@ -228,19 +246,45 @@ export async function sendBulkEmails(
 export async function testSMTPConnection(): Promise<{
   success: boolean;
   message: string;
+  error?: string;
 }> {
   try {
+    const config = await getSMTPConfig();
+
+    if (!config) {
+      return {
+        success: false,
+        message: 'SMTP is not configured or disabled',
+      };
+    }
+
     const transporter = await createTransporter();
     await transporter.verify();
 
     return {
       success: true,
-      message: 'SMTP connection successful',
+      message: `SMTP connection successful to ${config.host}:${config.port}`,
     };
   } catch (error: any) {
+    console.error('SMTP test error:', error);
+
+    // Provide helpful error messages
+    let message = error.message || 'SMTP connection failed';
+
+    if (error.code === 'ECONNREFUSED') {
+      message = 'Connection refused. Check host and port.';
+    } else if (error.message?.includes('wrong version number')) {
+      message = 'SSL/TLS mismatch. For port 587, set secure to false. For port 465, set secure to true.';
+    } else if (error.code === 'ETIMEDOUT') {
+      message = 'Connection timeout. Check host and firewall settings.';
+    } else if (error.code === 'EAUTH' || error.message?.includes('auth')) {
+      message = 'Authentication failed. Check username and password.';
+    }
+
     return {
       success: false,
-      message: error.message || 'SMTP connection failed',
+      message: message,
+      error: error.toString(),
     };
   }
 }
