@@ -74,13 +74,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const navigation = [
     { name: 'Dashboard', href: '/admin', Icon: DashboardIcon },
     { name: 'Analytics', href: '/admin/analytics', Icon: DiagnosticsIcon },
+    { name: 'Content (CMS)', href: '/admin/content', Icon: FeaturedIcon },
     { name: 'Mood Analysis', href: '/admin/mood-analysis', Icon: MoodIcon },
     { name: 'Artists', href: '/admin/artists', Icon: MicrophoneIcon },
     { name: 'Albums', href: '/admin/albums', Icon: DiscIcon },
     { name: 'Tracks', href: '/admin/tracks', Icon: MusicIcon },
     { name: 'Playlists', href: '/admin/playlists', Icon: PlaylistIcon },
     { name: 'Genres', href: '/admin/genres', Icon: TheaterIcon },
-    { name: 'Featured Sections', href: '/admin/featured-sections', Icon: FeaturedIcon },
+    { name: 'Featured Sections', href: '/admin/featured-sections', Icon: ImageIcon },
     { name: 'Downloads', href: '/admin/downloads', Icon: DownloadIcon },
     { name: 'Users', href: '/admin/users', Icon: UsersIcon },
   ];
