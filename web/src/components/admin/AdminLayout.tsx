@@ -26,6 +26,7 @@ import {
   MoodIcon,
   DiagnosticsIcon,
   EmailIcon,
+  IssuesIcon,
 } from '@/components/icons/admin-icons';
 
 interface AdminLayoutProps {
@@ -72,6 +73,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { name: 'Featured Sections', href: '/admin/featured-sections', Icon: FeaturedIcon },
     { name: 'Downloads', href: '/admin/downloads', Icon: DownloadIcon },
     { name: 'Users', href: '/admin/users', Icon: UsersIcon },
+    { name: 'Issues', href: '/admin/issues', Icon: IssuesIcon },
     { name: 'Email', href: '/admin/email', Icon: EmailIcon },
     { name: 'Theme', href: '/admin/theme', Icon: PaletteIcon },
     { name: 'Settings', href: '/admin/settings', Icon: SettingsIcon },
