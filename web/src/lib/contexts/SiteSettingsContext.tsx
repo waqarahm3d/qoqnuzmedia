@@ -38,10 +38,15 @@ export interface SiteSettings {
   // Upload Settings
   max_upload_size_mb: number;
 
-  // OAuth
+  // OAuth Providers
   oauth_google_enabled: boolean;
   oauth_apple_enabled: boolean;
   oauth_facebook_enabled: boolean;
+  oauth_github_enabled: boolean;
+  oauth_twitter_enabled: boolean;
+  oauth_discord_enabled: boolean;
+  oauth_microsoft_enabled: boolean;
+  oauth_spotify_enabled: boolean;
 
   // Headers & Messages
   home_hero_title: string;
@@ -107,10 +112,15 @@ const defaultSettings: SiteSettings = {
   // Upload Settings
   max_upload_size_mb: 500,
 
-  // OAuth
-  oauth_google_enabled: false,
-  oauth_apple_enabled: false,
+  // OAuth Providers
+  oauth_google_enabled: true,
+  oauth_apple_enabled: true,
   oauth_facebook_enabled: false,
+  oauth_github_enabled: false,
+  oauth_twitter_enabled: false,
+  oauth_discord_enabled: false,
+  oauth_microsoft_enabled: false,
+  oauth_spotify_enabled: false,
 
   // Headers & Messages
   home_hero_title: 'Welcome to Qoqnuz Music',
