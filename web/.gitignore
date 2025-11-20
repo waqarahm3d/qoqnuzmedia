@@ -41,3 +41,7 @@ next-env.d.ts
 
 # Temp audio processing
 /tmp
+
+# Sentry
+.sentryclirc
+sentry.properties

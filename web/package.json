@@ -12,6 +12,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.515.0",
     "@aws-sdk/s3-request-presigner": "^3.515.0",
+    "@sentry/nextjs": "^10.26.0",
     "@supabase/ssr": "^0.1.0",
     "@supabase/supabase-js": "^2.39.7",
     "@tensorflow/tfjs-node": "^4.22.0",
