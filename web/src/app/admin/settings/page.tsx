@@ -156,34 +156,35 @@ export default function SettingsPage() {
         return;
       }
 
+      // Build the settings object to save
+      // Use current settings as base
+      let settingsToSave = { ...settings };
+
       // Upload logo if a new file was selected
       if (logoFile) {
         try {
           const logoUrl = await uploadLogo();
           if (logoUrl) {
-            updateSetting('site_logo_url', logoUrl);
-            // Update settings state with new logo URL
-            setSettings(prev => ({
-              ...prev,
-              site_logo_url: {
-                key: 'site_logo_url',
-                value: logoUrl,
-                description: 'URL of the site logo',
-              },
-            }));
+            // Add logo URL to settings that will be saved
+            settingsToSave['site_logo_url'] = {
+              key: 'site_logo_url',
+              value: logoUrl,
+              description: 'URL of the site logo',
+            };
           }
         } catch (uploadErr: any) {
           throw new Error(`Logo upload failed: ${uploadErr.message}`);
         }
       }
 
+      // Send the updated settings to API
       const response = await fetch('/api/admin/settings', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ settings: Object.values(settings) }),
+        body: JSON.stringify({ settings: Object.values(settingsToSave) }),
       });
 
       if (!response.ok) {
@@ -191,8 +192,12 @@ export default function SettingsPage() {
         throw new Error(errorData.error || 'Failed to save settings');
       }
 
+      // Refetch settings to ensure UI matches database
+      await fetchSettings();
+
       setSuccessMessage('Settings saved successfully!');
       setLogoFile(null); // Clear the logo file after successful save
+      setLogoPreview(''); // Clear preview
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err: any) {
       setError(err.message);

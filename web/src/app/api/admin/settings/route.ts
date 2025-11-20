@@ -61,14 +61,20 @@ export async function PUT(request: NextRequest) {
             key: setting.key,
             value: setting.value,
             description: setting.description,
-            updated_by: user.id,
             updated_at: new Date().toISOString(),
           },
           { onConflict: 'key' }
         )
     );
 
-    await Promise.all(updates);
+    const results = await Promise.all(updates);
+
+    // Check for errors
+    const errors = results.filter(r => r.error);
+    if (errors.length > 0) {
+      console.error('Setting update errors:', errors);
+      throw new Error(`Failed to update ${errors.length} setting(s)`);
+    }
 
     return NextResponse.json({ message: 'Settings updated successfully' });
   } catch (error: any) {
