@@ -3,41 +3,40 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
-import {
-  HeartIcon,
-  HeartFilledIcon,
-  ShareIcon,
-  ExternalLinkIcon,
-  AlbumIcon,
-  MusicIcon,
-  PlaylistIcon,
-  CloseIcon,
-} from '../icons';
+import { getMediaUrl } from '@/lib/media-utils';
 
 interface TrackContextMenuProps {
   trackId: string;
   trackTitle: string;
+  trackArtist?: string;
+  trackImage?: string;
+  trackDuration?: number;
   artistId?: string;
   albumId?: string;
+  albumTitle?: string;
   onClose: () => void;
 }
 
 export const TrackContextMenu = ({
   trackId,
   trackTitle,
+  trackArtist,
+  trackImage,
+  trackDuration,
   artistId,
   albumId,
+  albumTitle,
   onClose,
 }: TrackContextMenuProps) => {
   const router = useRouter();
-  const { isLiked, toggleLike } = usePlayer();
+  const { addToQueue } = usePlayer();
   const menuRef = useRef<HTMLDivElement>(null);
   const [isClosing, setIsClosing] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [showEmbedModal, setShowEmbedModal] = useState(false);
 
   // Trigger entrance animation
   useEffect(() => {
-    // Small delay to trigger CSS transition
     requestAnimationFrame(() => {
       setIsVisible(true);
     });
@@ -49,7 +48,7 @@ export const TrackContextMenu = ({
     setIsVisible(false);
     setTimeout(() => {
       onClose();
-    }, 200); // Match animation duration
+    }, 200);
   };
 
   // Close menu when clicking outside
@@ -81,14 +80,13 @@ export const TrackContextMenu = ({
       try {
         await navigator.share({
           title: trackTitle,
+          text: `Listen to ${trackTitle}${trackArtist ? ` by ${trackArtist}` : ''} on Qoqnuz`,
           url: shareUrl,
         });
       } catch (error) {
-        // User cancelled share or error occurred
         console.log('Share cancelled or failed');
       }
     } else {
-      // Fallback: Copy to clipboard
       try {
         await navigator.clipboard.writeText(shareUrl);
         alert('Link copied to clipboard!');
@@ -99,8 +97,29 @@ export const TrackContextMenu = ({
     handleClose();
   };
 
-  const handleViewTrack = () => {
-    router.push(`/track/${trackId}`);
+  const handleAddToPlaylist = () => {
+    router.push(`/playlists?addTrack=${trackId}`);
+    handleClose();
+  };
+
+  const handleAddToQueue = () => {
+    addToQueue({
+      id: trackId,
+      title: trackTitle,
+      artist: trackArtist || 'Unknown Artist',
+      artistId: artistId,
+      album: albumTitle || 'Single',
+      albumId: albumId,
+      image: trackImage,
+      duration: trackDuration || 0,
+    });
+    handleClose();
+  };
+
+  const handleGoToQueue = () => {
+    // Navigate to a queue view or open queue panel
+    // For now, we can use the player's queue view
+    router.push('/queue');
     handleClose();
   };
 
@@ -118,8 +137,15 @@ export const TrackContextMenu = ({
     }
   };
 
-  const handleLike = () => {
-    toggleLike();
+  const handleEmbed = () => {
+    setShowEmbedModal(true);
+  };
+
+  const copyEmbedCode = () => {
+    const embedCode = `<iframe src="${window.location.origin}/embed/track/${trackId}" width="100%" height="152" frameBorder="0" allowtransparency="true" allow="encrypted-media"></iframe>`;
+    navigator.clipboard.writeText(embedCode);
+    alert('Embed code copied to clipboard!');
+    setShowEmbedModal(false);
     handleClose();
   };
 
@@ -132,108 +158,210 @@ export const TrackContextMenu = ({
       `}
       onClick={handleClose}
     >
-      <div
-        ref={menuRef}
-        onClick={(e) => e.stopPropagation()}
-        className={`
-          bg-gradient-to-b from-gray-800 to-gray-900
-          rounded-t-3xl sm:rounded-2xl w-full sm:w-[420px] max-w-md
-          shadow-2xl border border-white/10
-          transition-all duration-200 ease-out
-          ${isVisible
-            ? 'translate-y-0 sm:translate-y-0 opacity-100 scale-100'
-            : 'translate-y-full sm:translate-y-4 opacity-0 sm:scale-95'
-          }
-        `}
-      >
-        {/* Handle bar for mobile */}
-        <div className="sm:hidden flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 bg-white/20 rounded-full" />
-        </div>
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
-          <div>
-            <h3 className="font-semibold text-base text-white">Track Options</h3>
-            <p className="text-xs text-gray-400 mt-0.5 truncate max-w-[200px]">{trackTitle}</p>
+      {showEmbedModal ? (
+        /* Embed Modal */
+        <div
+          ref={menuRef}
+          onClick={(e) => e.stopPropagation()}
+          className={`
+            bg-gradient-to-b from-gray-800 to-gray-900
+            rounded-t-3xl sm:rounded-2xl w-full sm:w-[420px] max-w-md
+            shadow-2xl border border-white/10
+            transition-all duration-200 ease-out
+            ${isVisible
+              ? 'translate-y-0 opacity-100 scale-100'
+              : 'translate-y-full opacity-0 sm:scale-95'
+            }
+          `}
+        >
+          <div className="sm:hidden flex justify-center pt-3 pb-1">
+            <div className="w-10 h-1 bg-white/20 rounded-full" />
           </div>
-          <button
-            onClick={handleClose}
-            className="w-9 h-9 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-all duration-150 active:scale-95"
-            aria-label="Close menu"
-          >
-            <CloseIcon size={18} className="text-gray-400" />
-          </button>
-        </div>
 
-        {/* Menu items */}
-        <div className="py-2 px-2">
-          <button
-            onClick={handleLike}
-            className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-white/5 active:bg-white/10 transition-all duration-150 group"
-          >
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isLiked ? 'bg-primary/20' : 'bg-white/5 group-hover:bg-white/10'}`}>
-              {isLiked ? (
-                <HeartFilledIcon size={20} className="text-primary" />
-              ) : (
-                <HeartIcon size={20} className="text-gray-400 group-hover:text-white transition-colors" />
+          <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
+            <h3 className="font-semibold text-base text-white">Embed Track</h3>
+            <button
+              onClick={() => setShowEmbedModal(false)}
+              className="w-9 h-9 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-all duration-150 active:scale-95"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="p-5">
+            <p className="text-sm text-gray-400 mb-3">Copy this code to embed the track on your website:</p>
+            <div className="bg-black/30 rounded-lg p-3 font-mono text-xs text-gray-300 break-all">
+              {`<iframe src="${window.location.origin}/embed/track/${trackId}" width="100%" height="152" frameBorder="0" allowtransparency="true" allow="encrypted-media"></iframe>`}
+            </div>
+            <button
+              onClick={copyEmbedCode}
+              className="mt-4 w-full py-3 bg-primary text-black rounded-xl font-semibold hover:bg-[#ff5c2e] transition-colors"
+            >
+              Copy Embed Code
+            </button>
+          </div>
+
+          <div className="h-6 sm:h-2" />
+        </div>
+      ) : (
+        /* Main Menu */
+        <div
+          ref={menuRef}
+          onClick={(e) => e.stopPropagation()}
+          className={`
+            bg-gradient-to-b from-gray-800 to-gray-900
+            rounded-t-3xl sm:rounded-2xl w-full sm:w-[420px] max-w-md
+            shadow-2xl border border-white/10
+            transition-all duration-200 ease-out
+            ${isVisible
+              ? 'translate-y-0 sm:translate-y-0 opacity-100 scale-100'
+              : 'translate-y-full sm:translate-y-4 opacity-0 sm:scale-95'
+            }
+          `}
+        >
+          {/* Handle bar for mobile */}
+          <div className="sm:hidden flex justify-center pt-3 pb-1">
+            <div className="w-10 h-1 bg-white/20 rounded-full" />
+          </div>
+
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
+            <div>
+              <h3 className="font-semibold text-base text-white truncate max-w-[280px]">{trackTitle}</h3>
+              {trackArtist && (
+                <p className="text-xs text-gray-400 mt-0.5 truncate max-w-[200px]">{trackArtist}</p>
               )}
             </div>
-            <span className="text-sm font-medium text-white">
-              {isLiked ? 'Remove from Liked Songs' : 'Add to Liked Songs'}
-            </span>
-          </button>
-
-          <button
-            onClick={handleShare}
-            className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-white/5 active:bg-white/10 transition-all duration-150 group"
-          >
-            <div className="w-10 h-10 rounded-full bg-white/5 group-hover:bg-white/10 flex items-center justify-center transition-colors">
-              <ShareIcon size={20} className="text-gray-400 group-hover:text-white transition-colors" />
-            </div>
-            <span className="text-sm font-medium text-white">Share</span>
-          </button>
-
-          <div className="border-t border-white/5 my-2 mx-4" />
-
-          <button
-            onClick={handleViewTrack}
-            className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-white/5 active:bg-white/10 transition-all duration-150 group"
-          >
-            <div className="w-10 h-10 rounded-full bg-white/5 group-hover:bg-white/10 flex items-center justify-center transition-colors">
-              <MusicIcon size={20} className="text-gray-400 group-hover:text-white transition-colors" />
-            </div>
-            <span className="text-sm font-medium text-white">View Track</span>
-          </button>
-
-          {albumId && (
             <button
-              onClick={handleViewAlbum}
+              onClick={handleClose}
+              className="w-9 h-9 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-all duration-150 active:scale-95"
+              aria-label="Close menu"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Menu items */}
+          <div className="py-2 px-2">
+            {/* Share */}
+            <button
+              onClick={handleShare}
               className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-white/5 active:bg-white/10 transition-all duration-150 group"
             >
               <div className="w-10 h-10 rounded-full bg-white/5 group-hover:bg-white/10 flex items-center justify-center transition-colors">
-                <AlbumIcon size={20} className="text-gray-400 group-hover:text-white transition-colors" />
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400 group-hover:text-white transition-colors">
+                  <circle cx="18" cy="5" r="3" />
+                  <circle cx="6" cy="12" r="3" />
+                  <circle cx="18" cy="19" r="3" />
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                </svg>
               </div>
-              <span className="text-sm font-medium text-white">View Album</span>
+              <span className="text-sm font-medium text-white">Share</span>
             </button>
-          )}
 
-          {artistId && (
+            {/* Add to Playlist */}
             <button
-              onClick={handleViewArtist}
+              onClick={handleAddToPlaylist}
               className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-white/5 active:bg-white/10 transition-all duration-150 group"
             >
               <div className="w-10 h-10 rounded-full bg-white/5 group-hover:bg-white/10 flex items-center justify-center transition-colors">
-                <ExternalLinkIcon size={20} className="text-gray-400 group-hover:text-white transition-colors" />
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400 group-hover:text-white transition-colors">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
               </div>
-              <span className="text-sm font-medium text-white">View Artist</span>
+              <span className="text-sm font-medium text-white">Add to Playlist</span>
             </button>
-          )}
+
+            {/* Add to Queue */}
+            <button
+              onClick={handleAddToQueue}
+              className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-white/5 active:bg-white/10 transition-all duration-150 group"
+            >
+              <div className="w-10 h-10 rounded-full bg-white/5 group-hover:bg-white/10 flex items-center justify-center transition-colors">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400 group-hover:text-white transition-colors">
+                  <path d="M21 15V6" />
+                  <path d="M18.5 18a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+                  <path d="M12 12H3" />
+                  <path d="M16 6H3" />
+                  <path d="M12 18H3" />
+                </svg>
+              </div>
+              <span className="text-sm font-medium text-white">Add to Queue</span>
+            </button>
+
+            {/* Go to Queue */}
+            <button
+              onClick={handleGoToQueue}
+              className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-white/5 active:bg-white/10 transition-all duration-150 group"
+            >
+              <div className="w-10 h-10 rounded-full bg-white/5 group-hover:bg-white/10 flex items-center justify-center transition-colors">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400 group-hover:text-white transition-colors">
+                  <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+                </svg>
+              </div>
+              <span className="text-sm font-medium text-white">Go to Queue</span>
+            </button>
+
+            <div className="border-t border-white/5 my-2 mx-4" />
+
+            {/* Go to Album */}
+            {albumId && (
+              <button
+                onClick={handleViewAlbum}
+                className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-white/5 active:bg-white/10 transition-all duration-150 group"
+              >
+                <div className="w-10 h-10 rounded-full bg-white/5 group-hover:bg-white/10 flex items-center justify-center transition-colors">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400 group-hover:text-white transition-colors">
+                    <circle cx="12" cy="12" r="10" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </div>
+                <span className="text-sm font-medium text-white">Go to Album</span>
+              </button>
+            )}
+
+            {/* Go to Artist */}
+            {artistId && (
+              <button
+                onClick={handleViewArtist}
+                className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-white/5 active:bg-white/10 transition-all duration-150 group"
+              >
+                <div className="w-10 h-10 rounded-full bg-white/5 group-hover:bg-white/10 flex items-center justify-center transition-colors">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400 group-hover:text-white transition-colors">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                </div>
+                <span className="text-sm font-medium text-white">Go to Artist</span>
+              </button>
+            )}
+
+            {/* Embed */}
+            <button
+              onClick={handleEmbed}
+              className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-white/5 active:bg-white/10 transition-all duration-150 group"
+            >
+              <div className="w-10 h-10 rounded-full bg-white/5 group-hover:bg-white/10 flex items-center justify-center transition-colors">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400 group-hover:text-white transition-colors">
+                  <polyline points="16 18 22 12 16 6" />
+                  <polyline points="8 6 2 12 8 18" />
+                </svg>
+              </div>
+              <span className="text-sm font-medium text-white">Embed</span>
+            </button>
+          </div>
+
+          {/* Safe area for mobile */}
+          <div className="h-6 sm:h-2" />
         </div>
-
-        {/* Safe area for mobile */}
-        <div className="h-6 sm:h-2" />
-      </div>
+      )}
     </div>
   );
 };

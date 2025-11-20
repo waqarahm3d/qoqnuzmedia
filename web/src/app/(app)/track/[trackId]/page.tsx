@@ -8,7 +8,6 @@ import { usePlayer } from '@/lib/contexts/PlayerContext';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { supabase } from '@/lib/supabase-client';
 import { getMediaUrl } from '@/lib/media-utils';
-import { EmbedModal } from '@/components/ui/EmbedModal';
 import { TrackContextMenu } from '@/components/player/TrackContextMenu';
 
 interface Track {
@@ -49,7 +48,6 @@ export default function TrackPage() {
   const [reactions, setReactions] = useState<{ emoji: string; count: number }[]>([]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [userReactions, setUserReactions] = useState<string[]>([]);
-  const [showEmbedModal, setShowEmbedModal] = useState(false);
   const [showContextMenu, setShowContextMenu] = useState(false);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
 
@@ -222,26 +220,6 @@ export default function TrackPage() {
       image: getMediaUrl(track.albums?.cover_art_url || track.cover_art_url) || undefined,
       duration: track.duration_ms,
     });
-  };
-
-  const handleShare = async () => {
-    const shareData = {
-      title: `${track?.title} - ${track?.artists.name}`,
-      text: `Listen to ${track?.title} by ${track?.artists.name} on Qoqnuz`,
-      url: window.location.href,
-    };
-
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-      } catch (err) {
-        console.log('Error sharing:', err);
-      }
-    } else {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(window.location.href);
-      alert('Link copied to clipboard!');
-    }
   };
 
   const formatDuration = (ms: number) => {
@@ -426,53 +404,14 @@ export default function TrackPage() {
               )}
             </div>
 
-            {/* Share Button */}
-            <button
-              onClick={handleShare}
-              className="text-gray-400 hover:text-white transition-colors"
-              title="Share"
-            >
-              <svg
-                className="w-7 h-7"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <circle cx="18" cy="5" r="3" />
-                <circle cx="6" cy="12" r="3" />
-                <circle cx="18" cy="19" r="3" />
-                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-              </svg>
-            </button>
-
-            {/* Embed Button */}
-            <button
-              onClick={() => setShowEmbedModal(true)}
-              className="text-gray-400 hover:text-white transition-colors"
-              title="Embed"
-            >
-              <svg
-                className="w-7 h-7"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <polyline points="16 18 22 12 16 6" />
-                <polyline points="8 6 2 12 8 18" />
-              </svg>
-            </button>
-
-            {/* More Options */}
+            {/* More Options - Apple Style */}
             <button
               onClick={() => setShowContextMenu(true)}
-              className="text-gray-400 hover:text-white transition-colors"
+              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all hover:scale-105"
               title="More options"
             >
               <svg
-                className="w-6 h-6"
+                className="w-5 h-5 text-white"
                 fill="currentColor"
                 viewBox="0 0 24 24"
               >
@@ -610,24 +549,17 @@ export default function TrackPage() {
         </div>
       </div>
 
-      {/* Embed Modal */}
-      {track && (
-        <EmbedModal
-          isOpen={showEmbedModal}
-          onClose={() => setShowEmbedModal(false)}
-          type="track"
-          id={track.id}
-          title={`${track.title} - ${track.artists.name}`}
-        />
-      )}
-
       {/* Track Context Menu */}
       {track && showContextMenu && (
         <TrackContextMenu
           trackId={track.id}
           trackTitle={track.title}
+          trackArtist={track.artists.name}
+          trackImage={getMediaUrl(track.albums?.cover_art_url || track.cover_art_url) || undefined}
+          trackDuration={track.duration_ms}
           artistId={track.artist_id}
           albumId={track.album_id || undefined}
+          albumTitle={track.albums?.title}
           onClose={() => setShowContextMenu(false)}
         />
       )}
