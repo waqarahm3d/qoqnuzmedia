@@ -19,6 +19,7 @@ import {
   LogoutIcon,
   MenuIcon,
   ChevronLeftIcon,
+  ChevronDownIcon,
   DownloadIcon,
   AutomationIcon,
   FeaturedIcon,
@@ -35,6 +36,7 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [settingsExpanded, setSettingsExpanded] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>('');
   const [siteName, setSiteName] = useState<string>('Qoqnuz');
   const pathname = usePathname();
@@ -61,9 +63,17 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     fetchSettings();
   }, []);
 
+  // Auto-expand settings if on a settings sub-page
+  useEffect(() => {
+    const settingsPaths = ['/admin/settings', '/admin/theme', '/admin/email', '/admin/automation', '/admin/diagnostics', '/admin/issues'];
+    if (settingsPaths.some(path => pathname?.startsWith(path))) {
+      setSettingsExpanded(true);
+    }
+  }, [pathname]);
+
   const navigation = [
     { name: 'Dashboard', href: '/admin', Icon: DashboardIcon },
-    { name: 'Automation', href: '/admin/automation', Icon: AutomationIcon },
+    { name: 'Analytics', href: '/admin/analytics', Icon: DiagnosticsIcon },
     { name: 'Mood Analysis', href: '/admin/mood-analysis', Icon: MoodIcon },
     { name: 'Artists', href: '/admin/artists', Icon: MicrophoneIcon },
     { name: 'Albums', href: '/admin/albums', Icon: DiscIcon },
@@ -73,10 +83,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { name: 'Featured Sections', href: '/admin/featured-sections', Icon: FeaturedIcon },
     { name: 'Downloads', href: '/admin/downloads', Icon: DownloadIcon },
     { name: 'Users', href: '/admin/users', Icon: UsersIcon },
-    { name: 'Issues', href: '/admin/issues', Icon: IssuesIcon },
-    { name: 'Email', href: '/admin/email', Icon: EmailIcon },
+  ];
+
+  const settingsNavigation = [
+    { name: 'General Settings', href: '/admin/settings', Icon: SettingsIcon },
     { name: 'Theme', href: '/admin/theme', Icon: PaletteIcon },
-    { name: 'Settings', href: '/admin/settings', Icon: SettingsIcon },
+    { name: 'Email', href: '/admin/email', Icon: EmailIcon },
+    { name: 'Automation', href: '/admin/automation', Icon: AutomationIcon },
+    { name: 'Issues & Feedback', href: '/admin/issues', Icon: IssuesIcon },
     { name: 'Diagnostics', href: '/admin/diagnostics', Icon: DiagnosticsIcon },
   ];
 
@@ -140,6 +154,49 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 </Link>
               );
             })}
+
+            {/* Settings Section (Expandable) */}
+            <div>
+              <button
+                onClick={() => setSettingsExpanded(!settingsExpanded)}
+                className={`w-full flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                  settingsNavigation.some(item => isActive(item.href))
+                    ? 'bg-gray-700 text-white'
+                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center">
+                  <SettingsIcon className="mr-3" size={20} />
+                  Settings
+                </div>
+                <ChevronDownIcon
+                  size={16}
+                  className={`transition-transform ${settingsExpanded ? 'rotate-180' : ''}`}
+                />
+              </button>
+
+              {settingsExpanded && (
+                <div className="mt-1 ml-4 space-y-1 border-l-2 border-gray-700 pl-4">
+                  {settingsNavigation.map((item) => {
+                    const Icon = item.Icon;
+                    return (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className={`flex items-center px-4 py-2.5 text-sm rounded-lg transition-colors ${
+                          isActive(item.href)
+                            ? 'bg-[#ff4a14] text-white'
+                            : 'text-gray-400 hover:bg-gray-700 hover:text-white'
+                        }`}
+                      >
+                        <Icon className="mr-3" size={18} />
+                        {item.name}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </nav>
 
           {/* User Menu */}
