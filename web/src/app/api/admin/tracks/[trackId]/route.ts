@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin, requirePermission } from '@/lib/auth/admin-middleware';
 import { deleteFromR2 } from '@/lib/r2';
+import { deleteTrackVariants } from '@/lib/audio-processor';
 
 export const dynamic = 'force-dynamic';
 
@@ -178,6 +179,11 @@ export async function DELETE(
         console.log(`[Track Delete] Deleting audio from R2: ${track.audio_url}`);
         await deleteFromR2(track.audio_url);
         console.log(`[Track Delete] Audio deleted successfully`);
+
+        // Delete quality variants
+        console.log(`[Track Delete] Deleting quality variants...`);
+        await deleteTrackVariants(track.audio_url);
+        console.log(`[Track Delete] Quality variants deleted`);
       } catch (r2Error: any) {
         // Log but don't fail - file might not exist or already deleted
         console.error(`[Track Delete] Failed to delete audio from R2: ${r2Error.message}`);

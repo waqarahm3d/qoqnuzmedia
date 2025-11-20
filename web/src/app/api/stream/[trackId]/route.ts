@@ -20,10 +20,18 @@ interface TrackWithArtist {
   title: string;
   audio_url: string;
   artist_id: string;
+  audio_quality_variants?: {
+    quality: string;
+    path: string;
+    bitrate: string;
+  }[];
   artists: {
     name: string;
   } | null;
 }
+
+// Valid quality levels
+type QualityLevel = 'low' | 'medium' | 'high' | 'original';
 
 export async function GET(
   request: NextRequest,
@@ -31,8 +39,10 @@ export async function GET(
 ) {
   try {
     const { trackId } = params;
+    const { searchParams } = new URL(request.url);
+    const requestedQuality = (searchParams.get('quality') || 'high') as QualityLevel;
 
-    console.log('[Stream API] Requesting track:', trackId);
+    console.log('[Stream API] Requesting track:', trackId, 'quality:', requestedQuality);
 
     if (!trackId) {
       console.error('[Stream API] No track ID provided');
@@ -54,7 +64,7 @@ export async function GET(
     console.log('[Stream API] Fetching track from database...');
     const { data: track, error: trackError } = (await adminSupabase
       .from('tracks')
-      .select('id, title, audio_url, artist_id, artists!tracks_artist_id_fkey(name)')
+      .select('id, title, audio_url, audio_quality_variants, artist_id, artists!tracks_artist_id_fkey(name)')
       .eq('id', trackId)
       .single()) as { data: TrackWithArtist | null; error: any };
 
@@ -104,11 +114,34 @@ export async function GET(
       id: track.id,
       title: track.title,
       audio_url: track.audio_url,
+      variants: track.audio_quality_variants?.length || 0,
     });
 
+    // Determine which audio file to stream based on quality
+    let audioPath = track.audio_url;
+    let actualQuality: string = 'original';
+
+    if (requestedQuality !== 'original' && track.audio_quality_variants?.length) {
+      // Find the requested quality variant
+      const variant = track.audio_quality_variants.find(v => v.quality === requestedQuality);
+      if (variant) {
+        audioPath = variant.path;
+        actualQuality = variant.quality;
+        console.log(`[Stream API] Using ${actualQuality} quality variant: ${audioPath}`);
+      } else {
+        // Fall back to highest available quality
+        const highVariant = track.audio_quality_variants.find(v => v.quality === 'high');
+        if (highVariant) {
+          audioPath = highVariant.path;
+          actualQuality = 'high';
+        }
+        console.log(`[Stream API] Requested quality not available, using: ${actualQuality}`);
+      }
+    }
+
     // Generate signed URL for streaming (expires in 1 hour)
-    console.log('[Stream API] Generating R2 signed URL...');
-    const streamUrl = await getTrackStreamUrl(track.audio_url, 3600);
+    console.log('[Stream API] Generating R2 signed URL for:', audioPath);
+    const streamUrl = await getTrackStreamUrl(audioPath, 3600);
     console.log('[Stream API] Signed URL generated successfully');
 
     // Track play history (if user is authenticated)
@@ -127,6 +160,8 @@ export async function GET(
     return NextResponse.json({
       url: streamUrl,  // Note: frontend expects "url" not "streamUrl"
       expiresAt: new Date(Date.now() + 3600 * 1000).toISOString(),
+      quality: actualQuality,
+      availableQualities: track.audio_quality_variants?.map(v => v.quality) || ['original'],
       track: {
         id: track.id,
         title: track.title,
