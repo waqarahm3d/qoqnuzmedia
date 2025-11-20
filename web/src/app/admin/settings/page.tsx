@@ -650,6 +650,129 @@ export default function SettingsPage() {
           </div>
         </div>
 
+        {/* SMTP Email Configuration */}
+        <div style={{ background: '#181818', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#ffffff', margin: 0 }}>
+              Email Configuration (SMTP)
+            </h2>
+            <div style={{
+              padding: '4px 12px',
+              background: settings.smtp_enabled?.value ? 'rgba(34, 197, 94, 0.2)' : 'rgba(107, 114, 128, 0.2)',
+              color: settings.smtp_enabled?.value ? '#22c55e' : '#6b7280',
+              borderRadius: '4px',
+              fontSize: '11px',
+              fontWeight: 600,
+            }}>
+              {settings.smtp_enabled?.value ? 'ENABLED' : 'DISABLED'}
+            </div>
+          </div>
+          <p style={{ color: '#b3b3b3', fontSize: '14px', marginBottom: '20px' }}>
+            Configure SMTP server for sending transactional emails (verification, password reset, notifications). Supports Zoho ZeptoMail, Gmail, SendGrid, and other SMTP providers.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <SettingToggle
+              label="Enable SMTP Email"
+              description="Enable email sending via SMTP server"
+              value={settings.smtp_enabled?.value || false}
+              onChange={(value) => updateSetting('smtp_enabled', value)}
+            />
+
+            <SettingField
+              label="SMTP Host"
+              description="SMTP server hostname (e.g., smtp.zeptomail.com for ZeptoMail)"
+              value={settings.smtp_host?.value || ''}
+              onChange={(value) => updateSetting('smtp_host', value)}
+            />
+
+            <SettingField
+              label="SMTP Port"
+              description="SMTP port number (587 for TLS, 465 for SSL)"
+              value={settings.smtp_port?.value || 587}
+              onChange={(value) => updateSetting('smtp_port', value)}
+              type="number"
+            />
+
+            <SettingToggle
+              label="Use SSL/TLS"
+              description="Enable SSL/TLS encryption (use for port 465)"
+              value={settings.smtp_secure?.value || false}
+              onChange={(value) => updateSetting('smtp_secure', value)}
+            />
+
+            <SettingField
+              label="SMTP Username"
+              description="SMTP authentication username (often your email address)"
+              value={settings.smtp_username?.value || ''}
+              onChange={(value) => updateSetting('smtp_username', value)}
+            />
+
+            <div>
+              <label style={{ display: 'block', color: '#ffffff', fontWeight: 600, marginBottom: '8px' }}>
+                SMTP Password
+              </label>
+              <p style={{ color: '#b3b3b3', fontSize: '14px', marginBottom: '12px' }}>
+                SMTP authentication password (stored securely)
+              </p>
+              <input
+                type="password"
+                value={settings.smtp_password?.value || ''}
+                onChange={(e) => updateSetting('smtp_password', e.target.value)}
+                placeholder="••••••••••••••••"
+                style={{
+                  width: '100%',
+                  maxWidth: '400px',
+                  padding: '12px 16px',
+                  background: '#121212',
+                  color: '#ffffff',
+                  border: '1px solid #282828',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  outline: 'none',
+                }}
+                onFocus={(e) => e.currentTarget.style.borderColor = '#ff4a14'}
+                onBlur={(e) => e.currentTarget.style.borderColor = '#282828'}
+              />
+            </div>
+
+            <SettingField
+              label="From Email Address"
+              description="Email address that emails will be sent from"
+              value={settings.smtp_from_email?.value || ''}
+              onChange={(value) => updateSetting('smtp_from_email', value)}
+            />
+
+            <SettingField
+              label="From Name"
+              description="Name that will appear as the sender"
+              value={settings.smtp_from_name?.value || ''}
+              onChange={(value) => updateSetting('smtp_from_name', value)}
+            />
+          </div>
+
+          {/* ZeptoMail Instructions */}
+          <div style={{ marginTop: '24px', padding: '16px', background: '#121212', borderRadius: '8px', border: '1px solid #282828' }}>
+            <h4 style={{ fontSize: '14px', fontWeight: 'bold', color: '#ffffff', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 16v-4M12 8h.01"/>
+              </svg>
+              Zoho ZeptoMail Configuration
+            </h4>
+            <ol style={{ color: '#b3b3b3', fontSize: '13px', margin: 0, paddingLeft: '20px', lineHeight: '1.8' }}>
+              <li>Sign up at <a href="https://www.zoho.com/zeptomail/" target="_blank" rel="noopener noreferrer" style={{ color: '#ff4a14' }}>zoho.com/zeptomail</a></li>
+              <li>Verify your domain and create Mail Agent</li>
+              <li>Get SMTP credentials from Settings → Mail Agents → Your Agent → SMTP</li>
+              <li>SMTP Host: <code style={{ background: '#282828', padding: '2px 6px', borderRadius: '4px', fontSize: '12px' }}>smtp.zeptomail.com</code></li>
+              <li>SMTP Port: <code style={{ background: '#282828', padding: '2px 6px', borderRadius: '4px', fontSize: '12px' }}>587</code> (TLS) or <code style={{ background: '#282828', padding: '2px 6px', borderRadius: '4px', fontSize: '12px' }}>465</code> (SSL)</li>
+              <li>Username: Your ZeptoMail username (usually your email)</li>
+              <li>Password: Generate from Mail Agent settings</li>
+              <li>From Email: Must match your verified domain</li>
+            </ol>
+          </div>
+        </div>
+
         {/* Save Button */}
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <button
