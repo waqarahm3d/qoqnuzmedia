@@ -98,12 +98,21 @@ export async function deleteFromR2(key: string): Promise<void> {
 }
 
 /**
- * Get a direct public URL (if bucket is public)
- * For private buckets, use getTrackStreamUrl instead
+ * Get a direct public URL via CDN
+ * Uses the configured CDN URL for public access
  *
  * @param key - Object key
- * @returns Public URL
+ * @returns Public CDN URL
  */
 export function getPublicUrl(key: string): string {
+  const cdnUrl = process.env.NEXT_PUBLIC_CDN_URL;
+
+  if (cdnUrl) {
+    // Remove leading slash if present
+    const cleanKey = key.startsWith('/') ? key.slice(1) : key;
+    return `${cdnUrl}/${cleanKey}`;
+  }
+
+  // Fallback to R2 endpoint (requires bucket to be public)
   return `${R2_ENDPOINT}/${R2_BUCKET_NAME}/${key}`;
 }

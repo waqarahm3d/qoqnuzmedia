@@ -1,12 +1,15 @@
 /**
  * Media URL utilities
- * Converts R2 storage paths to accessible media URLs
+ * Converts R2 storage paths to accessible media URLs via CDN
  */
 
+// CDN URL for public media access
+const CDN_URL = process.env.NEXT_PUBLIC_CDN_URL || '';
+
 /**
- * Convert an R2 storage path to a media API URL
+ * Convert an R2 storage path to a public CDN URL
  * @param r2Path - Path in R2 storage (e.g., "albums/covers/image.jpg")
- * @returns Accessible URL (e.g., "/api/media/albums/covers/image.jpg")
+ * @returns Accessible URL (e.g., "https://cdn.qoqnuz.com/albums/covers/image.jpg")
  */
 export function getMediaUrl(r2Path: string | null | undefined): string | undefined {
   if (!r2Path) return undefined;
@@ -21,7 +24,14 @@ export function getMediaUrl(r2Path: string | null | undefined): string | undefin
     return r2Path;
   }
 
-  // Convert R2 path to media API URL
+  // Use CDN URL if configured, otherwise fall back to API proxy
+  if (CDN_URL) {
+    // Remove leading slash if present
+    const cleanPath = r2Path.startsWith('/') ? r2Path.slice(1) : r2Path;
+    return `${CDN_URL}/${cleanPath}`;
+  }
+
+  // Fallback to media API URL
   return `/api/media/${r2Path}`;
 }
 
