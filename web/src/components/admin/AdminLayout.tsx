@@ -7,7 +7,6 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import AdminAuthGuard from '@/components/admin/AdminAuthGuard';
 import {
   DashboardIcon,
-  AnalyticsIcon,
   MicrophoneIcon,
   DiscIcon,
   MusicIcon,
@@ -62,7 +61,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   const navigation = [
     { name: 'Dashboard', href: '/admin', Icon: DashboardIcon },
-    { name: 'Analytics', href: '/admin/analytics', Icon: AnalyticsIcon },
     { name: 'Automation', href: '/admin/automation', Icon: AutomationIcon },
     { name: 'Mood Analysis', href: '/admin/mood-analysis', Icon: MoodIcon },
     { name: 'Artists', href: '/admin/artists', Icon: MicrophoneIcon },
