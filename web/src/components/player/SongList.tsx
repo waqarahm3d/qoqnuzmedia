@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
 import * as api from '@/lib/api/client';
+import { useDownloadManager } from '@/lib/offline';
 
 interface Track {
   id: string;
@@ -101,6 +102,14 @@ const AlbumIcon = () => (
   </svg>
 );
 
+const DownloadIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+    <polyline points="7 10 12 15 17 10"/>
+    <line x1="12" y1="15" x2="12" y2="3"/>
+  </svg>
+);
+
 // Format duration from milliseconds to mm:ss
 const formatDuration = (ms: number): string => {
   const totalSeconds = Math.floor(ms / 1000);
@@ -123,6 +132,7 @@ export default function SongList({
 }: SongListProps) {
   const router = useRouter();
   const { queue, currentTrack, isPlaying, playTrack, setQueue, togglePlayPause } = usePlayer();
+  const { addToQueue: addToDownloadQueue } = useDownloadManager();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [openMenuIndex, setOpenMenuIndex] = useState<number | null>(null);
   const [likedTracks, setLikedTracks] = useState<Set<string>>(new Set());
@@ -220,6 +230,21 @@ export default function SongList({
     e.stopPropagation();
     if (track.albumId) {
       router.push(`/album/${track.albumId}`);
+    }
+    setOpenMenuIndex(null);
+  };
+
+  const handleDownload = async (track: Track, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await addToDownloadQueue({
+        id: track.id,
+        title: track.title,
+        artistName: track.artist,
+        coverArtUrl: track.image,
+      });
+    } catch (error) {
+      console.error('Error adding to download queue:', error);
     }
     setOpenMenuIndex(null);
   };
@@ -393,6 +418,14 @@ export default function SongList({
                       >
                         <PlaylistAddIcon />
                         <span className="text-sm">Add to playlist</span>
+                      </button>
+
+                      <button
+                        onClick={(e) => handleDownload(track, e)}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors"
+                      >
+                        <DownloadIcon />
+                        <span className="text-sm">Download for Offline</span>
                       </button>
 
                       {track.albumId && (

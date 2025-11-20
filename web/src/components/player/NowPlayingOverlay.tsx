@@ -17,6 +17,7 @@ import {
   VolumeMutedIcon,
 } from '../icons';
 import { TrackContextMenu } from './TrackContextMenu';
+import DownloadButton from '../DownloadButton';
 
 export const NowPlayingOverlay = () => {
   const {
@@ -212,17 +213,32 @@ export const NowPlayingOverlay = () => {
 
             {/* Secondary controls */}
             <div className="flex items-center justify-between">
-              <button
-                onClick={toggleLike}
-                className="p-2 rounded-full hover:bg-white/10 transition-colors"
-                aria-label={isLiked ? 'Unlike' : 'Like'}
-              >
-                {isLiked ? (
-                  <HeartFilledIcon size={24} className="text-primary" />
-                ) : (
-                  <HeartIcon size={24} />
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={toggleLike}
+                  className="p-2 rounded-full hover:bg-white/10 transition-colors"
+                  aria-label={isLiked ? 'Unlike' : 'Like'}
+                >
+                  {isLiked ? (
+                    <HeartFilledIcon size={24} className="text-primary" />
+                  ) : (
+                    <HeartIcon size={24} />
+                  )}
+                </button>
+
+                {/* Download button */}
+                {currentTrack && (
+                  <DownloadButton
+                    track={{
+                      id: currentTrack.id,
+                      title: currentTrack.title,
+                      artists: { name: currentTrack.artist },
+                      cover_art_url: currentTrack.image,
+                    }}
+                    size="md"
+                  />
                 )}
-              </button>
+              </div>
 
               <div className="flex items-center gap-2">
                 <button

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
 import Image from 'next/image';
 import Link from 'next/link';
+import DownloadButton from '@/components/DownloadButton';
 
 interface DesktopPlayerProps {
   onExpand?: () => void;
@@ -203,6 +204,18 @@ export const DesktopPlayer = ({ onExpand }: DesktopPlayerProps) => {
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
             </svg>
           </button>
+
+          <div className="hidden sm:block">
+            <DownloadButton
+              track={{
+                id: currentTrack.id,
+                title: currentTrack.title,
+                artists: { name: currentTrack.artist },
+                cover_art_url: currentTrack.image,
+              }}
+              size="sm"
+            />
+          </div>
         </div>
 
         {/* Center: Player Controls */}

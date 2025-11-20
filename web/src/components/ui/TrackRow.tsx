@@ -6,6 +6,7 @@ import { PlayIcon, HeartIcon, HeartFilledIcon, MoreIcon } from '../icons';
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { SignupPrompt } from './SignupPrompt';
+import DownloadButton from '../DownloadButton';
 
 interface TrackRowProps {
   number?: number;
@@ -169,6 +170,21 @@ export const TrackRow = ({
               <HeartIcon size={16} className="text-white/60 hover:text-white" />
             )}
           </button>
+
+          {/* Download */}
+          {trackId && (
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+              <DownloadButton
+                track={{
+                  id: trackId,
+                  title,
+                  artists: { name: artist },
+                  cover_art_url: image,
+                }}
+                size="sm"
+              />
+            </div>
+          )}
 
           {/* More Menu */}
           <div className="relative" ref={menuRef}>

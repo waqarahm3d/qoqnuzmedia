@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { usePlayer } from '@/lib/contexts/PlayerContext';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useDownloadManager } from '@/lib/offline';
 
 interface MobilePlayerProps {
   isExpanded: boolean;
@@ -32,12 +33,29 @@ export const MobilePlayer = ({ isExpanded, onExpand, onCollapse }: MobilePlayerP
     skipBackward,
     playTrack,
   } = usePlayer();
+  const { addToQueue: addToDownloadQueue } = useDownloadManager();
 
   // Retry playback on error
   const handleRetry = () => {
     if (currentTrack) {
       playTrack(currentTrack, true);
     }
+  };
+
+  const handleDownload = async () => {
+    if (currentTrack) {
+      try {
+        await addToDownloadQueue({
+          id: currentTrack.id,
+          title: currentTrack.title,
+          artistName: currentTrack.artist,
+          coverArtUrl: currentTrack.image,
+        });
+      } catch (error) {
+        console.error('Error adding to download queue:', error);
+      }
+    }
+    setShowMenu(false);
   };
 
   const [showQueue, setShowQueue] = useState(false);
@@ -303,6 +321,18 @@ export const MobilePlayer = ({ isExpanded, onExpand, onCollapse }: MobilePlayerP
                       <path d="M12 18H3" />
                     </svg>
                     <span className="text-sm">Queue</span>
+                  </button>
+
+                  <button
+                    onClick={handleDownload}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/10 transition-colors"
+                  >
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="7 10 12 15 17 10"/>
+                      <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    <span className="text-sm">Download for Offline</span>
                   </button>
 
                   <button
