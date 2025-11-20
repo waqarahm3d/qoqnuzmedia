@@ -113,8 +113,8 @@ const defaultSettings: SiteSettings = {
   max_upload_size_mb: 500,
 
   // OAuth Providers
-  oauth_google_enabled: true,
-  oauth_apple_enabled: true,
+  oauth_google_enabled: false,
+  oauth_apple_enabled: false,
   oauth_facebook_enabled: false,
   oauth_github_enabled: false,
   oauth_twitter_enabled: false,
