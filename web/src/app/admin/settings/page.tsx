@@ -350,6 +350,108 @@ export default function SettingsPage() {
               value={settings.site_tagline?.value || ''}
               onChange={(value) => updateSetting('site_tagline', value)}
             />
+            <SettingField
+              label="Site Favicon URL"
+              description="URL to your site favicon (16x16 or 32x32px, .ico or .png)"
+              value={settings.site_favicon_url?.value || ''}
+              onChange={(value) => updateSetting('site_favicon_url', value)}
+            />
+          </div>
+        </div>
+
+        {/* App Information */}
+        <div style={{ background: '#181818', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#ffffff', marginBottom: '20px' }}>
+            App Information
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <SettingField
+              label="App Description"
+              description="Full app description for SEO and marketing"
+              value={settings.app_description?.value || ''}
+              onChange={(value) => updateSetting('app_description', value)}
+            />
+            <SettingField
+              label="Short Description"
+              description="Brief description for app stores and previews"
+              value={settings.app_short_description?.value || ''}
+              onChange={(value) => updateSetting('app_short_description', value)}
+            />
+          </div>
+        </div>
+
+        {/* Footer & Copyright */}
+        <div style={{ background: '#181818', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#ffffff', marginBottom: '20px' }}>
+            Footer & Copyright
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <SettingField
+              label="Footer Text"
+              description="Text displayed in the footer"
+              value={settings.footer_text?.value || ''}
+              onChange={(value) => updateSetting('footer_text', value)}
+            />
+            <SettingField
+              label="Copyright Text"
+              description="Copyright notice displayed in footer"
+              value={settings.copyright_text?.value || ''}
+              onChange={(value) => updateSetting('copyright_text', value)}
+            />
+          </div>
+        </div>
+
+        {/* Contact Information */}
+        <div style={{ background: '#181818', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#ffffff', marginBottom: '20px' }}>
+            Contact Information
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <SettingField
+              label="Support Email"
+              description="Email address for user support inquiries"
+              value={settings.support_email?.value || ''}
+              onChange={(value) => updateSetting('support_email', value)}
+            />
+            <SettingField
+              label="Contact Email"
+              description="General contact email address"
+              value={settings.contact_email?.value || ''}
+              onChange={(value) => updateSetting('contact_email', value)}
+            />
+          </div>
+        </div>
+
+        {/* Social Media Links */}
+        <div style={{ background: '#181818', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#ffffff', marginBottom: '20px' }}>
+            Social Media Links
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <SettingField
+              label="Twitter/X Profile URL"
+              description="Full URL to your Twitter/X profile"
+              value={settings.social_twitter?.value || ''}
+              onChange={(value) => updateSetting('social_twitter', value)}
+            />
+            <SettingField
+              label="Facebook Page URL"
+              description="Full URL to your Facebook page"
+              value={settings.social_facebook?.value || ''}
+              onChange={(value) => updateSetting('social_facebook', value)}
+            />
+            <SettingField
+              label="Instagram Profile URL"
+              description="Full URL to your Instagram profile"
+              value={settings.social_instagram?.value || ''}
+              onChange={(value) => updateSetting('social_instagram', value)}
+            />
+            <SettingField
+              label="YouTube Channel URL"
+              description="Full URL to your YouTube channel"
+              value={settings.social_youtube?.value || ''}
+              onChange={(value) => updateSetting('social_youtube', value)}
+            />
           </div>
         </div>
 
@@ -417,6 +519,144 @@ export default function SettingsPage() {
               value={settings.enable_group_sessions?.value || false}
               onChange={(value) => updateSetting('enable_group_sessions', value)}
             />
+            <SettingToggle
+              label="Enable User Uploads"
+              description="Allow users to upload their own content"
+              value={settings.enable_user_uploads?.value || false}
+              onChange={(value) => updateSetting('enable_user_uploads', value)}
+            />
+            <SettingToggle
+              label="Enable Social Features"
+              description="Enable social features like following, likes, and comments"
+              value={settings.enable_social_features?.value || false}
+              onChange={(value) => updateSetting('enable_social_features', value)}
+            />
+          </div>
+        </div>
+
+        {/* Page Content */}
+        <div style={{ background: '#181818', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#ffffff', marginBottom: '20px' }}>
+            Page Content & Copy
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div>
+              <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#ffffff', marginBottom: '16px' }}>
+                Home Page
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <SettingField
+                  label="Hero Title"
+                  description="Main title displayed on home page hero section"
+                  value={settings.home_hero_title?.value || ''}
+                  onChange={(value) => updateSetting('home_hero_title', value)}
+                />
+                <SettingField
+                  label="Hero Subtitle"
+                  description="Subtitle displayed below hero title"
+                  value={settings.home_hero_subtitle?.value || ''}
+                  onChange={(value) => updateSetting('home_hero_subtitle', value)}
+                />
+              </div>
+            </div>
+            <div style={{ paddingTop: '16px', borderTop: '1px solid #282828' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#ffffff', marginBottom: '16px' }}>
+                Discover Page
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <SettingField
+                  label="Page Title"
+                  description="Title displayed on discover page"
+                  value={settings.discover_page_title?.value || ''}
+                  onChange={(value) => updateSetting('discover_page_title', value)}
+                />
+                <SettingField
+                  label="Page Subtitle"
+                  description="Subtitle displayed on discover page"
+                  value={settings.discover_page_subtitle?.value || ''}
+                  onChange={(value) => updateSetting('discover_page_subtitle', value)}
+                />
+              </div>
+            </div>
+            <div style={{ paddingTop: '16px', borderTop: '1px solid #282828' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#ffffff', marginBottom: '16px' }}>
+                Search
+              </h3>
+              <SettingField
+                label="Search Placeholder"
+                description="Placeholder text in search input"
+                value={settings.search_placeholder?.value || ''}
+                onChange={(value) => updateSetting('search_placeholder', value)}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* PWA Install Prompts */}
+        <div style={{ background: '#181818', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#ffffff', marginBottom: '20px' }}>
+            PWA Install Prompts
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <SettingField
+              label="Install Prompt Title"
+              description="Title shown in PWA install prompt"
+              value={settings.pwa_install_title?.value || ''}
+              onChange={(value) => updateSetting('pwa_install_title', value)}
+            />
+            <SettingField
+              label="Install Prompt Subtitle"
+              description="Subtitle/description shown in PWA install prompt"
+              value={settings.pwa_install_subtitle?.value || ''}
+              onChange={(value) => updateSetting('pwa_install_subtitle', value)}
+            />
+          </div>
+        </div>
+
+        {/* Authentication Pages */}
+        <div style={{ background: '#181818', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#ffffff', marginBottom: '20px' }}>
+            Authentication Pages
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div>
+              <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#ffffff', marginBottom: '16px' }}>
+                Sign In Page
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <SettingField
+                  label="Page Title"
+                  description="Title displayed on sign in page"
+                  value={settings.signin_title?.value || ''}
+                  onChange={(value) => updateSetting('signin_title', value)}
+                />
+                <SettingField
+                  label="Page Subtitle"
+                  description="Subtitle displayed on sign in page"
+                  value={settings.signin_subtitle?.value || ''}
+                  onChange={(value) => updateSetting('signin_subtitle', value)}
+                />
+              </div>
+            </div>
+            <div style={{ paddingTop: '16px', borderTop: '1px solid #282828' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#ffffff', marginBottom: '16px' }}>
+                Sign Up Page
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <SettingField
+                  label="Page Title"
+                  description="Title displayed on sign up page"
+                  value={settings.signup_title?.value || ''}
+                  onChange={(value) => updateSetting('signup_title', value)}
+                />
+                <SettingField
+                  label="Page Subtitle"
+                  description="Subtitle displayed on sign up page"
+                  value={settings.signup_subtitle?.value || ''}
+                  onChange={(value) => updateSetting('signup_subtitle', value)}
+                />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -655,12 +895,47 @@ export default function SettingsPage() {
                 {settings.oauth_github_enabled?.value ? 'ENABLED' : 'DISABLED'}
               </div>
             </div>
-            <SettingToggle
-              label="Enable GitHub Sign-In"
-              description="Allow users to sign in with their GitHub account"
-              value={settings.oauth_github_enabled?.value || false}
-              onChange={(value) => updateSetting('oauth_github_enabled', value)}
-            />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <SettingToggle
+                label="Enable GitHub Sign-In"
+                description="Allow users to sign in with their GitHub account"
+                value={settings.oauth_github_enabled?.value || false}
+                onChange={(value) => updateSetting('oauth_github_enabled', value)}
+              />
+              <SettingField
+                label="Client ID"
+                description="GitHub OAuth App Client ID"
+                value={settings.oauth_github_client_id?.value || ''}
+                onChange={(value) => updateSetting('oauth_github_client_id', value)}
+              />
+              <div>
+                <label style={{ display: 'block', color: '#ffffff', fontWeight: 600, marginBottom: '8px' }}>
+                  Client Secret
+                </label>
+                <p style={{ color: '#b3b3b3', fontSize: '14px', marginBottom: '12px' }}>
+                  GitHub OAuth App Client Secret (stored securely)
+                </p>
+                <input
+                  type="password"
+                  value={settings.oauth_github_client_secret?.value || ''}
+                  onChange={(e) => updateSetting('oauth_github_client_secret', e.target.value)}
+                  placeholder="••••••••••••••••"
+                  style={{
+                    width: '100%',
+                    maxWidth: '400px',
+                    padding: '12px 16px',
+                    background: '#121212',
+                    color: '#ffffff',
+                    border: '1px solid #282828',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    outline: 'none',
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = '#ff4a14'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = '#282828'}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Twitter/X OAuth */}
@@ -683,12 +958,47 @@ export default function SettingsPage() {
                 {settings.oauth_twitter_enabled?.value ? 'ENABLED' : 'DISABLED'}
               </div>
             </div>
-            <SettingToggle
-              label="Enable Twitter Sign-In"
-              description="Allow users to sign in with their Twitter/X account"
-              value={settings.oauth_twitter_enabled?.value || false}
-              onChange={(value) => updateSetting('oauth_twitter_enabled', value)}
-            />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <SettingToggle
+                label="Enable Twitter Sign-In"
+                description="Allow users to sign in with their Twitter/X account"
+                value={settings.oauth_twitter_enabled?.value || false}
+                onChange={(value) => updateSetting('oauth_twitter_enabled', value)}
+              />
+              <SettingField
+                label="Client ID"
+                description="Twitter/X OAuth 2.0 Client ID"
+                value={settings.oauth_twitter_client_id?.value || ''}
+                onChange={(value) => updateSetting('oauth_twitter_client_id', value)}
+              />
+              <div>
+                <label style={{ display: 'block', color: '#ffffff', fontWeight: 600, marginBottom: '8px' }}>
+                  Client Secret
+                </label>
+                <p style={{ color: '#b3b3b3', fontSize: '14px', marginBottom: '12px' }}>
+                  Twitter/X OAuth 2.0 Client Secret (stored securely)
+                </p>
+                <input
+                  type="password"
+                  value={settings.oauth_twitter_client_secret?.value || ''}
+                  onChange={(e) => updateSetting('oauth_twitter_client_secret', e.target.value)}
+                  placeholder="••••••••••••••••"
+                  style={{
+                    width: '100%',
+                    maxWidth: '400px',
+                    padding: '12px 16px',
+                    background: '#121212',
+                    color: '#ffffff',
+                    border: '1px solid #282828',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    outline: 'none',
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = '#ff4a14'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = '#282828'}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Discord OAuth */}
@@ -711,12 +1021,47 @@ export default function SettingsPage() {
                 {settings.oauth_discord_enabled?.value ? 'ENABLED' : 'DISABLED'}
               </div>
             </div>
-            <SettingToggle
-              label="Enable Discord Sign-In"
-              description="Allow users to sign in with their Discord account"
-              value={settings.oauth_discord_enabled?.value || false}
-              onChange={(value) => updateSetting('oauth_discord_enabled', value)}
-            />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <SettingToggle
+                label="Enable Discord Sign-In"
+                description="Allow users to sign in with their Discord account"
+                value={settings.oauth_discord_enabled?.value || false}
+                onChange={(value) => updateSetting('oauth_discord_enabled', value)}
+              />
+              <SettingField
+                label="Client ID"
+                description="Discord Application Client ID"
+                value={settings.oauth_discord_client_id?.value || ''}
+                onChange={(value) => updateSetting('oauth_discord_client_id', value)}
+              />
+              <div>
+                <label style={{ display: 'block', color: '#ffffff', fontWeight: 600, marginBottom: '8px' }}>
+                  Client Secret
+                </label>
+                <p style={{ color: '#b3b3b3', fontSize: '14px', marginBottom: '12px' }}>
+                  Discord Application Client Secret (stored securely)
+                </p>
+                <input
+                  type="password"
+                  value={settings.oauth_discord_client_secret?.value || ''}
+                  onChange={(e) => updateSetting('oauth_discord_client_secret', e.target.value)}
+                  placeholder="••••••••••••••••"
+                  style={{
+                    width: '100%',
+                    maxWidth: '400px',
+                    padding: '12px 16px',
+                    background: '#121212',
+                    color: '#ffffff',
+                    border: '1px solid #282828',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    outline: 'none',
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = '#ff4a14'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = '#282828'}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Microsoft OAuth */}
@@ -742,16 +1087,51 @@ export default function SettingsPage() {
                 {settings.oauth_microsoft_enabled?.value ? 'ENABLED' : 'DISABLED'}
               </div>
             </div>
-            <SettingToggle
-              label="Enable Microsoft Sign-In"
-              description="Allow users to sign in with their Microsoft account"
-              value={settings.oauth_microsoft_enabled?.value || false}
-              onChange={(value) => updateSetting('oauth_microsoft_enabled', value)}
-            />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <SettingToggle
+                label="Enable Microsoft Sign-In"
+                description="Allow users to sign in with their Microsoft account"
+                value={settings.oauth_microsoft_enabled?.value || false}
+                onChange={(value) => updateSetting('oauth_microsoft_enabled', value)}
+              />
+              <SettingField
+                label="Client ID"
+                description="Azure AD Application (client) ID"
+                value={settings.oauth_microsoft_client_id?.value || ''}
+                onChange={(value) => updateSetting('oauth_microsoft_client_id', value)}
+              />
+              <div>
+                <label style={{ display: 'block', color: '#ffffff', fontWeight: 600, marginBottom: '8px' }}>
+                  Client Secret
+                </label>
+                <p style={{ color: '#b3b3b3', fontSize: '14px', marginBottom: '12px' }}>
+                  Azure AD Application Client Secret (stored securely)
+                </p>
+                <input
+                  type="password"
+                  value={settings.oauth_microsoft_client_secret?.value || ''}
+                  onChange={(e) => updateSetting('oauth_microsoft_client_secret', e.target.value)}
+                  placeholder="••••••••••••••••"
+                  style={{
+                    width: '100%',
+                    maxWidth: '400px',
+                    padding: '12px 16px',
+                    background: '#121212',
+                    color: '#ffffff',
+                    border: '1px solid #282828',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    outline: 'none',
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = '#ff4a14'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = '#282828'}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Spotify OAuth */}
-          <div style={{ marginBottom: '24px', paddingBottom: '24px', borderBottom: '1px solid #282828' }}>
+          <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="#1DB954">
                 <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
@@ -770,12 +1150,47 @@ export default function SettingsPage() {
                 {settings.oauth_spotify_enabled?.value ? 'ENABLED' : 'DISABLED'}
               </div>
             </div>
-            <SettingToggle
-              label="Enable Spotify Sign-In"
-              description="Allow users to sign in with their Spotify account"
-              value={settings.oauth_spotify_enabled?.value || false}
-              onChange={(value) => updateSetting('oauth_spotify_enabled', value)}
-            />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <SettingToggle
+                label="Enable Spotify Sign-In"
+                description="Allow users to sign in with their Spotify account"
+                value={settings.oauth_spotify_enabled?.value || false}
+                onChange={(value) => updateSetting('oauth_spotify_enabled', value)}
+              />
+              <SettingField
+                label="Client ID"
+                description="Spotify App Client ID"
+                value={settings.oauth_spotify_client_id?.value || ''}
+                onChange={(value) => updateSetting('oauth_spotify_client_id', value)}
+              />
+              <div>
+                <label style={{ display: 'block', color: '#ffffff', fontWeight: 600, marginBottom: '8px' }}>
+                  Client Secret
+                </label>
+                <p style={{ color: '#b3b3b3', fontSize: '14px', marginBottom: '12px' }}>
+                  Spotify App Client Secret (stored securely)
+                </p>
+                <input
+                  type="password"
+                  value={settings.oauth_spotify_client_secret?.value || ''}
+                  onChange={(e) => updateSetting('oauth_spotify_client_secret', e.target.value)}
+                  placeholder="••••••••••••••••"
+                  style={{
+                    width: '100%',
+                    maxWidth: '400px',
+                    padding: '12px 16px',
+                    background: '#121212',
+                    color: '#ffffff',
+                    border: '1px solid #282828',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    outline: 'none',
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = '#ff4a14'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = '#282828'}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Setup Instructions */}
