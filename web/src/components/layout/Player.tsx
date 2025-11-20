@@ -153,11 +153,15 @@ export const Player = () => {
       <div
         ref={playerRef}
         className={`fixed left-0 right-0 bg-[#181818]/98 backdrop-blur-xl border-t border-white/5 z-[60] transition-all duration-300 ease-out ${
-          isExpanded ? 'bottom-full opacity-0' : 'bottom-0 mb-16 lg:mb-0'
+          isExpanded ? 'bottom-full opacity-0' : 'bottom-[64px] lg:bottom-0'
         }`}
         style={{
           transform: isDragging && !isExpanded ? `translateY(${Math.min(0, dragOffset)}px)` : undefined,
+          paddingBottom: 'env(safe-area-inset-bottom)',
         }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         {/* Clickable Progress Bar */}
         <div
@@ -343,15 +347,20 @@ export const Player = () => {
         }`}
         style={{
           transform: isDragging && isExpanded ? `translateY(${Math.max(0, dragOffset)}px)` : undefined,
+          paddingTop: 'env(safe-area-inset-top)',
+          paddingBottom: 'env(safe-area-inset-bottom)',
         }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
+        {/* Pull-down indicator for mobile */}
+        <div className="sm:hidden flex justify-center pt-3 pb-1">
+          <div className="w-10 h-1 bg-white/20 rounded-full" />
+        </div>
+
         {/* Header */}
-        <div
-          className="flex items-center justify-between px-4 py-3 safe-area-top"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
+        <div className="flex items-center justify-between px-4 py-3 sm:pt-3">
           <button
             onClick={() => {
               setIsExpanded(false);
@@ -622,9 +631,9 @@ export const Player = () => {
             <div className="flex items-center justify-between mb-6 max-w-sm mx-auto w-full">
               <button
                 onClick={toggleShuffle}
-                className={`p-3 transition-all hover:scale-110 active:scale-95 ${shuffle ? 'text-primary' : 'text-white/60 hover:text-white'}`}
+                className={`p-4 -m-1 transition-all hover:scale-110 active:scale-95 ${shuffle ? 'text-primary' : 'text-white/60 hover:text-white'}`}
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="16 3 21 3 21 8" />
                   <line x1="4" y1="20" x2="21" y2="3" />
                   <polyline points="21 16 21 21 16 21" />
@@ -635,24 +644,25 @@ export const Player = () => {
 
               <button
                 onClick={skipBackward}
-                className="p-3 text-white hover:scale-110 active:scale-95 transition-transform"
+                className="p-4 -m-1 text-white hover:scale-110 active:scale-95 transition-transform"
               >
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
                 </svg>
               </button>
 
               <button
                 onClick={togglePlayPause}
-                className="w-16 h-16 bg-white rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-transform shadow-xl"
+                className="w-18 h-18 sm:w-16 sm:h-16 bg-white rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-transform shadow-xl"
+                style={{ width: '72px', height: '72px' }}
               >
                 {isPlaying ? (
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="black">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="black">
                     <rect x="6" y="4" width="4" height="16" rx="1" />
                     <rect x="14" y="4" width="4" height="16" rx="1" />
                   </svg>
                 ) : (
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="black" className="ml-1">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="black" className="ml-1">
                     <polygon points="5 3 19 12 5 21" />
                   </svg>
                 )}
@@ -660,18 +670,18 @@ export const Player = () => {
 
               <button
                 onClick={skipForward}
-                className="p-3 text-white hover:scale-110 active:scale-95 transition-transform"
+                className="p-4 -m-1 text-white hover:scale-110 active:scale-95 transition-transform"
               >
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M16 18h2V6h-2zM6 18l8.5-6L6 6z" />
                 </svg>
               </button>
 
               <button
                 onClick={toggleRepeat}
-                className={`p-3 transition-all hover:scale-110 active:scale-95 relative ${repeat !== 'off' ? 'text-primary' : 'text-white/60 hover:text-white'}`}
+                className={`p-4 -m-1 transition-all hover:scale-110 active:scale-95 relative ${repeat !== 'off' ? 'text-primary' : 'text-white/60 hover:text-white'}`}
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="17 1 21 5 17 9" />
                   <path d="M3 11V9a4 4 0 0 1 4-4h14" />
                   <polyline points="7 23 3 19 7 15" />
@@ -688,10 +698,10 @@ export const Player = () => {
               {/* Add to Playlist */}
               <button
                 onClick={() => setShowPlaylistModal(true)}
-                className="p-3 text-white/60 hover:text-white transition-colors"
+                className="p-4 -m-1 text-white/60 hover:text-white transition-colors active:scale-95"
                 title="Add to Playlist"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 5v14M5 12h14" />
                 </svg>
               </button>
@@ -699,10 +709,10 @@ export const Player = () => {
               {/* Share */}
               <button
                 onClick={() => setShowShareModal(true)}
-                className="p-3 text-white/60 hover:text-white transition-colors"
+                className="p-4 -m-1 text-white/60 hover:text-white transition-colors active:scale-95"
                 title="Share"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
                   <polyline points="16 6 12 2 8 6" />
                   <line x1="12" y1="2" x2="12" y2="15" />
@@ -712,10 +722,10 @@ export const Player = () => {
               {/* Embed */}
               <button
                 onClick={() => setShowEmbedModal(true)}
-                className="p-3 text-white/60 hover:text-white transition-colors"
+                className="p-4 -m-1 text-white/60 hover:text-white transition-colors active:scale-95"
                 title="Embed"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="16 18 22 12 16 6" />
                   <polyline points="8 6 2 12 8 18" />
                 </svg>
@@ -725,17 +735,17 @@ export const Player = () => {
               <div className="hidden lg:block">
                 <button
                   onClick={toggleMute}
-                  className="p-3 text-white/60 hover:text-white transition-colors"
+                  className="p-4 -m-1 text-white/60 hover:text-white transition-colors"
                   title={isMuted ? 'Unmute' : 'Mute'}
                 >
                   {isMuted || volume === 0 ? (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
                       <line x1="23" y1="9" x2="17" y2="15" />
                       <line x1="17" y1="9" x2="23" y2="15" />
                     </svg>
                   ) : (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
                       <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
                     </svg>
