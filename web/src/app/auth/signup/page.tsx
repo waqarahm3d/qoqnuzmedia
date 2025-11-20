@@ -57,27 +57,8 @@ export default function SignupPage() {
       if (authError) throw authError;
 
       if (authData.user) {
-        // Generate unique username
-        const timestamp = Date.now().toString(36);
-        const randomStr = Math.random().toString(36).substring(2, 6);
-        const baseUsername = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-        const username = `${baseUsername}_${timestamp}${randomStr}`;
-
-        // Create profile
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: authData.user.id,
-            username: username,
-            display_name: fullName,
-            full_name: fullName,
-          });
-
-        if (profileError) {
-          console.error('Profile creation error:', profileError);
-          // Profile creation failed but auth succeeded - user can still sign in
-        }
-
+        // Profile is automatically created by database trigger (handle_new_user)
+        // The trigger uses the full_name from user metadata we passed above
         setSuccess(true);
       }
     } catch (err: any) {
