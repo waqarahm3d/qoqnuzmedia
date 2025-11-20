@@ -400,7 +400,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Feature Flags */}
-        <div style={{ background: '#181818', borderRadius: '12px', padding: '24px', marginBottom: '32px' }}>
+        <div style={{ background: '#181818', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
           <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#ffffff', marginBottom: '20px' }}>
             Features
           </h2>
@@ -417,6 +417,236 @@ export default function SettingsPage() {
               value={settings.enable_group_sessions?.value || false}
               onChange={(value) => updateSetting('enable_group_sessions', value)}
             />
+          </div>
+        </div>
+
+        {/* OAuth Provider Configuration */}
+        <div style={{ background: '#181818', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#ffffff', marginBottom: '8px' }}>
+            OAuth Providers
+          </h2>
+          <p style={{ color: '#b3b3b3', fontSize: '14px', marginBottom: '20px' }}>
+            Configure social login providers. After entering credentials here, you must also configure them in your Supabase Dashboard under Authentication &gt; Providers.
+          </p>
+
+          {/* Google OAuth */}
+          <div style={{ marginBottom: '24px', paddingBottom: '24px', borderBottom: '1px solid #282828' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#ffffff', margin: 0 }}>
+                Google
+              </h3>
+              <div style={{
+                padding: '4px 8px',
+                background: settings.oauth_google_enabled?.value ? 'rgba(34, 197, 94, 0.2)' : 'rgba(107, 114, 128, 0.2)',
+                color: settings.oauth_google_enabled?.value ? '#22c55e' : '#6b7280',
+                borderRadius: '4px',
+                fontSize: '11px',
+                fontWeight: 600,
+              }}>
+                {settings.oauth_google_enabled?.value ? 'ENABLED' : 'DISABLED'}
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <SettingToggle
+                label="Enable Google Sign-In"
+                description="Allow users to sign in with their Google account"
+                value={settings.oauth_google_enabled?.value || false}
+                onChange={(value) => updateSetting('oauth_google_enabled', value)}
+              />
+              <SettingField
+                label="Client ID"
+                description="Google OAuth 2.0 Client ID from Google Cloud Console"
+                value={settings.oauth_google_client_id?.value || ''}
+                onChange={(value) => updateSetting('oauth_google_client_id', value)}
+              />
+              <div>
+                <label style={{ display: 'block', color: '#ffffff', fontWeight: 600, marginBottom: '8px' }}>
+                  Client Secret
+                </label>
+                <p style={{ color: '#b3b3b3', fontSize: '14px', marginBottom: '12px' }}>
+                  Google OAuth 2.0 Client Secret (stored securely)
+                </p>
+                <input
+                  type="password"
+                  value={settings.oauth_google_client_secret?.value || ''}
+                  onChange={(e) => updateSetting('oauth_google_client_secret', e.target.value)}
+                  placeholder="••••••••••••••••"
+                  style={{
+                    width: '100%',
+                    maxWidth: '400px',
+                    padding: '12px 16px',
+                    background: '#121212',
+                    color: '#ffffff',
+                    border: '1px solid #282828',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    outline: 'none',
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = '#ff4a14'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = '#282828'}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Apple OAuth */}
+          <div style={{ marginBottom: '24px', paddingBottom: '24px', borderBottom: '1px solid #282828' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff">
+                <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+              </svg>
+              <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#ffffff', margin: 0 }}>
+                Apple
+              </h3>
+              <div style={{
+                padding: '4px 8px',
+                background: settings.oauth_apple_enabled?.value ? 'rgba(34, 197, 94, 0.2)' : 'rgba(107, 114, 128, 0.2)',
+                color: settings.oauth_apple_enabled?.value ? '#22c55e' : '#6b7280',
+                borderRadius: '4px',
+                fontSize: '11px',
+                fontWeight: 600,
+              }}>
+                {settings.oauth_apple_enabled?.value ? 'ENABLED' : 'DISABLED'}
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <SettingToggle
+                label="Enable Apple Sign-In"
+                description="Allow users to sign in with their Apple ID"
+                value={settings.oauth_apple_enabled?.value || false}
+                onChange={(value) => updateSetting('oauth_apple_enabled', value)}
+              />
+              <SettingField
+                label="Services ID"
+                description="Apple Services ID from Apple Developer Portal"
+                value={settings.oauth_apple_services_id?.value || ''}
+                onChange={(value) => updateSetting('oauth_apple_services_id', value)}
+              />
+              <SettingField
+                label="Team ID"
+                description="Your Apple Developer Team ID"
+                value={settings.oauth_apple_team_id?.value || ''}
+                onChange={(value) => updateSetting('oauth_apple_team_id', value)}
+              />
+              <SettingField
+                label="Key ID"
+                description="Apple Sign-In Key ID"
+                value={settings.oauth_apple_key_id?.value || ''}
+                onChange={(value) => updateSetting('oauth_apple_key_id', value)}
+              />
+              <div>
+                <label style={{ display: 'block', color: '#ffffff', fontWeight: 600, marginBottom: '8px' }}>
+                  Private Key
+                </label>
+                <p style={{ color: '#b3b3b3', fontSize: '14px', marginBottom: '12px' }}>
+                  Apple Sign-In private key (.p8 file contents)
+                </p>
+                <textarea
+                  value={settings.oauth_apple_private_key?.value || ''}
+                  onChange={(e) => updateSetting('oauth_apple_private_key', e.target.value)}
+                  placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----"
+                  rows={4}
+                  style={{
+                    width: '100%',
+                    maxWidth: '400px',
+                    padding: '12px 16px',
+                    background: '#121212',
+                    color: '#ffffff',
+                    border: '1px solid #282828',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    fontFamily: 'monospace',
+                    outline: 'none',
+                    resize: 'vertical',
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = '#ff4a14'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = '#282828'}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Facebook OAuth */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="#1877F2">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+              <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#ffffff', margin: 0 }}>
+                Facebook
+              </h3>
+              <div style={{
+                padding: '4px 8px',
+                background: settings.oauth_facebook_enabled?.value ? 'rgba(34, 197, 94, 0.2)' : 'rgba(107, 114, 128, 0.2)',
+                color: settings.oauth_facebook_enabled?.value ? '#22c55e' : '#6b7280',
+                borderRadius: '4px',
+                fontSize: '11px',
+                fontWeight: 600,
+              }}>
+                {settings.oauth_facebook_enabled?.value ? 'ENABLED' : 'DISABLED'}
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <SettingToggle
+                label="Enable Facebook Sign-In"
+                description="Allow users to sign in with their Facebook account"
+                value={settings.oauth_facebook_enabled?.value || false}
+                onChange={(value) => updateSetting('oauth_facebook_enabled', value)}
+              />
+              <SettingField
+                label="App ID"
+                description="Facebook App ID from Meta Developer Portal"
+                value={settings.oauth_facebook_app_id?.value || ''}
+                onChange={(value) => updateSetting('oauth_facebook_app_id', value)}
+              />
+              <div>
+                <label style={{ display: 'block', color: '#ffffff', fontWeight: 600, marginBottom: '8px' }}>
+                  App Secret
+                </label>
+                <p style={{ color: '#b3b3b3', fontSize: '14px', marginBottom: '12px' }}>
+                  Facebook App Secret (stored securely)
+                </p>
+                <input
+                  type="password"
+                  value={settings.oauth_facebook_app_secret?.value || ''}
+                  onChange={(e) => updateSetting('oauth_facebook_app_secret', e.target.value)}
+                  placeholder="••••••••••••••••"
+                  style={{
+                    width: '100%',
+                    maxWidth: '400px',
+                    padding: '12px 16px',
+                    background: '#121212',
+                    color: '#ffffff',
+                    border: '1px solid #282828',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    outline: 'none',
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = '#ff4a14'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = '#282828'}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Setup Instructions */}
+          <div style={{ marginTop: '24px', padding: '16px', background: '#121212', borderRadius: '8px', border: '1px solid #282828' }}>
+            <h4 style={{ fontSize: '14px', fontWeight: 'bold', color: '#ffffff', marginBottom: '8px' }}>
+              Setup Instructions
+            </h4>
+            <ol style={{ color: '#b3b3b3', fontSize: '13px', margin: 0, paddingLeft: '20px', lineHeight: '1.8' }}>
+              <li>Enter your OAuth credentials above</li>
+              <li>Go to your Supabase Dashboard &gt; Authentication &gt; Providers</li>
+              <li>Enable each provider and enter the same credentials</li>
+              <li>Set the redirect URL to: <code style={{ background: '#282828', padding: '2px 6px', borderRadius: '4px', fontSize: '12px' }}>{typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback</code></li>
+              <li>Save settings in both places</li>
+            </ol>
           </div>
         </div>
 
