@@ -189,7 +189,19 @@ export function SiteSettingsProvider({ children }: { children: ReactNode }) {
         data.settings.forEach((setting: any) => {
           const key = setting.key as keyof SiteSettings;
           if (key in mergedSettings) {
-            (mergedSettings as any)[key] = setting.value;
+            // Convert string values to appropriate types
+            let value = setting.value;
+
+            // Convert string booleans to actual booleans
+            if (value === 'true' || value === 'false') {
+              value = value === 'true';
+            }
+            // Convert string numbers to numbers
+            else if (setting.setting_type === 'number' && !isNaN(Number(value))) {
+              value = Number(value);
+            }
+
+            (mergedSettings as any)[key] = value;
           }
         });
       }
