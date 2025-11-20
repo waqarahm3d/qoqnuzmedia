@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin, requirePermission } from '@/lib/auth/admin-middleware';
+import { deleteFromR2 } from '@/lib/r2';
 
 export const dynamic = 'force-dynamic';
 
@@ -139,7 +140,7 @@ export async function PUT(
 
 /**
  * DELETE /api/admin/tracks/[trackId]
- * Delete track
+ * Delete track and associated files from R2 storage
  */
 export async function DELETE(
   request: NextRequest,
@@ -155,14 +156,56 @@ export async function DELETE(
   const { trackId } = params;
 
   try {
-    const { error } = await supabase
+    // First, fetch the track to get file paths
+    const { data: track, error: fetchError } = await supabase
+      .from('tracks')
+      .select('id, audio_url, cover_art_url')
+      .eq('id', trackId)
+      .single();
+
+    if (fetchError) {
+      console.error('Failed to fetch track for deletion:', fetchError);
+      throw fetchError;
+    }
+
+    if (!track) {
+      return NextResponse.json({ error: 'Track not found' }, { status: 404 });
+    }
+
+    // Delete audio file from R2 storage
+    if (track.audio_url) {
+      try {
+        console.log(`[Track Delete] Deleting audio from R2: ${track.audio_url}`);
+        await deleteFromR2(track.audio_url);
+        console.log(`[Track Delete] Audio deleted successfully`);
+      } catch (r2Error: any) {
+        // Log but don't fail - file might not exist or already deleted
+        console.error(`[Track Delete] Failed to delete audio from R2: ${r2Error.message}`);
+      }
+    }
+
+    // Delete cover art from R2 storage if it exists and is not shared with album
+    if (track.cover_art_url && track.cover_art_url.startsWith('covers/')) {
+      try {
+        console.log(`[Track Delete] Deleting cover art from R2: ${track.cover_art_url}`);
+        await deleteFromR2(track.cover_art_url);
+        console.log(`[Track Delete] Cover art deleted successfully`);
+      } catch (r2Error: any) {
+        // Log but don't fail - file might not exist or already deleted
+        console.error(`[Track Delete] Failed to delete cover art from R2: ${r2Error.message}`);
+      }
+    }
+
+    // Delete the track record from database
+    const { error: deleteError } = await supabase
       .from('tracks')
       .delete()
       .eq('id', trackId);
 
-    if (error) throw error;
+    if (deleteError) throw deleteError;
 
-    return NextResponse.json({ message: 'Track deleted successfully' });
+    console.log(`[Track Delete] Track ${trackId} deleted successfully with R2 cleanup`);
+    return NextResponse.json({ message: 'Track and associated files deleted successfully' });
   } catch (error: any) {
     console.error('Delete track error:', error);
     return NextResponse.json(
