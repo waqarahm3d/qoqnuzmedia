@@ -37,3 +37,42 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+/**
+ * DELETE /api/admin/email/campaigns?id=xxx
+ * Delete a specific email campaign
+ */
+export async function DELETE(request: NextRequest) {
+  const { user, adminUser, response, supabase } = await requireAdmin(request);
+  if (response) return response;
+
+  try {
+    const { searchParams } = new URL(request.url);
+    const campaignId = searchParams.get('id');
+
+    if (!campaignId) {
+      return NextResponse.json(
+        { error: 'Campaign ID is required' },
+        { status: 400 }
+      );
+    }
+
+    const { error } = await supabase
+      .from('email_campaigns')
+      .delete()
+      .eq('id', campaignId);
+
+    if (error) throw error;
+
+    return NextResponse.json({
+      success: true,
+      message: 'Campaign deleted successfully'
+    });
+  } catch (error: any) {
+    console.error('Delete campaign error:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete campaign', details: error.message },
+      { status: 500 }
+    );
+  }
+}

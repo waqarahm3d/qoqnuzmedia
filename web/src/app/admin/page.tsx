@@ -255,7 +255,18 @@ export default function AdminDashboard() {
                     </span>
                     <div className="w-10 h-10 rounded-full bg-white/10 overflow-hidden flex-shrink-0">
                       {artist.artists?.avatar_url ? (
-                        <img src={artist.artists.avatar_url} alt="" className="w-full h-full object-cover" />
+                        <img
+                          src={artist.artists.avatar_url}
+                          alt=""
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            const fallback = document.createElement('div');
+                            fallback.className = 'w-full h-full flex items-center justify-center text-white/40 text-sm';
+                            fallback.textContent = (artist.artists?.name || 'A')[0];
+                            e.currentTarget.parentElement?.appendChild(fallback);
+                          }}
+                        />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-white/40 text-sm">
                           {(artist.artists?.name || 'A')[0]}
@@ -324,8 +335,16 @@ export default function AdminDashboard() {
                   </span>
                   <div className="w-10 h-10 rounded bg-white/10 overflow-hidden flex-shrink-0">
                     {album.cover_url ? (
-                      <img src={album.cover_url} alt="" className="w-full h-full object-cover" />
-                    ) : (
+                      <img
+                        src={album.cover_url}
+                        alt=""
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    ) : null}
+                    {!album.cover_url && (
                       <div className="w-full h-full flex items-center justify-center text-white/40">
                         <AlbumIcon />
                       </div>
@@ -360,8 +379,16 @@ export default function AdminDashboard() {
                   </span>
                   <div className="w-10 h-10 rounded bg-white/10 overflow-hidden flex-shrink-0">
                     {playlist.cover_url ? (
-                      <img src={playlist.cover_url} alt="" className="w-full h-full object-cover" />
-                    ) : (
+                      <img
+                        src={playlist.cover_url}
+                        alt=""
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    ) : null}
+                    {!playlist.cover_url && (
                       <div className="w-full h-full flex items-center justify-center text-white/40">
                         <PlaylistIcon />
                       </div>

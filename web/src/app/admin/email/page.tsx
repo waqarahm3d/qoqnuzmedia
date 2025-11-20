@@ -18,6 +18,8 @@ export default function EmailPage() {
   const [loadingCampaigns, setLoadingCampaigns] = useState(false);
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [smtpStatus, setSmtpStatus] = useState<'unknown' | 'connected' | 'error'>('unknown');
+  const [deletingCampaign, setDeletingCampaign] = useState<string | null>(null);
+  const [clearingLogs, setClearingLogs] = useState(false);
 
   useEffect(() => {
     if (activeTab === 'campaigns') {
@@ -147,6 +149,72 @@ export default function EmailPage() {
       console.error('Error fetching logs:', error);
     } finally {
       setLoadingLogs(false);
+    }
+  };
+
+  const deleteCampaign = async (campaignId: string) => {
+    if (!confirm('Are you sure you want to delete this campaign? This action cannot be undone.')) {
+      return;
+    }
+
+    setDeletingCampaign(campaignId);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const response = await fetch(`/api/admin/email/campaigns?id=${campaignId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setMessage({ type: 'success', text: 'Campaign deleted successfully' });
+        fetchCampaigns(); // Refresh the list
+      } else {
+        setMessage({ type: 'error', text: result.error || 'Failed to delete campaign' });
+      }
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message });
+    } finally {
+      setDeletingCampaign(null);
+    }
+  };
+
+  const clearAllLogs = async () => {
+    if (!confirm('Are you sure you want to clear ALL email logs? This action cannot be undone.')) {
+      return;
+    }
+
+    setClearingLogs(true);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const response = await fetch('/api/admin/email/logs', {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setMessage({ type: 'success', text: result.message || 'Logs cleared successfully' });
+        fetchLogs(); // Refresh the list
+      } else {
+        setMessage({ type: 'error', text: result.error || 'Failed to clear logs' });
+      }
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message });
+    } finally {
+      setClearingLogs(false);
     }
   };
 
@@ -372,32 +440,51 @@ export default function EmailPage() {
                         </h3>
                         <p style={{ color: '#b3b3b3', fontSize: '14px' }}>{campaign.subject}</p>
                       </div>
-                      <span
-                        style={{
-                          padding: '4px 12px',
-                          borderRadius: '4px',
-                          fontSize: '12px',
-                          fontWeight: 600,
-                          background:
-                            campaign.status === 'sent'
-                              ? 'rgba(34, 197, 94, 0.2)'
-                              : campaign.status === 'sending'
-                              ? 'rgba(59, 130, 246, 0.2)'
-                              : campaign.status === 'failed'
-                              ? 'rgba(239, 68, 68, 0.2)'
-                              : 'rgba(107, 114, 128, 0.2)',
-                          color:
-                            campaign.status === 'sent'
-                              ? '#22c55e'
-                              : campaign.status === 'sending'
-                              ? '#3b82f6'
-                              : campaign.status === 'failed'
-                              ? '#ef4444'
-                              : '#6b7280',
-                        }}
-                      >
-                        {campaign.status}
-                      </span>
+                      <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                        <span
+                          style={{
+                            padding: '4px 12px',
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            background:
+                              campaign.status === 'sent'
+                                ? 'rgba(34, 197, 94, 0.2)'
+                                : campaign.status === 'sending'
+                                ? 'rgba(59, 130, 246, 0.2)'
+                                : campaign.status === 'failed'
+                                ? 'rgba(239, 68, 68, 0.2)'
+                                : 'rgba(107, 114, 128, 0.2)',
+                            color:
+                              campaign.status === 'sent'
+                                ? '#22c55e'
+                                : campaign.status === 'sending'
+                                ? '#3b82f6'
+                                : campaign.status === 'failed'
+                                ? '#ef4444'
+                                : '#6b7280',
+                          }}
+                        >
+                          {campaign.status}
+                        </span>
+                        <button
+                          onClick={() => deleteCampaign(campaign.id)}
+                          disabled={deletingCampaign === campaign.id}
+                          style={{
+                            padding: '6px 12px',
+                            background: 'rgba(239, 68, 68, 0.1)',
+                            color: '#ef4444',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            cursor: deletingCampaign === campaign.id ? 'not-allowed' : 'pointer',
+                            opacity: deletingCampaign === campaign.id ? 0.6 : 1,
+                          }}
+                        >
+                          {deletingCampaign === campaign.id ? 'Deleting...' : 'Delete'}
+                        </button>
+                      </div>
                     </div>
                     <div style={{ display: 'flex', gap: '24px', fontSize: '14px', color: '#b3b3b3' }}>
                       <span>Recipients: {campaign.total_recipients}</span>
@@ -419,22 +506,40 @@ export default function EmailPage() {
               <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#ffffff' }}>
                 Email Logs
               </h2>
-              <button
-                onClick={fetchLogs}
-                disabled={loadingLogs}
-                style={{
-                  padding: '10px 20px',
-                  background: '#282828',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  cursor: loadingLogs ? 'not-allowed' : 'pointer',
-                }}
-              >
-                {loadingLogs ? 'Refreshing...' : 'Refresh'}
-              </button>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  onClick={clearAllLogs}
+                  disabled={clearingLogs || logs.length === 0}
+                  style={{
+                    padding: '10px 20px',
+                    background: clearingLogs || logs.length === 0 ? '#282828' : 'rgba(239, 68, 68, 0.1)',
+                    color: clearingLogs || logs.length === 0 ? '#666666' : '#ef4444',
+                    border: clearingLogs || logs.length === 0 ? 'none' : '1px solid rgba(239, 68, 68, 0.3)',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    cursor: clearingLogs || logs.length === 0 ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {clearingLogs ? 'Clearing...' : 'Clear All Logs'}
+                </button>
+                <button
+                  onClick={fetchLogs}
+                  disabled={loadingLogs}
+                  style={{
+                    padding: '10px 20px',
+                    background: '#282828',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    cursor: loadingLogs ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {loadingLogs ? 'Refreshing...' : 'Refresh'}
+                </button>
+              </div>
             </div>
 
             {logs.length === 0 ? (

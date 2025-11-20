@@ -50,3 +50,32 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+/**
+ * DELETE /api/admin/email/logs
+ * Clear all email logs
+ */
+export async function DELETE(request: NextRequest) {
+  const { user, adminUser, response, supabase } = await requireAdmin(request);
+  if (response) return response;
+
+  try {
+    const { error, count } = await supabase
+      .from('email_logs')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all rows
+
+    if (error) throw error;
+
+    return NextResponse.json({
+      success: true,
+      message: `Successfully cleared ${count || 0} email logs`
+    });
+  } catch (error: any) {
+    console.error('Clear email logs error:', error);
+    return NextResponse.json(
+      { error: 'Failed to clear email logs', details: error.message },
+      { status: 500 }
+    );
+  }
+}
