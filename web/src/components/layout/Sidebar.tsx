@@ -36,8 +36,8 @@ const primaryNavItems: NavItem[] = [
 ];
 
 const secondaryNavItems: NavItem[] = [
-  { label: 'Create Playlist', href: '/playlist/new', icon: PlusIcon },
-  { label: 'Liked Songs', href: '/liked', icon: HeartIcon },
+  { label: 'Create Playlist', href: '/library/playlists', icon: PlusIcon },
+  { label: 'Liked Songs', href: '/library/tracks', icon: HeartIcon },
 ];
 
 export function Sidebar() {
