@@ -5,7 +5,7 @@
  *
  * @example
  * ```tsx
- * import { Button, Card, AlbumCard } from '@/components/ui';
+ * import { Button, Card, AlbumCard, Input } from '@/components/ui';
  * ```
  */
 
@@ -26,3 +26,7 @@ export {
 
 export { AlbumCard, type AlbumCardProps } from './card/AlbumCard';
 export { TrackCard, type TrackCardProps } from './card/TrackCard';
+
+// Input Components
+export { Input, inputVariants, type InputProps } from './input/Input';
+export { SearchInput, type SearchInputProps } from './input/SearchInput';
