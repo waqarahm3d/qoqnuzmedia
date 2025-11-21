@@ -1,0 +1,314 @@
+/**
+ * Qoqnuz Design System
+ * Professional music streaming platform
+ * Following Spotify/Apple Music design principles
+ */
+
+:root {
+  /* ==================== COLORS ==================== */
+
+  /* Brand Colors */
+  --qz-primary: #ff4a14;
+  --qz-primary-hover: #e63d0f;
+  --qz-primary-active: #cc3308;
+  --qz-primary-fg: #ffffff;
+
+  /* Background Layers */
+  --qz-bg-base: #0a0a0a;          /* Deep black background */
+  --qz-bg-elevated: #121212;       /* Slightly elevated */
+  --qz-bg-surface: #1a1a1a;        /* Cards, panels */
+  --qz-bg-surface-hover: #242424;  /* Hover state */
+  --qz-bg-surface-active: #2a2a2a; /* Active/pressed state */
+
+  /* Borders */
+  --qz-border-subtle: #2a2a2a;
+  --qz-border-default: #333333;
+  --qz-border-strong: #404040;
+
+  /* Text Colors */
+  --qz-text-primary: #ffffff;
+  --qz-text-secondary: #b3b3b3;
+  --qz-text-tertiary: #6a6a6a;
+  --qz-text-disabled: #404040;
+  --qz-text-inverse: #0a0a0a;
+
+  /* Status Colors */
+  --qz-success: #1db954;           /* Spotify green */
+  --qz-success-bg: rgba(29, 185, 84, 0.1);
+  --qz-error: #f15e6c;
+  --qz-error-bg: rgba(241, 94, 108, 0.1);
+  --qz-warning: #ffa500;
+  --qz-warning-bg: rgba(255, 165, 0, 0.1);
+  --qz-info: #509bf5;
+  --qz-info-bg: rgba(80, 155, 245, 0.1);
+
+  /* Overlays */
+  --qz-overlay-light: rgba(255, 255, 255, 0.1);
+  --qz-overlay-medium: rgba(255, 255, 255, 0.2);
+  --qz-overlay-heavy: rgba(0, 0, 0, 0.5);
+  --qz-overlay-dark: rgba(0, 0, 0, 0.8);
+
+  /* Gradients */
+  --qz-gradient-primary: linear-gradient(135deg, #ff4a14 0%, #ff6b3d 100%);
+  --qz-gradient-overlay: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 100%);
+  --qz-gradient-subtle: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+
+  /* ==================== TYPOGRAPHY ==================== */
+
+  /* Font Families */
+  --qz-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --qz-font-mono: "SF Mono", "Monaco", "Inconsolata", "Fira Code", monospace;
+
+  /* Font Sizes */
+  --qz-text-xs: 0.75rem;     /* 12px */
+  --qz-text-sm: 0.875rem;    /* 14px */
+  --qz-text-base: 1rem;      /* 16px */
+  --qz-text-lg: 1.125rem;    /* 18px */
+  --qz-text-xl: 1.25rem;     /* 20px */
+  --qz-text-2xl: 1.5rem;     /* 24px */
+  --qz-text-3xl: 1.875rem;   /* 30px */
+  --qz-text-4xl: 2.25rem;    /* 36px */
+  --qz-text-5xl: 3rem;       /* 48px */
+
+  /* Font Weights */
+  --qz-font-normal: 400;
+  --qz-font-medium: 500;
+  --qz-font-semibold: 600;
+  --qz-font-bold: 700;
+  --qz-font-black: 900;
+
+  /* Line Heights */
+  --qz-leading-tight: 1.25;
+  --qz-leading-snug: 1.375;
+  --qz-leading-normal: 1.5;
+  --qz-leading-relaxed: 1.625;
+  --qz-leading-loose: 2;
+
+  /* ==================== SPACING ==================== */
+
+  --qz-space-0: 0;
+  --qz-space-1: 0.25rem;    /* 4px */
+  --qz-space-2: 0.5rem;     /* 8px */
+  --qz-space-3: 0.75rem;    /* 12px */
+  --qz-space-4: 1rem;       /* 16px */
+  --qz-space-5: 1.25rem;    /* 20px */
+  --qz-space-6: 1.5rem;     /* 24px */
+  --qz-space-8: 2rem;       /* 32px */
+  --qz-space-10: 2.5rem;    /* 40px */
+  --qz-space-12: 3rem;      /* 48px */
+  --qz-space-16: 4rem;      /* 64px */
+  --qz-space-20: 5rem;      /* 80px */
+  --qz-space-24: 6rem;      /* 96px */
+
+  /* ==================== SIZING ==================== */
+
+  /* Sidebar */
+  --qz-sidebar-width: 240px;
+  --qz-sidebar-collapsed: 80px;
+
+  /* Header */
+  --qz-header-height: 64px;
+
+  /* Player */
+  --qz-player-height: 90px;
+  --qz-player-mobile-height: 72px;
+
+  /* Content */
+  --qz-content-max-width: 1920px;
+  --qz-content-padding: var(--qz-space-6);
+
+  /* ==================== BORDER RADIUS ==================== */
+
+  --qz-radius-sm: 0.25rem;   /* 4px */
+  --qz-radius-md: 0.5rem;    /* 8px */
+  --qz-radius-lg: 0.75rem;   /* 12px */
+  --qz-radius-xl: 1rem;      /* 16px */
+  --qz-radius-2xl: 1.5rem;   /* 24px */
+  --qz-radius-full: 9999px;  /* Fully rounded */
+
+  /* ==================== SHADOWS ==================== */
+
+  --qz-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --qz-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --qz-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
+  --qz-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+  --qz-shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+
+  /* ==================== TRANSITIONS ==================== */
+
+  --qz-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --qz-transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --qz-transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --qz-transition-spring: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ==================== Z-INDEX ==================== */
+
+  --qz-z-base: 0;
+  --qz-z-dropdown: 1000;
+  --qz-z-sticky: 1100;
+  --qz-z-fixed: 1200;
+  --qz-z-modal-backdrop: 1300;
+  --qz-z-modal: 1400;
+  --qz-z-popover: 1500;
+  --qz-z-tooltip: 1600;
+  --qz-z-toast: 1700;
+}
+
+/* ==================== UTILITY CLASSES ==================== */
+
+.qz-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qz-line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.qz-line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.qz-line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Custom Scrollbar */
+.qz-scrollbar::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.qz-scrollbar::-webkit-scrollbar-track {
+  background: var(--qz-bg-base);
+}
+
+.qz-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--qz-bg-surface-hover);
+  border-radius: var(--qz-radius-full);
+  border: 2px solid var(--qz-bg-base);
+}
+
+.qz-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--qz-bg-surface-active);
+}
+
+/* Thin Scrollbar Variant */
+.qz-scrollbar-thin::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+/* Focus Visible Styles */
+.qz-focus-ring:focus-visible {
+  outline: 2px solid var(--qz-primary);
+  outline-offset: 2px;
+}
+
+/* Skeleton Loading */
+@keyframes qz-skeleton-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.qz-skeleton {
+  animation: qz-skeleton-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background: var(--qz-bg-surface);
+  border-radius: var(--qz-radius-md);
+}
+
+/* Fade In Animation */
+@keyframes qz-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.qz-fade-in {
+  animation: qz-fade-in var(--qz-transition-base);
+}
+
+/* Slide Up Animation */
+@keyframes qz-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.qz-slide-up {
+  animation: qz-slide-up var(--qz-transition-base);
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ==================== RESPONSIVE BREAKPOINTS ==================== */
+
+/*
+  Mobile First Approach:
+
+  sm:  640px  - Small tablets
+  md:  768px  - Tablets
+  lg:  1024px - Laptops
+  xl:  1280px - Desktops
+  2xl: 1536px - Large screens
+*/
+
+/* ==================== DARK MODE (Default) ==================== */
+
+/* This design system is dark mode by default */
+/* Light mode variant can be added with [data-theme="light"] attribute */
+
+[data-theme="light"] {
+  --qz-bg-base: #ffffff;
+  --qz-bg-elevated: #f8f8f8;
+  --qz-bg-surface: #f0f0f0;
+  --qz-bg-surface-hover: #e8e8e8;
+  --qz-bg-surface-active: #e0e0e0;
+
+  --qz-border-subtle: #e8e8e8;
+  --qz-border-default: #d0d0d0;
+  --qz-border-strong: #b8b8b8;
+
+  --qz-text-primary: #000000;
+  --qz-text-secondary: #666666;
+  --qz-text-tertiary: #999999;
+  --qz-text-disabled: #cccccc;
+  --qz-text-inverse: #ffffff;
+
+  --qz-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --qz-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --qz-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --qz-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --qz-shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
