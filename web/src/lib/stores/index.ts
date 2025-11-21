@@ -16,3 +16,5 @@ export { useUIStore, type UIState, type Toast, type ModalType } from './uiStore'
 export { usePlaylistStore } from './playlistStore';
 export { useLibraryStore } from './libraryStore';
 export { useSocialStore } from './socialStore';
+export { useCommentStore } from './commentStore';
+export { useActivityStore } from './activityStore';
