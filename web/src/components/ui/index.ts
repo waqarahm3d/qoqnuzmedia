@@ -26,7 +26,11 @@ export {
 
 export { AlbumCard, type AlbumCardProps } from './card/AlbumCard';
 export { TrackCard, type TrackCardProps } from './card/TrackCard';
+export { PlaylistCard, type PlaylistCardProps } from './card/PlaylistCard';
 
 // Input Components
 export { Input, inputVariants, type InputProps } from './input/Input';
 export { SearchInput, type SearchInputProps } from './input/SearchInput';
+
+// Modal Components
+export { Modal, ModalContent, ModalFooter, type ModalProps } from './modal/Modal';

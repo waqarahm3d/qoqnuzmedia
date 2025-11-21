@@ -54,13 +54,31 @@ export interface Playlist {
   cover_url?: string;
   owner_id: string;
   owner_name?: string;
+  owner_avatar?: string;
   tracks_count?: number;
   duration?: number;
   is_public?: boolean;
   is_collaborative?: boolean;
-  tracks?: Track[];
+  tracks?: PlaylistTrack[];
+  collaborators?: PlaylistCollaborator[];
   created_at?: string;
   updated_at?: string;
+}
+
+export interface PlaylistTrack extends Track {
+  position: number;
+  added_by?: string;
+  added_by_name?: string;
+  added_at?: string;
+}
+
+export interface PlaylistCollaborator {
+  user_id: string;
+  user_name: string;
+  user_avatar?: string;
+  role: 'viewer' | 'editor' | 'admin';
+  invited_by?: string;
+  created_at?: string;
 }
 
 export interface User {
@@ -71,7 +89,50 @@ export interface User {
   bio?: string;
   followers_count?: number;
   following_count?: number;
+  is_following?: boolean;
   created_at?: string;
+}
+
+export interface Comment {
+  id: string;
+  track_id: string;
+  user_id: string;
+  user_name: string;
+  user_avatar?: string;
+  parent_id?: string;
+  content: string;
+  likes_count?: number;
+  is_liked?: boolean;
+  replies?: Comment[];
+  created_at: string;
+  updated_at?: string;
+}
+
+export type ActivityType =
+  | 'follow'
+  | 'playlist_create'
+  | 'playlist_update'
+  | 'track_add'
+  | 'track_like'
+  | 'album_save'
+  | 'artist_follow'
+  | 'comment'
+  | 'playlist_like';
+
+export interface Activity {
+  id: string;
+  user_id: string;
+  actor_id: string;
+  actor_name: string;
+  actor_avatar?: string;
+  type: ActivityType;
+  entity_type?: 'track' | 'album' | 'playlist' | 'user' | 'artist';
+  entity_id?: string;
+  entity_name?: string;
+  entity_image?: string;
+  metadata?: Record<string, any>;
+  is_read: boolean;
+  created_at: string;
 }
 
 // Player-specific types
